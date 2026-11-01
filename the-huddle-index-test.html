@@ -15,7 +15,7 @@
   const response=await fetch('./data/morning-preview.json',{cache:'no-store'});
   if(!response.ok)throw Error('HTTP '+response.status);
   const data=await response.json();
-  if(data.status!=='published' || !data.edition){status.textContent=data.message||'Noch keine freigegebene Ausgabe.';return;}
+  if(!['published','draft'].includes(data.status) || !data.edition){status.textContent=data.message||'Keine Testausgabe verfügbar.';return;}
   const edition=data.edition;
   if(typeof edition!=='object'||!Array.isArray(edition.brief)||!Array.isArray(edition.stories))throw Error('Ungültiges Ausgabeformat');
   document.getElementById('edition-label').textContent='THE HUDDLE · MORNING EDITION';
