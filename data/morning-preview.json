@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "status": "draft",
+  "published_at": null,
+  "message": "Nur interne Testvorschau – nicht veröffentlichen.",
+  "edition": {
+    "date": "2026-11-01T22:09+01:00",
+    "headline": "THE HUDDLE – Redaktionelle Testvorschau",
+    "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
+    "brief": [
+      {
+        "text": "Bestätigt ist, dass Ravens-Quarterback Lamar Jackson auf dem ersten Offensivspielzug des Spiels gegen die Buffalo Bills eine Verletzung am rechten Daumen erlitt und noch im ersten Viertel für das Spiel ausgeschlossen wurde. Backup Tyler Huntley musste im weiteren Verlauf der ersten Halbzeit mit einer Zehenverletzung vom Feld; Baltimore setzte anschließend den undrafteten Joe Fagnano, der zuvor nicht in einem NFL-Spiel aufgelaufen war, als Notfall-Quarterback ein. (Quellen: NFL.com, Yahoo Sports) (https://www.nfl.com/news/ravens-qb-lamar-jackson-suffers-right-thumb-injury-bills, https://sports.yahoo.com/nfl/breaking-news/article/lamar-jackson-ruled-out-vs-bills-with-thumb-injury-ravens-down-to-emergency-qb-with-injury-to-backup-tyler-huntley-191721561.html)",
+        "source_url": "https://www.nfl.com/news/ravens-qb-lamar-jackson-suffers-right-thumb-injury-bills",
+        "source_name": "nfl.com"
+      },
+      {
+        "text": "Berichtet wird, dass Jackson, der in dieser Saison bereits Spiele nach einer Knöchelverletzung verpasst hatte, nach dem Vorfall in Street Clothes und mit einer Schiene an der verletzten Hand an der Seitenlinie gesehen wurde; Aussagen zur Dauer eines möglichen Ausfalls sind bislang Spekulationen der Medien. Das Team hat das kurzfristige QB-Management für das Spiel bestätigt, weitere medizinische Details und Prognosen zum Ausfallzeitraum wurden seitens des Teams noch nicht präzisiert. (Quellen: Yahoo Sports, NFL.com) (https://sports.yahoo.com/nfl/breaking-news/article/lamar-jackson-ruled-out-vs-bills-with-thumb-injury-ravens-down-to-emergency-qb-with-injury-to-backup-tyler-huntley-191721561.html, https://www.nfl.com/news/ravens-qb-lamar-jackson-suffers-right-thumb-injury-bills)",
+        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/lamar-jackson-ruled-out-vs-bills-with-thumb-injury-ravens-down-to-emergency-qb-with-injury-to-backup-tyler-huntley-191721561.html",
+        "source_name": "sports.yahoo.com"
+      },
+      {
+        "text": "Lions‑Linebacker Jack Campbell wurde nach einem Tackle früh im vierten Viertel gegen Minnesota auf einer Trage vom Feld gebracht und laut Bericht ins Krankenhaus transportiert, wo er weiter untersucht wird. Das Team meldete den Transport, medizinische Details wurden noch nicht umfassend veröffentlicht. (Quelle: NBC Sports) https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-lb-jack-campbell-carted-off-on-a-backboard-early-in-fourth-quarter",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-lb-jack-campbell-carted-off-on-a-backboard-early-in-fourth-quarter",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "text": "Die Las Vegas Raiders verbuchten laut Berichten den ersten Kickoff-Return-Touchdown der NFL-Saison 2026, als Dylan Laube einen Kick über 95 Yards zurücktrug. Das Special-Teams-Spiel zeigte sich damit als entscheidender Moment in der Partie gegen die New York Jets. (Quelle: NBC Sports) https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/raiders-score-nfls-first-kickoff-return-touchdown-of-2026",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/raiders-score-nfls-first-kickoff-return-touchdown-of-2026",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "text": "Die Detroit Lions kündigten an, dass die Hip-Hop-Gruppe Wu‑Tang Clan die Halbzeitshow beim Thanksgiving‑Day‑Spiel gegen die Chicago Bears am 26. November headlinen wird; die Veranstaltung steht unter der künstlerischen Federführung von Eminem und Paul Rosenberg als Executive Producers. (Quelle: NFL.com) https://www.nfl.com/news/wu-tang-clan-thanksgiving-halftime-show-bears-lions-ford-field",
+        "source_url": "https://www.nfl.com/news/wu-tang-clan-thanksgiving-halftime-show-bears-lions-ford-field",
+        "source_name": "nfl.com"
+      }
+    ],
+    "stories": [
+      {
+        "title": "Lions‑Linebacker Jack Campbell wurde nach einem Tackle früh im vierten Viertel gegen Minnesota",
+        "summary": "Lions‑Linebacker Jack Campbell wurde nach einem Tackle früh im vierten Viertel gegen Minnesota auf einer Trage vom Feld gebracht und laut Bericht ins Krankenhaus transportiert, wo er weiter untersucht wird. Das Team meldete den Transport, medizinische Details wurden noch nicht umfassend veröffentlicht. (Quelle: NBC Sports) https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-lb-jack-campbell-carted-off-on-a-backboard-early-in-fourth-quarter",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-lb-jack-campbell-carted-off-on-a-backboard-early-in-fourth-quarter",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "title": "Die Las Vegas Raiders verbuchten laut Berichten den ersten Kickoff-Return-Touchdown der NFL-Sai",
+        "summary": "Die Las Vegas Raiders verbuchten laut Berichten den ersten Kickoff-Return-Touchdown der NFL-Saison 2026, als Dylan Laube einen Kick über 95 Yards zurücktrug. Das Special-Teams-Spiel zeigte sich damit als entscheidender Moment in der Partie gegen die New York Jets. (Quelle: NBC Sports) https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/raiders-score-nfls-first-kickoff-return-touchdown-of-2026",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/raiders-score-nfls-first-kickoff-return-touchdown-of-2026",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "title": "Die Detroit Lions kündigten an, dass die Hip-Hop-Gruppe Wu‑Tang Clan die Halbzeitshow beim Than",
+        "summary": "Die Detroit Lions kündigten an, dass die Hip-Hop-Gruppe Wu‑Tang Clan die Halbzeitshow beim Thanksgiving‑Day‑Spiel gegen die Chicago Bears am 26. November headlinen wird; die Veranstaltung steht unter der künstlerischen Federführung von Eminem und Paul Rosenberg als Executive Producers. (Quelle: NFL.com) https://www.nfl.com/news/wu-tang-clan-thanksgiving-halftime-show-bears-lions-ford-field",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/wu-tang-clan-thanksgiving-halftime-show-bears-lions-ford-field",
+        "source_name": "nfl.com"
+      },
+      {
+        "title": "Berichten zufolge wird Saquon Barkley bei den Philadelphia Eagles trotz eines schwierigen Saiso",
+        "summary": "Berichten zufolge wird Saquon Barkley bei den Philadelphia Eagles trotz eines schwierigen Saisonstarts nicht gehandelt; laut Medienberichten erwarten die Eagles, ihn im Kader zu behalten. Der Bericht ordnet Barkley als Element ein, das das Team mittelfristig behalten will, während andere Kaderbewegungen möglich bleiben. (Quelle: Yahoo Sports) https://sports.yahoo.com/nfl/article/saquon-barkley-reportedly-wont-be-traded-after-rough-start-by-eagles-143812667.html",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://sports.yahoo.com/nfl/article/saquon-barkley-reportedly-wont-be-traded-after-rough-start-by-eagles-143812667.html",
+        "source_name": "sports.yahoo.com"
+      }
+    ],
+    "austria": null
+  },
+  "review_required": [
+    "Nicht veröffentlichen: Keine redaktionelle Freigabe.",
+    "Quellen, Zitate, Verletzungen und Zahlen manuell überprüfen.",
+    "LIVE-Spielstände vor einer Morgenausgabe neu abrufen.",
+    "Automatisch erzeugte Story-Überschriften redaktionell prüfen.",
+    "11 LIVE-Spielzeilen bewusst nicht in die Website-Daten übernommen."
+  ]
+}
