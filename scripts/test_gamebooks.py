@@ -15,7 +15,16 @@ from urllib.parse import urljoin, urlparse
 import requests
 from pypdf import PdfReader
 
-TEST_DATE = "20261101"  # A known completed NFL Sunday; change only for later tests.
+# Manuell vorgegebenes Datum oder automatisch der Vortag (UTC).
+# Format: YYYYMMDD
+TEST_DATE = os.environ.get("GAMEBOOK_DATE")
+
+if not TEST_DATE:
+    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+    TEST_DATE = yesterday.strftime("%Y%m%d")
+
+if not re.fullmatch(r"\d{8}", TEST_DATE):
+    raise ValueError("GAMEBOOK_DATE muss das Format YYYYMMDD haben")
 ESPN_URL = (
     "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
     f"?dates={TEST_DATE}&limit=100"
