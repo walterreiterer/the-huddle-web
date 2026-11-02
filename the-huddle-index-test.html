@@ -243,27 +243,29 @@ const shortBrief = value => {
         middle.append(result);
 
         if (completed || isLive) {
-          const getQuarters = team =>
-            (team.linescores || [])
-              .map(q => q.displayValue ?? q.value)
-              .join(' / ');
 
-          const awayQuarters = getQuarters(away);
-          const homeQuarters = getQuarters(home);
+const awayQuarters = away.linescores || [];
+const homeQuarters = home.linescores || [];
 
-          if (awayQuarters && homeQuarters) {
-            const quarters = document.createElement('small');
+if (awayQuarters.length && homeQuarters.length) {
+  const quarters = document.createElement('small');
+  const count = Math.max(awayQuarters.length, homeQuarters.length);
 
-            const overtime =
-              (away.linescores?.length || 0) > 4 ||
-              (home.linescores?.length || 0) > 4;
+  const results = [];
 
-            quarters.textContent =
-              (overtime ? 'Viertel / OT: ' : 'Viertel: ') +
-              awayQuarters + ' – ' + homeQuarters;
+  for (let i = 0; i < count; i++) {
+    const a = awayQuarters[i]?.displayValue ?? awayQuarters[i]?.value ?? '–';
+    const h = homeQuarters[i]?.displayValue ?? homeQuarters[i]?.value ?? '–';
+    results.push(a + ':' + h);
+  }
 
-            middle.append(quarters);
-          }
+  quarters.textContent =
+    (count > 4 ? 'Viertel / OT: ' : 'Viertel: ') +
+    '(' + results.join('/') + ')';
+
+  middle.append(quarters);
+}
+
         }
 
         const homeName = document.createElement('span');
