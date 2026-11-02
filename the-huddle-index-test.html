@@ -17,14 +17,9 @@
     .replace(/\(?https?:\/\/[^\s)]+\)?/gi, ' ')
     .replace(/\s+([,.;!?])/g, '$1')
     .replace(/\s{2,}/g, ' ').trim();
-  const shortBrief = value => {
-    const t = clean(value);
-    const sentences = t.match(/[^.!?]+(?:[.!?]+|$)/g) || [t];
-    let result = (sentences[0] || '').trim();
-   // Vollständige Kurzmeldung anzeigen.
-// Keine automatische Kürzung mitten im Satz.
-    return result;
-  };
+const shortBrief = value => {
+  return clean(value);
+};
   const addSource = (parent, item) => {
     if (!item || typeof item.source_url !== 'string') return;
     try {
