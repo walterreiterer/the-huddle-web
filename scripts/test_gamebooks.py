@@ -3,7 +3,9 @@
 Writes only data/gamebooks-preview.json locally. Does not publish or change production feeds.
 """
 import json
+import os
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from html import unescape
 from html.parser import HTMLParser
