@@ -1,0 +1,26 @@
+THE HUDDLE – AUTOMATISCHE TESTVORSCHAU (NOCH KEINE LIVE-PUBLIKATION)
+
+Ziel-Repository: walterreiterer/the-huddle-web
+
+1. ZIP entpacken und die Ordner scripts und .github ins Web-Repository übertragen.
+   GitHub: Add file > Upload files. Versteckte Ordner ggf. in Finder anzeigen
+   mit Cmd+Shift+Punkt.
+2. Im Web-Repository unter Settings > Secrets and variables > Actions
+   das Secret OPENAI_API_KEY anlegen (aus dem bisherigen Repository
+   wird es nicht automatisch übernommen). API-Key nie im Chat senden.
+3. Unter Settings > Actions > General > Workflow permissions
+   'Read and write permissions' aktivieren.
+4. Actions > THE HUDDLE – automatische Testvorschau > Run workflow.
+5. Testseite prüfen: the-huddle-index-test.html liest
+   data/morning-preview.json.
+
+Zeitplan: 07:00 Wien, Sommer-/Winterzeit berücksichtigt.
+GitHub kann Zeitplanläufe verzögern oder ausfallen lassen.
+Der Workflow überschreibt nur data/morning-preview.json, niemals
+data/morning.json oder index.html. Bei Fehlern bleibt die alte Vorschau.
+
+WICHTIG: Die Qualitätsprüfung prüft Struktur, NICHT Wahrheitsgehalt.
+Der bisherige Entwurf fordert ausdrücklich redaktionelle Prüfung.
+Eine ungeprüfte automatische LIVE-Publikation wird deshalb hier NICHT
+aktiviert. Erst nach erfolgreichem Test gesondert entscheiden.
+API-Aufrufe verursachen Kosten.
