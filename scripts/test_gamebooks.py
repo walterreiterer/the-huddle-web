@@ -121,7 +121,7 @@ def find_week(event, scoreboard):
 def main():
     session = requests.Session()
     session.headers.update(HEADERS)
-    print("THE HUDDLE – NFL Game Book Recherchetest Phase 3A", flush=True)
+    print("THE HUDDLE – NFL Game Book Recherchetest Phase 3B", flush=True)
     print("ESPN:", ESPN_URL, flush=True)
     try:
         response = session.get(ESPN_URL, timeout=30)
@@ -207,7 +207,7 @@ def main():
     print("NFL-Spielseiten geprüft:", checked)
     print("Bestätigte Game Books:", confirmed)
     print("Übersprungene Spiele:", skipped)
-    print("Nur Recherche. Keine Veröffentlichung und keine Datenänderung.")
+    print("Nur Test-JSON im Workflow erstellt. Keine Veröffentlichung und keine Änderung der Website.")
 
 
 if __name__ == "__main__":
