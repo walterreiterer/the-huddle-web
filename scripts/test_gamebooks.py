@@ -14,9 +14,9 @@ from pypdf import PdfReader
 
 GAMES = [
     ("Panthers @ Packers", "panthers-at-packers-2026-reg-8", ("panthers", "packers")),
-    ("Ravens @ Bills", "ravens-at-bills-2026-reg-9", ("ravens", "bills")),
-    ("Titans @ Bengals", "titans-at-bengals-2026-reg-9", ("titans", "bengals")),
-    ("Colts @ Jaguars", "colts-at-jaguars-2026-reg-9", ("colts", "jaguars")),
+    ("Ravens @ Bills", "ravens-at-bills-2026-reg-8", ("ravens", "bills")),
+    ("Titans @ Bengals", "titans-at-bengals-2026-reg-8", ("titans", "bengals")),
+    ("Colts @ Jaguars", "colts-at-jaguars-2026-reg-8", ("colts", "jaguars")),
 ]
 REFERENCE_PDF = "https://static.www.nfl.com/image/upload/v1793361096/gamecenter/aaf70a66-4feb-11f1-abca-2c54536568a9.pdf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; HuddleGameBookResearch/2.0)", "Accept": "text/html,application/xhtml+xml"}
