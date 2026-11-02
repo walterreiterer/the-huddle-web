@@ -21,10 +21,8 @@
     const t = clean(value);
     const sentences = t.match(/[^.!?]+(?:[.!?]+|$)/g) || [t];
     let result = (sentences[0] || '').trim();
-    if (result.length > 230) {
-      const cut = result.slice(0, 228).lastIndexOf(' ');
-      result = result.slice(0, cut > 140 ? cut : 228).replace(/[,:;\s]+$/, '') + ' …';
-    }
+   // Vollständige Kurzmeldung anzeigen.
+// Keine automatische Kürzung mitten im Satz.
     return result;
   };
   const addSource = (parent, item) => {
