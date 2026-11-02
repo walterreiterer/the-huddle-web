@@ -1,3 +1,4 @@
+
 name: THE HUDDLE – NFL Game Book Recherchetest
 
 on:
@@ -12,11 +13,22 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
+
       - name: Python einrichten
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Test-Abhängigkeiten installieren
         run: python -m pip install requests pypdf
+
       - name: NFL Game Books mehrerer Spiele prüfen
         run: python scripts/test_gamebooks.py
+
+      - name: Game-Book-Testdaten als Artifact sichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-gamebooks-preview
+          path: data/gamebooks-preview.json
+          if-no-files-found: error
+          retention-days: 7
