@@ -36,6 +36,24 @@ def entry(text, *, title=None, category=None):
     result = {'text': clean(text)} if title is None else {
         'title': title, 'summary': clean(text), 'category': category or 'AROUND THE LEAGUE'
     }
+    if not urls:
+        # Match against already collected source articles; never invent a URL.
+        source_file = ROOT / 'quellen-10.json'
+        if source_file.is_file():
+            from difflib import SequenceMatcher
+            articles = json.loads(source_file.read_text(encoding='utf-8')).get('articles', [])
+            body = clean(text).lower()
+            ranked = []
+            for article in articles:
+                title = str(article.get('title', '')).lower().split(' - ')[0]
+                article_text = str(article.get('text', '')).lower()
+                score = max(SequenceMatcher(None, body[:220], article_text[:220]).ratio(),
+                            SequenceMatcher(None, body[:180], title).ratio())
+                ranked.append((score, article.get('url', '')))
+            if ranked:
+                score, candidate = max(ranked)
+                if score >= 0.48 and urlparse(candidate).scheme == 'https':
+                    urls = [candidate]
     if urls:
         result['source_url'] = urls[0]
         result['source_name'] = urlparse(urls[0]).netloc.removeprefix('www.')
