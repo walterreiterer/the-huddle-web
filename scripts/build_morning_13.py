@@ -127,7 +127,7 @@ key = os.environ.get('OPENAI_API_KEY', '').strip()
 if not key:
     raise SystemExit('OPENAI_API_KEY fehlt. Kein API-Aufruf.')
 payload = {
-    'model': 'gpt-5-mini', 'store': False, 'max_output_tokens': 4800,
+    'model': 'gpt-5-mini', 'store': False, 'max_output_tokens': 8000,
     'instructions': instructions,
     'input': (f'ZEITPUNKT WIEN: {now.isoformat(timespec="minutes")}\n'
               f'SPIELSTATUS-KONTROLLE: {len(finished)} ENDE, {len(live)} LIVE, {len(upcoming)} NOCH NICHT BEENDET.\n'
@@ -145,8 +145,19 @@ except (URLError, TimeoutError) as exc:
     raise SystemExit(f'OpenAI nicht erreichbar: {type(exc).__name__}')
 content = '\n'.join(p.get('text', '') for x in result.get('output', []) if x.get('type') == 'message'
                     for p in x.get('content', []) if p.get('type') == 'output_text').strip()
+# Diagnose ohne vertrauliche Inhalte oder API-Schluessel zu protokollieren.
+status = result.get('status', 'unbekannt')
+reason = (result.get('incomplete_details') or {}).get('reason', 'keine Angabe')
+usage = result.get('usage') or {}
+print(f'OpenAI-Antwort: status={status}; incomplete_reason={reason}; '
+      f'output_tokens={usage.get("output_tokens", "unbekannt")}; '
+      f'textzeichen={len(content)}')
+if status != 'completed':
+    raise SystemExit(f'KI-Antwort nicht abgeschlossen (status={status}, Grund={reason}). Kein Entwurf gespeichert.')
 if len(content) < 300:
-    raise SystemExit('KI-Entwurf leer oder zu kurz.')
+    output_types = [x.get('type', 'unbekannt') for x in result.get('output', [])]
+    raise SystemExit(f'KI-Entwurf leer oder zu kurz (Zeichen={len(content)}, '
+                     f'Ausgabetypen={output_types}). Kein Entwurf gespeichert.')
 BASE.mkdir(parents=True, exist_ok=True)
 OUTPUT.write_text(content + '\n', encoding='utf-8')
 
