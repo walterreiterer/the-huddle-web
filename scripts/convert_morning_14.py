@@ -102,7 +102,7 @@ def headline(text):
     explicit = re.match(r'^\*\*(.{8,110}?)\*\*\s*', body)
     if explicit:
         return explicit.group(1).strip()
-    clause = re.split(r'[,;—–]\s+', sentence, maxsplit=1)[0]
+    clause = re.split(r'[,;:—–]\s+', sentence, maxsplit=1)[0]
     if len(clause) <= 105 and not re.search(r'\b(kündigte|kuendigte|sagte|erklärte|erklaerte|teilte)\b.{0,60}\ban$', clause, re.I):
         return clause.rstrip(' .,:;')
     raise ValueError('Keine vollständige Überschrift ableitbar: ' + clause[:140])
