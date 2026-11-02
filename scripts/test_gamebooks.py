@@ -1,8 +1,7 @@
-"""Isolated, read-only research: identify official NFL game-book links.
+"""THE HUDDLE: isolated ESPN -> NFL Game Book research test.
 
-No guessed PDF URLs are ever treated as verified.
+Read-only. Does not change the website, JSON feeds, or GitHub workflows.
 """
-import json
 import re
 from html import unescape
 from html.parser import HTMLParser
@@ -12,105 +11,195 @@ from urllib.parse import urljoin, urlparse
 import requests
 from pypdf import PdfReader
 
-GAMES = [
-    ("Panthers @ Packers", "panthers-at-packers-2026-reg-8", ("panthers", "packers")),
-    ("Ravens @ Bills", "ravens-at-bills-2026-reg-8", ("ravens", "bills")),
-    ("Titans @ Bengals", "titans-at-bengals-2026-reg-8", ("titans", "bengals")),
-    ("Colts @ Jaguars", "colts-at-jaguars-2026-reg-8", ("colts", "jaguars")),
-]
-REFERENCE_PDF = "https://static.www.nfl.com/image/upload/v1793361096/gamecenter/aaf70a66-4feb-11f1-abca-2c54536568a9.pdf"
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; HuddleGameBookResearch/2.0)", "Accept": "text/html,application/xhtml+xml"}
+TEST_DATE = "20261101"  # A known completed NFL Sunday; change only for later tests.
+ESPN_URL = (
+    "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+    f"?dates={TEST_DATE}&limit=100"
+)
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; HuddleGameBookResearch/3.0)",
+    "Accept": "text/html,application/xhtml+xml,application/json",
+}
+
+# NFL game URLs use team nicknames, not necessarily ESPN abbreviations.
+TEAM_SLUGS = {
+    "ARI": "cardinals", "ATL": "falcons", "BAL": "ravens", "BUF": "bills",
+    "CAR": "panthers", "CHI": "bears", "CIN": "bengals", "CLE": "browns",
+    "DAL": "cowboys", "DEN": "broncos", "DET": "lions", "GB": "packers",
+    "HOU": "texans", "IND": "colts", "JAX": "jaguars", "JAC": "jaguars",
+    "KC": "chiefs", "LV": "raiders", "LAC": "chargers", "LAR": "rams",
+    "LA": "rams", "MIA": "dolphins", "MIN": "vikings", "NE": "patriots",
+    "NO": "saints", "NYG": "giants", "NYJ": "jets", "PHI": "eagles",
+    "PIT": "steelers", "SEA": "seahawks", "SF": "49ers", "TB": "buccaneers",
+    "TEN": "titans", "WSH": "commanders", "WAS": "commanders",
+}
+
 
 class LinkParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.current = None
         self.links = []
+
     def handle_starttag(self, tag, attrs):
         if tag == "a":
             self.current = {"href": dict(attrs).get("href", ""), "text": ""}
+
     def handle_data(self, data):
         if self.current is not None:
             self.current["text"] += data
+
     def handle_endtag(self, tag):
         if tag == "a" and self.current is not None:
             self.links.append(self.current)
             self.current = None
 
-def normalize_html(s):
-    return unescape(s.replace("\\u002F", "/").replace("\\/", "/").replace("\\u003A", ":"))
+
+def normalize_html(html):
+    return unescape(
+        html.replace("\\u002F", "/")
+        .replace("\\/", "/")
+        .replace("\\u003A", ":")
+    )
+
 
 def is_official_pdf(url):
-    p = urlparse(url)
-    return p.scheme == "https" and p.hostname == "static.www.nfl.com" and p.path.lower().endswith(".pdf") and "/gamecenter/" in p.path.lower()
+    parsed = urlparse(url)
+    return (
+        parsed.scheme == "https"
+        and parsed.hostname == "static.www.nfl.com"
+        and parsed.path.lower().endswith(".pdf")
+        and "/gamecenter/" in parsed.path.lower()
+    )
 
-def pdf_candidates(html, game_url):
+
+def labeled_gamebook_links(html, game_url):
     parser = LinkParser()
     parser.feed(html)
-    linked = []
+    urls = []
     for link in parser.links:
         if re.search(r"game\s*book", link["text"], re.I):
             url = urljoin(game_url, link["href"])
-            if is_official_pdf(url):
-                linked.append(url)
-    # Only inspect the immediate neighborhood of a Game Book label;
-    # page-wide PDF lists may include unrelated games and record books.
-    nearby = []
-    for match in re.finditer(r"(?:download\s+)?game\s*book", html, re.I):
-        snippet = html[max(0, match.start()-1200):match.end()+1200]
-        for raw in re.findall(r"https://static\.www\.nfl\.com/[^\s\"'<>\\]+?\.pdf", snippet, re.I):
-            url = unescape(raw)
-            if is_official_pdf(url):
-                nearby.append(url)
-    return list(dict.fromkeys(linked)), list(dict.fromkeys(nearby))
+            if is_official_pdf(url) and url not in urls:
+                urls.append(url)
+    return urls
 
-def verify_pdf(session, url, teams):
+
+def verify_pdf(session, url, team_slugs):
     try:
-        r = session.get(url, timeout=30)
-        r.raise_for_status()
-        if not r.content.startswith(b"%PDF-"):
-            return "KEIN PDF", "Signatur fehlt"
-        reader = PdfReader(BytesIO(r.content))
-        text = " ".join((page.extract_text() or "") for page in reader.pages[:3]).lower()
-        if all(team in text for team in teams):
-            return "PDF + TEAMNAMEN BESTÄTIGT", f"{len(reader.pages)} Seiten"
-        return "PDF ERREICHBAR, ZUORDNUNG OFFEN", f"{len(reader.pages)} Seiten; Teamnamen nicht beide auf Seiten 1–3 gefunden"
-    except Exception as e:
-        return "PDF-PRÜFUNG FEHLGESCHLAGEN", str(e)[:180]
+        response = session.get(url, timeout=35)
+        response.raise_for_status()
+        if not response.content.startswith(b"%PDF-"):
+            return False, "PDF-Signatur fehlt"
+        reader = PdfReader(BytesIO(response.content))
+        first_pages = " ".join(
+            (page.extract_text() or "") for page in reader.pages[:3]
+        ).lower()
+        missing = [name for name in team_slugs if name.lower() not in first_pages]
+        if missing:
+            return False, "Teamnamen fehlen auf Seiten 1–3: " + ", ".join(missing)
+        return True, f"{len(reader.pages)} Seiten; beide Teams bestätigt"
+    except Exception as exc:
+        return False, f"PDF-Prüfung fehlgeschlagen: {str(exc)[:150]}"
+
+
+def find_week(event, scoreboard):
+    # Use source data, not an estimated week number.
+    for value in (
+        event.get("week"),
+        scoreboard.get("week"),
+    ):
+        if isinstance(value, dict):
+            number = value.get("number")
+            if isinstance(number, int) and 1 <= number <= 22:
+                return number
+    return None
+
 
 def main():
     session = requests.Session()
     session.headers.update(HEADERS)
-    print("THE HUDDLE – NFL Game Book Recherchetest Phase 2", flush=True)
-    for name, slug, teams in GAMES:
-        url = f"https://www.nfl.com/games/{slug}?tab=recap"
-        print(f"\n=== {name} ===\nSpielseite: {url}", flush=True)
+    print("THE HUDDLE – NFL Game Book Recherchetest Phase 3A", flush=True)
+    print("ESPN:", ESPN_URL, flush=True)
+    try:
+        response = session.get(ESPN_URL, timeout=30)
+        response.raise_for_status()
+        scoreboard = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        print("ESPN-Abfrage fehlgeschlagen:", exc)
+        return
+
+    events = scoreboard.get("events", [])
+    print("ESPN-Spiele gefunden:", len(events), flush=True)
+    confirmed = 0
+    checked = 0
+    skipped = 0
+
+    for event in events:
+        competition = (event.get("competitions") or [{}])[0]
+        competitors = competition.get("competitors") or []
+        home = next((x for x in competitors if x.get("homeAway") == "home"), None)
+        away = next((x for x in competitors if x.get("homeAway") == "away"), None)
+        if not home or not away:
+            skipped += 1
+            print("\nÜBERSPRUNGEN: Heim-/Auswärtsteam fehlt")
+            continue
+
+        home_code = home.get("team", {}).get("abbreviation", "").upper()
+        away_code = away.get("team", {}).get("abbreviation", "").upper()
+        home_slug = TEAM_SLUGS.get(home_code)
+        away_slug = TEAM_SLUGS.get(away_code)
+        week = find_week(event, scoreboard)
+        status = event.get("status", {}).get("type", {})
+        completed = status.get("completed") is True
+        print(f"\n=== {away_code} @ {home_code} ===", flush=True)
+        print("ESPN-Event:", event.get("id"), "| Abgeschlossen:", completed, "| Woche:", week)
+
+        if not completed:
+            skipped += 1
+            print("ÜBERSPRUNGEN: Spiel noch nicht abgeschlossen")
+            continue
+        if not away_slug or not home_slug or week is None:
+            skipped += 1
+            print("ÜBERSPRUNGEN: Teamkürzel oder Spielwoche nicht eindeutig")
+            continue
+
+        year = scoreboard.get("season", {}).get("year") or event.get("season", {}).get("year")
+        season_type = scoreboard.get("season", {}).get("type") or event.get("season", {}).get("type")
+        if year != 2026 or season_type != 2:
+            skipped += 1
+            print("ÜBERSPRUNGEN: Saison oder Regular-Season-Typ nicht bestätigt:", year, season_type)
+            continue
+
+        game_url = f"https://www.nfl.com/games/{away_slug}-at-{home_slug}-{year}-reg-{week}?tab=recap"
+        print("NFL-Spielseite:", game_url)
+        checked += 1
         try:
-            response = session.get(url, timeout=30)
-            print("HTTP:", response.status_code)
-            response.raise_for_status()
-            html = normalize_html(response.text)
-            linked, nearby = pdf_candidates(html, url)
-            print("Direkt mit 'Game Book' beschriftete PDF-Links:", len(linked))
-            print("PDFs in Textnähe der Beschriftung (unbestätigt):", len(nearby))
-            candidates = linked or nearby
-            if name == "Panthers @ Packers":
-                print("Bekannte Referenz-PDF im HTML:", "JA" if REFERENCE_PDF in html else "NEIN")
-                if REFERENCE_PDF not in candidates:
-                    print("Hinweis: Referenz-PDF nicht eindeutig am Download-Element erkannt.")
-                    candidates = [REFERENCE_PDF] + candidates
-            if not candidates:
-                print("ERGEBNIS: KEINE EINDEUTIGE PDF-ZUORDNUNG; nichts wird geraten.")
+            page = session.get(game_url, timeout=30)
+            print("NFL HTTP:", page.status_code)
+            page.raise_for_status()
+            links = labeled_gamebook_links(normalize_html(page.text), game_url)
+            print("Explizite Game-Book-Links:", len(links))
+            if len(links) != 1:
+                print("KEIN BESTÄTIGTER LINK: erwartete genau einen beschrifteten PDF-Link")
                 continue
-            for pdf in candidates[:3]:
-                print("Kandidat:", pdf)
-                outcome, detail = verify_pdf(session, pdf, teams)
-                print("Prüfung:", outcome, "|", detail)
-            if len(candidates) > 3:
-                print(f"Weitere {len(candidates)-3} Kandidaten nicht geprüft (Sicherheitslimit).")
-        except requests.RequestException as e:
-            print("SPIELSEITE NICHT ERREICHBAR:", str(e)[:180])
-    print("\nTest abgeschlossen. Keine Veröffentlichung, keine Datenänderung.")
+            valid, detail = verify_pdf(session, links[0], (away_slug, home_slug))
+            if valid:
+                confirmed += 1
+                print("BESTÄTIGT:", links[0])
+                print("Prüfung:", detail)
+            else:
+                print("NICHT BESTÄTIGT:", detail)
+        except requests.RequestException as exc:
+            print("NFL-Abfrage fehlgeschlagen:", str(exc)[:180])
+
+    print("\n=== ZUSAMMENFASSUNG ===")
+    print("ESPN-Spiele:", len(events))
+    print("NFL-Spielseiten geprüft:", checked)
+    print("Bestätigte Game Books:", confirmed)
+    print("Übersprungene Spiele:", skipped)
+    print("Nur Recherche. Keine Veröffentlichung und keine Datenänderung.")
+
 
 if __name__ == "__main__":
     main()
