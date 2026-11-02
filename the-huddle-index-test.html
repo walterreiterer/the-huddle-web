@@ -97,72 +97,212 @@ const shortBrief = value => {
     status.textContent = 'Testausgabe derzeit nicht verfügbar. Es werden keine Nachrichten erfunden.';
   }
 })();
-</script><script>
-const scores=document.getElementById('scores'), button=document.getElementById('spoiler'), status=document.getElementById('scorestatus'), list=document.getElementById('scorelist');
-button.addEventListener('click',()=>{scores.hidden=!scores.hidden;button.textContent=scores.hidden?'Ergebnisse anzeigen':'Ergebnisse verbergen';button.setAttribute('aria-pressed',String(!scores.hidden));});
+</script>
+<script>
+(async function initGameCenter() {
+  const scores = document.getElementById('scores');
+  const button = document.getElementById('spoiler');
+  const status = document.getElementById('scorestatus');
+  const list = document.getElementById('scorelist');
+  const scoreDate = document.getElementById('scoredate');
 
-const params = new URLSearchParams(location.search);
+  let loaded = false;
 
-// Datum der geladenen THE-HUDDLE-Ausgabe verwenden.
-// Falls noch keine Ausgabe geladen wurde, Wiener Tagesdatum verwenden.
-const viennaDate = () => {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Vienna',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date()).replace(/-/g, '');
-};
+  const previousDay = ymd => {
+    const d = new Date(Date.UTC(
+      Number(ymd.slice(0, 4)),
+      Number(ymd.slice(4, 6)) - 1,
+      Number(ymd.slice(6, 8)) - 1
+    ));
+    return [
+      d.getUTCFullYear(),
+      String(d.getUTCMonth() + 1).padStart(2, '0'),
+      String(d.getUTCDate()).padStart(2, '0')
+    ].join('');
+  };
 
-const editionDate = () => {
-  const raw = document.getElementById('edition-date')?.textContent || '';
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return match ? match[1] + match[2] + match[3] : viennaDate();
-};
+  const formatDate = date =>
+    date.slice(6, 8) + '.' +
+    date.slice(4, 6) + '.' +
+    date.slice(0, 4);
 
-// ESPN ordnet Spiele ihrem US-Spieltag zu.
-// Für die österreichische Morgenausgabe den vorherigen
-// Kalendertag als Ausgangspunkt verwenden.
-const previousDay = ymd => {
-  const year = Number(ymd.slice(0, 4));
-  const month = Number(ymd.slice(4, 6));
-  const day = Number(ymd.slice(6, 8));
-  const d = new Date(Date.UTC(year, month - 1, day - 1));
-  return [
-    d.getUTCFullYear(),
-    String(d.getUTCMonth() + 1).padStart(2, '0'),
-    String(d.getUTCDate()).padStart(2, '0')
-  ].join('');
-};
+  async function loadScores() {
+    status.textContent = 'Lade NFL-Ergebnisse …';
+    list.replaceChildren();
 
-const date = params.get('date') || previousDay(editionDate());
+    try {
+      const params = new URLSearchParams(location.search);
+      let date = params.get('date');
 
-if(!/^\d{8}$/.test(date)){status.textContent='Ungültiges Datumsformat.';}else{
- document.getElementById('scoredate').textContent=date.slice(6,8)+'.'+date.slice(4,6)+'.'+date.slice(0,4);
- const url='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates='+date+'&limit=100';
- fetch(url,{headers:{'Accept':'application/json'}}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{
-  const events=data.events||[];list.replaceChildren();
-  if(!events.length){status.textContent='Für dieses Datum wurden keine Spiele geliefert.';return;}
-  status.textContent=events.length+' Spiele · Angaben von ESPN, nicht redaktionell geprüft.';
-  const formatter=new Intl.DateTimeFormat('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-  for(const e of events){const c=e.competitions?.[0];const home=c?.competitors?.find(x=>x.homeAway==='home');const away=c?.competitors?.find(x=>x.homeAway==='away');if(!home||!away)continue;
-   const line=document.createElement('div');line.className='score';
-   const head=document.createElement('div');head.className='score-head';
-   const state=e.status?.type?.state;const completed=e.status?.type?.completed;
-   head.textContent=completed?'Endstand':state==='in'?(e.status?.type?.detail||'Live'):'Kickoff · '+formatter.format(new Date(e.date))+' Uhr';
-   const a=document.createElement('span');a.className='team';a.textContent=away.team?.displayName||'Gast';
-   const middle=document.createElement('div');middle.className='middle';
-   const mid=document.createElement('strong');mid.textContent=(completed||state==='in')?(away.score??'–')+' : '+(home.score??'–'):'vs.';
-   middle.append(mid);
-   if(completed||state==='in'){
-     const quarters=document.createElement('small');
-     const getQ=x=>(x.linescores||[]).map(q=>q.displayValue??q.value).join(' / ');
-     const aq=getQ(away),hq=getQ(home);
-     if(aq&&hq){quarters.textContent='Viertel: '+aq+' – '+hq;middle.append(quarters);}
-   }
-   const h=document.createElement('span');h.className='team';h.textContent=home.team?.displayName||'Heim';
-   line.append(head,a,middle,h);list.append(line);
+      if (!date) {
+        const previewResponse = await fetch(
+          './data/morning-preview.json',
+          { cache: 'no-store' }
+        );
+
+        if (!previewResponse.ok) {
+          throw new Error('Ausgabe nicht verfügbar');
+        }
+
+        const preview = await previewResponse.json();
+        const editionDate = preview.edition?.date;
+
+        if (typeof editionDate !== 'string') {
+          throw new Error('Ausgabedatum fehlt');
+        }
+
+        const match = editionDate.match(
+          /^(\d{4})-(\d{2})-(\d{2})/
+        );
+
+        if (!match) {
+          throw new Error('Ungültiges Ausgabedatum');
+        }
+
+        date = previousDay(match[1] + match[2] + match[3]);
+      }
+
+      if (!/^\d{8}$/.test(date)) {
+        throw new Error('Ungültiges Datumsformat');
+      }
+
+      scoreDate.textContent = formatDate(date);
+
+      const url =
+        'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard' +
+        '?dates=' + date + '&limit=100';
+
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error('ESPN HTTP ' + response.status);
+      }
+
+      const data = await response.json();
+      const events = Array.isArray(data.events) ? data.events : [];
+
+      if (!events.length) {
+        status.textContent =
+          'Keine NFL-Spiele an diesem Spieltag. Quelle: ESPN.';
+        loaded = true;
+        return;
+      }
+
+      const formatter = new Intl.DateTimeFormat('de-AT', {
+        timeZone: 'Europe/Vienna',
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+
+      for (const event of events) {
+        const competition = event.competitions?.[0];
+        const home = competition?.competitors?.find(
+          team => team.homeAway === 'home'
+        );
+        const away = competition?.competitors?.find(
+          team => team.homeAway === 'away'
+        );
+
+        if (!home || !away) continue;
+
+        const state = event.status?.type?.state;
+        const completed = event.status?.type?.completed;
+        const isLive = state === 'in';
+
+        const line = document.createElement('div');
+        line.className = 'score';
+
+        const head = document.createElement('div');
+        head.className = 'score-head';
+
+        head.textContent = completed
+          ? 'Endstand'
+          : isLive
+            ? 'LIVE · ' + (event.status?.type?.detail || 'Spiel läuft')
+            : 'Kickoff · ' +
+              formatter.format(new Date(event.date)) + ' Uhr';
+
+        const awayName = document.createElement('span');
+        awayName.className = 'team';
+        awayName.textContent = away.team?.displayName || 'Gast';
+
+        const middle = document.createElement('div');
+        middle.className = 'middle';
+
+        const result = document.createElement('strong');
+        result.textContent = (completed || isLive)
+          ? (away.score ?? '–') + ' : ' + (home.score ?? '–')
+          : 'vs.';
+
+        middle.append(result);
+
+        if (completed || isLive) {
+          const getQuarters = team =>
+            (team.linescores || [])
+              .map(q => q.displayValue ?? q.value)
+              .join(' / ');
+
+          const awayQuarters = getQuarters(away);
+          const homeQuarters = getQuarters(home);
+
+          if (awayQuarters && homeQuarters) {
+            const quarters = document.createElement('small');
+
+            const overtime =
+              (away.linescores?.length || 0) > 4 ||
+              (home.linescores?.length || 0) > 4;
+
+            quarters.textContent =
+              (overtime ? 'Viertel / OT: ' : 'Viertel: ') +
+              awayQuarters + ' – ' + homeQuarters;
+
+            middle.append(quarters);
+          }
+        }
+
+        const homeName = document.createElement('span');
+        homeName.className = 'team';
+        homeName.textContent = home.team?.displayName || 'Heim';
+
+        line.append(head, awayName, middle, homeName);
+        list.append(line);
+      }
+
+      status.textContent =
+        list.children.length +
+        ' Spiele · Angaben von ESPN, nicht redaktionell geprüft.';
+
+      loaded = true;
+
+    } catch (error) {
+      status.textContent =
+        'Game Center derzeit nicht verfügbar: ' +
+        error.message +
+        '. Es werden keine Ergebnisse erfunden.';
+    }
   }
- }).catch(()=>{status.textContent='Die direkte ESPN-Verbindung ist im Browser derzeit nicht verfügbar. Keine Ergebnisse werden erfunden. Wir benötigen dann einen Netlify-API-Proxy.';});
-}
+
+  button.addEventListener('click', async () => {
+    scores.hidden = !scores.hidden;
+
+    button.textContent = scores.hidden
+      ? 'Ergebnisse anzeigen'
+      : 'Ergebnisse verbergen';
+
+    button.setAttribute(
+      'aria-pressed',
+      String(!scores.hidden)
+    );
+
+    if (!scores.hidden && !loaded) {
+      await loadScores();
+    }
+  });
+})();
 </script></body></html>
