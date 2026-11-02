@@ -1,0 +1,77 @@
+name: THE HUDDLE – automatische Testvorschau
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * *'
+    - cron: '0 6 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: huddle-preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Wien 07 Uhr prüfen
+        id: time
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python - <<'PYCODE'
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          now=datetime.now(ZoneInfo('Europe/Vienna'))
+          run=os.environ['EVENT_NAME']=='workflow_dispatch' or now.hour==7
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('run='+str(run).lower()+'\n')
+          print('Wien:',now,'Run:',run)
+          PYCODE
+      - uses: actions/checkout@v4
+        if: steps.time.outputs.run == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.time.outputs.run == 'true'
+        with:
+          python-version: '3.11'
+      - name: Pakete installieren
+        if: steps.time.outputs.run == 'true'
+        run: pip install requests feedparser trafilatura googlenewsdecoder
+      - name: Scores abrufen
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/fetch_scores.py
+      - name: Quellen sammeln
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/collect_sources_10.py
+      - name: Ausgabe erstellen
+        if: steps.time.outputs.run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/build_morning_13.py
+      - name: Test-JSON erzeugen
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/convert_morning_14.py
+      - name: Test-JSON prüfen
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/check_preview.py
+      - name: Vorschau ins Repository schreiben
+        if: steps.time.outputs.run == 'true'
+        run: |
+          mkdir -p data
+          cp drafts/morning-preview.json data/morning-preview.json
+          git config user.name 'the-huddle-bot'
+          git config user.email 'the-huddle-bot@users.noreply.github.com'
+          git add data/morning-preview.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'THE HUDDLE: automatische Testvorschau'
+            git push
+          fi
+      - name: Diagnose sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-preview-diagnose
+          path: drafts/
+          if-no-files-found: ignore
+          retention-days: 7
