@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """THE HUDDLE – Markdown-Entwurf in unveröffentlichte JSON-Testvorschau umwandeln.
 
@@ -24,7 +25,6 @@ def links_in(text):
 
 def clean(text):
     text = SOURCE_NOTE.sub('', text)
-    # Auch frei stehende Quellen-URLs entfernen; sie werden separat verlinkt.
     text = URL.sub('', text)
     text = re.sub(r'\s+([,.;:!?])', r'\1', text)
     text = re.sub(r'\(\s*\)', '', text)
@@ -37,7 +37,6 @@ def entry(text, *, title=None, category=None):
         'title': title, 'summary': clean(text), 'category': category or 'AROUND THE LEAGUE'
     }
     if not urls:
-        # Match against already collected source articles; never invent a URL.
         source_file = ROOT / 'quellen-10.json'
         if source_file.is_file():
             from difflib import SequenceMatcher
@@ -66,7 +65,6 @@ def paragraphs(section):
         part = part.strip()
         if not part or re.match(r'^vor veröffentlichung redaktionell prüfen\.?$', part, re.I):
             continue
-        # Einzelne Bulletpoints sind ebenfalls zulässig, sofern das Modell sie liefert.
         if part.startswith('- '):
             items.extend(line[2:].strip() for line in part.splitlines() if line.startswith('- '))
         else:
@@ -75,22 +73,20 @@ def paragraphs(section):
 
 
 def first_sentence(text):
-    # Nicht bei Abkürzungen oder Datumsangaben blind am ersten Punkt abschneiden.
     match = re.search(r'(?<=[.!?])\s+(?=[A-ZÄÖÜ])', text)
     return text[:match.start()].strip() if match else text.strip()
 
 
 def brief_text(text):
-    sentence = first_sentence(clean(text))
-    # Keine Satzfragmente erzeugen. Lange Sätze bleiben vollständig und werden markiert.
-    return sentence
+    return first_sentence(clean(text))
 
 
 def headline(text):
     body = clean(text)
     lower = body.lower()
-    # Faktennahe Schlagzeilen aus eindeutig vorhandenen Aussagen, ohne Zusatzbehauptungen.
     patterns = (
+        (('steichen', '42:7', 'evaluieren'), 'Colts: Steichen will nach 7:42-Debakel alles überprüfen'),
+        (('seahawks', 'bears', 'quenton nelson'), 'Seahawks und Bears: Neuzugänge vor dem Monday-Night-Duell'),
         (('daniel jones', 'bank'), 'Colts setzen Daniel Jones auf die Bank'),
         (('jack campbell', 'krankenhaus'), 'Jack Campbell nach Tackle ins Krankenhaus gebracht'),
         (('buccaneers', 'ohne', 'pass'), 'Buccaneers gewinnen ohne vollständigen Pass'),
@@ -103,21 +99,17 @@ def headline(text):
         if all(term in lower for term in terms):
             return title
     sentence = first_sentence(body)
-    # Bestehende redaktionelle Überschriften respektieren, wenn sie als **Titel** beginnen.
     explicit = re.match(r'^\*\*(.{8,110}?)\*\*\s*', body)
     if explicit:
         return explicit.group(1).strip()
-    # Eine kurze, vollständige erste Teilaussage; nie mitten im Wort abschneiden.
     clause = re.split(r'[,;—–]\s+', sentence, maxsplit=1)[0]
-    if len(clause) <= 105:
+    if len(clause) <= 105 and not re.search(r'\b(kündigte|kuendigte|sagte|erklärte|erklaerte|teilte)\b.{0,60}\ban$', clause, re.I):
         return clause.rstrip(' .,:;')
-    # Nur als letzte Rückfallebene: lesbar am Wortende mit Auslassungszeichen.
-    return clause[:101].rsplit(' ', 1)[0].rstrip(' .,:;') + ' …'
+    raise ValueError('Keine vollständige Überschrift ableitbar: ' + clause[:140])
 
 
 def topic_key(text):
     s = clean(text).lower()
-    # Nur bei klar erkennbaren gemeinsamen Akteuren zusammenführen.
     for name in ('lamar jackson', 'daniel jones', 'jack campbell', 'zach charbonnet',
                  'saquon barkley', 'dylan laube', 'wu-tang clan'):
         if name in s:
@@ -126,7 +118,6 @@ def topic_key(text):
 
 
 def sections_of(md):
-    """Accept headings with optional Markdown decoration and explanatory suffixes."""
     aliases = {'THE LEAD': 'THE LEAD', 'LEAD': 'THE LEAD',
                'GAME CENTER': 'GAME CENTER', 'GAMECENTER': 'GAME CENTER',
                'AROUND THE LEAGUE': 'AROUND THE LEAGUE',
@@ -158,7 +149,6 @@ def main():
 
     lead = paragraphs(sections.get('THE LEAD', ''))
     around = paragraphs(sections.get('AROUND THE LEAGUE', ''))
-    # Ein Lead-Thema, dann unterschiedliche Liga-Themen; niemals denselben Akteur doppelt.
     candidates = lead[:1] + around
     brief, seen = [], set()
     for paragraph in candidates:
