@@ -181,7 +181,7 @@ def main():
         year = scoreboard.get("season", {}).get("year") or event.get("season", {}).get("year")
         season_type = scoreboard.get("season", {}).get("type") or event.get("season", {}).get("type")
         
-        if year < 2026 or season_type not in (2, 3):
+        if year < 2025 or season_type not in (2, 3):
             skipped += 1
             print(
                 "ÜBERSPRUNGEN: Saison oder Spieltyp nicht unterstützt:",
