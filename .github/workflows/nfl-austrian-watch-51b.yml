@@ -1,0 +1,129 @@
+name: THE HUDDLE - Austrian Watch 51B (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Recherchefenster 1-30 Tage
+        required: false
+        default: '7'
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhaengigkeiten installieren
+      run: python -m pip install --disable-pip-version-check requests feedparser beautifulsoup4
+    - name: Austrian Watch Tiefensuche (nur lesend)
+      env:
+        LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+      run: "mkdir -p drafts\ncat > /tmp/austrian_watch_51b.py <<'PY'\nimport os,re,json,html,time,calendar\nfrom datetime\
+        \ import datetime,timezone,timedelta\nfrom urllib.parse import urlparse\nimport requests,feedparser\nfrom bs4 import\
+        \ BeautifulSoup\nNOW=datetime.now(timezone.utc)\nDAYS=max(1,min(30,int(os.environ.get(\"LOOKBACK_DAYS\",\"7\"))))\n\
+        CUTOFF=NOW-timedelta(days=DAYS)\nS=requests.Session()\nS.headers.update({\"User-Agent\":\"TheHuddle/51B (read-only\
+        \ editorial research)\"})\nSOURCES=[\n (\"Football-Austria\",\"https://football-austria.com/feed/\",[\"football-austria.com\"\
+        ]),\n (\"ORF Sport\",\"https://rss.orf.at/sport.xml\",[\"orf.at\"]),\n (\"ORF News\",\"https://rss.orf.at/news.xml\"\
+        ,[\"orf.at\"]),\n (\"Indianapolis Colts\",\"https://www.colts.com/rss/news\",[\"colts.com\"]),\n (\"Arizona Cardinals\"\
+        ,\"https://www.azcardinals.com/rss/news\",[\"azcardinals.com\"]),\n (\"DER STANDARD\",\"https://www.derstandard.at/rss\"\
+        ,[\"derstandard.at\"])\n]\nPATTERNS={\"Bernhard Raimann\":re.compile(r\"\\braimann\\b\",re.I),\n          \"Valentin\
+        \ Senn\":re.compile(r\"\\bvalentin\\s+senn\\b|\\bsenn\\b\",re.I)}\ndef host(u):\n    try:return (urlparse(u).hostname\
+        \ or \"\").lower()\n    except:return \"\"\ndef permitted(u,domains):\n    return urlparse(u).scheme in (\"https\"\
+        ,\"http\") and any(host(u)==d or host(u).endswith(\".\"+d) for d in domains)\ndef clean(t):\n    return BeautifulSoup(html.unescape(t\
+        \ or \"\"),\"html.parser\").get_text(\" \",strip=True)\ndef names(t):\n    return [k for k,p in PATTERNS.items() if\
+        \ p.search(t or \"\")]\ndef parse_dt(s):\n    if not s:return None\n    try:return datetime.fromisoformat(s.replace(\"\
+        Z\",\"+00:00\")).astimezone(timezone.utc)\n    except Exception:return None\ndef feed_dt(e):\n    for key in (\"published_parsed\"\
+        ,\"updated_parsed\"):\n        if e.get(key):\n            try:return datetime.fromtimestamp(calendar.timegm(e[key]),timezone.utc)\n\
+        \            except Exception:pass\n    return None\ndef check_date(dt):\n    if dt is None:return \"UNKNOWN_DATE\"\
+        \n    return \"WITHIN_WINDOW\" if CUTOFF<=dt<=NOW+timedelta(hours=2) else \"OUTSIDE_WINDOW\"\ndef extract_article(url,domains):\n\
+        \    try:\n        r=S.get(url,timeout=15,allow_redirects=True)\n        if not permitted(r.url,domains):return {\"\
+        status\":\"OFF_DOMAIN\",\"final_url\":r.url}, \"\"\n        if r.status_code!=200:return {\"status\":\"HTTP_ERROR\"\
+        ,\"http_status\":r.status_code},\"\"\n        soup=BeautifulSoup(r.text[:1100000],\"html.parser\")\n        article=soup.find(\"\
+        article\")\n        if not article:return {\"status\":\"NO_ARTICLE_ELEMENT\",\"http_status\":200},\"\"\n        for\
+        \ tag in article([\"script\",\"style\",\"nav\",\"footer\"]):tag.decompose()\n        body=article.get_text(\" \",strip=True)\n\
+        \        return {\"status\":\"TEXT_EXTRACTED\" if len(body)>=100 else \"TEXT_TOO_SHORT\",\n                \"http_status\"\
+        :200,\"text_chars\":len(body),\"final_url\":r.url},body[:120000]\n    except Exception as e:return {\"status\":\"\
+        FETCH_ERROR\",\"error\":str(e)[:170]},\"\"\nresults={}; source_stats=[]; seen=set(); article_calls=0\ndef consider(source,url,title,dt,domains,method,summary=\"\
+        \",body=\"\",probe=None):\n    global article_calls\n    if not permitted(url,domains):return\n    key=url.split(\"\
+        #\",1)[0].rstrip(\"/\")\n    if key in seen:return\n    status=check_date(dt)\n    if status==\"OUTSIDE_WINDOW\":return\n\
+        \    metadata_names=names(title+\" \"+summary)\n    body_names=names(body)\n    # Only fetch articles that have not\
+        \ already been checked, subject to hard request cap.\n    if probe is None and article_calls<80:\n        article_calls+=1\n\
+        \        probe,body=extract_article(url,domains)\n        body_names=names(body)\n        time.sleep(0.12)\n    all_names=sorted(set(metadata_names+body_names))\n\
+        \    if not all_names:return\n    seen.add(key)\n    results[key]={\"source\":source,\"title\":title,\"url\":url,\n\
+        \                  \"published_utc\":dt.isoformat() if dt else None,\n                  \"date_status\":status,\"\
+        players\":all_names,\n                  \"mention_location\":\"ARTICLE_TEXT\" if body_names and not metadata_names\
+        \ else \"TITLE_OR_SUMMARY\",\n                  \"discovery_method\":method,\"article_probe\":probe,\n           \
+        \       \"fact_checked\":False,\"editorial_approved\":False}\nfor source,url,domains in SOURCES:\n    stat={\"source\"\
+        :source,\"method\":\"RSS\",\"url\":url,\"status\":\"UNKNOWN\",\"items\":0,\"recent_or_undated\":0,\"errors\":[]}\n\
+        \    try:\n        r=S.get(url,timeout=18)\n        r.raise_for_status()\n        if not permitted(r.url,domains):raise\
+        \ ValueError(\"Feed redirected outside expected domain\")\n        feed=feedparser.parse(r.content)\n        stat[\"\
+        items\"]=len(feed.entries)\n        stat[\"status\"]=\"OK\" if feed.entries else \"EMPTY\"\n        for e in feed.entries[:160]:\n\
+        \            u=e.get(\"link\",\"\")\n            if not permitted(u,domains):continue\n            dt=feed_dt(e)\n\
+        \            if check_date(dt)==\"OUTSIDE_WINDOW\":continue\n            stat[\"recent_or_undated\"]+=1\n        \
+        \    # For team feeds, inspect text even if title and summary do not mention the player.\n            # For other\
+        \ feeds, limit text checks to metadata hits to avoid broad crawling.\n            title=clean(e.get(\"title\",\"\"\
+        ));summary=clean(e.get(\"summary\",\"\"))[:700]\n            is_team=source in (\"Indianapolis Colts\",\"Arizona Cardinals\"\
+        )\n            if not is_team and not names(title+\" \"+summary):continue\n            consider(source,u,title,dt,domains,\"\
+        RSS\",summary=summary)\n    except Exception as ex:\n        stat[\"status\"]=\"ERROR\";stat[\"errors\"].append(str(ex)[:170])\n\
+        \    source_stats.append(stat)\n    print(source,stat[\"status\"],stat[\"items\"])\n# WordPress REST API is explicitly\
+        \ bounded to 2 searches and 2 pages, max 100 per page.\nwp_stat={\"source\":\"Football-Austria\",\"method\":\"WordPress\
+        \ REST API\",\"status\":\"UNKNOWN\",\"queries\":[],\"errors\":[]}\nbase=\"https://football-austria.com/wp-json/wp/v2/posts\"\
+        \nfor term in (\"Raimann\",\"Valentin Senn\"):\n    for page in (1,2):\n        try:\n            resp=S.get(base,params={\"\
+        search\":term,\"after\":CUTOFF.strftime(\"%Y-%m-%dT%H:%M:%S\"),\n                  \"per_page\":50,\"page\":page,\"\
+        _fields\":\"date_gmt,link,title,excerpt,content\"},timeout=18)\n            if resp.status_code==400 and page>1:break\n\
+        \            resp.raise_for_status()\n            if not permitted(resp.url,[\"football-austria.com\"]):raise ValueError(\"\
+        API redirected off domain\")\n            posts=resp.json()\n            if not isinstance(posts,list):raise ValueError(\"\
+        API did not return post list\")\n            wp_stat[\"queries\"].append({\"term\":term,\"page\":page,\"count\":len(posts)})\n\
+        \            for p in posts:\n                u=p.get(\"link\",\"\")\n                title=clean((p.get(\"title\"\
+        ) or {}).get(\"rendered\",\"\"))\n                excerpt=clean((p.get(\"excerpt\") or {}).get(\"rendered\",\"\"))\n\
+        \                body=clean((p.get(\"content\") or {}).get(\"rendered\",\"\"))\n                dt=parse_dt(p.get(\"\
+        date_gmt\")+\"Z\") if p.get(\"date_gmt\") else None\n                if not names(title+\" \"+excerpt+\" \"+body):continue\n\
+        \                consider(\"Football-Austria\",u,title,dt,[\"football-austria.com\"],\"WP_API\",\n               \
+        \          summary=excerpt,body=body,probe={\"status\":\"WP_API_TEXT\",\"text_chars\":len(body)})\n            if\
+        \ len(posts)<50:break\n            time.sleep(0.2)\n        except Exception as ex:\n            wp_stat[\"errors\"\
+        ].append(f\"{term} page {page}: {str(ex)[:150]}\")\n            break\nwp_stat[\"status\"]=\"OK\" if wp_stat[\"queries\"\
+        ] else \"UNAVAILABLE\"\nsource_stats.append(wp_stat)\n# Optional sitemap: only discover URLs containing the player's\
+        \ name, never indiscriminately crawl sitemap entries.\nsite_stat={\"source\":\"Football-Austria\",\"method\":\"Sitemap\
+        \ URL scan\",\"status\":\"UNKNOWN\",\"urls_scanned\":0,\"errors\":[]}\ntry:\n    r=S.get(\"https://football-austria.com/post-sitemap.xml\"\
+        ,timeout=20)\n    r.raise_for_status()\n    if not permitted(r.url,[\"football-austria.com\"]):raise ValueError(\"\
+        Sitemap redirected off domain\")\n    from xml.etree import ElementTree as ET\n    root=ET.fromstring(r.content)\n\
+        \    urls=[]\n    for el in root.iter():\n        if el.tag.endswith(\"loc\") and el.text and permitted(el.text,[\"\
+        football-austria.com\"]):\n            urls.append(el.text.strip())\n    site_stat[\"urls_scanned\"]=len(urls)\n \
+        \   # URL slug is not sufficient evidence; fetch matching articles.\n    for u in urls[:1500]:\n        if not re.search(r\"\
+        raimann|valentin-senn\",u,re.I):continue\n        if article_calls>=80:break\n        article_calls+=1\n        probe,body=extract_article(u,[\"\
+        football-austria.com\"])\n        # Sitemap itself does not prove date, so these are marked UNKNOWN_DATE.\n      \
+        \  consider(\"Football-Austria\",u,u.rsplit(\"/\",2)[-2].replace(\"-\",\" \"),None,\n                 [\"football-austria.com\"\
+        ],\"SITEMAP_URL\",body=body,probe=probe)\n    site_stat[\"status\"]=\"OK\"\nexcept Exception as ex:\n    site_stat[\"\
+        status\"]=\"ERROR\";site_stat[\"errors\"].append(str(ex)[:170])\nsource_stats.append(site_stat)\nhits=sorted(results.values(),key=lambda\
+        \ x:x.get(\"published_utc\") or \"\",reverse=True)\nout={\"version\":\"51B\",\"generated_utc\":NOW.isoformat(),\"\
+        lookback_days\":DAYS,\n     \"sources\":source_stats,\"article_requests\":article_calls,\"direct_hits_count\":len(hits),\n\
+        \     \"direct_hits\":hits,\"publication_approved\":False,\"fact_checked\":False,\n     \"limitations\":[\"Unknown\
+        \ dates are not evidence of current news.\",\n       \"Sitemap URLs are only sampled; not all sitemap indexes or archives\
+        \ are traversed.\",\n       \"Article text detection uses HTML article elements and can miss client-rendered content.\"\
+        ,\n       \"WP API may be blocked; errors are reported, not silently ignored.\",\n       \"Direct name mention does\
+        \ not imply newsworthiness or factual verification.\"]}\nos.makedirs(\"drafts\",exist_ok=True)\nwith open(\"drafts/austrian-watch-51b.json\"\
+        ,\"w\",encoding=\"utf-8\") as f:json.dump(out,f,ensure_ascii=False,indent=2)\nlines=[\"# THE HUDDLE – Austrian Watch\
+        \ 51B\",\"\",f\"Erstellt: {NOW.isoformat()}\",\n       f\"Zeitraum: {DAYS} Tage | Namenstreffer: {len(hits)} | Artikelabrufe:\
+        \ {article_calls}\",\"\",\"## Quellenstatus\",\"\"]\nfor st in source_stats:\n    lines.append(f\"- **{st['source']}\
+        \ ({st['method']})**: {st['status']}; {st.get('items',st.get('urls_scanned','?'))} Eintraege\")\n    for error in\
+        \ st.get(\"errors\",[]):lines.append(\"  - Fehler: \"+error)\nlines+=[\"\",\"## Recherchekandidaten\",\"\"]\nif not\
+        \ hits:lines.append(\"Keine direkten Namenstreffer gefunden. Das bedeutet nicht, dass keine Meldungen existieren.\"\
+        )\nfor h in hits:\n    lines += [f\"### {h['title']}\",\"\",f\"- Spieler: {', '.join(h['players'])}\",\n         \
+        \     f\"- Quelle: {h['source']} ({h['discovery_method']})\",\n              f\"- Original: {h['url']}\",\n      \
+        \        f\"- Datum: {h['published_utc'] or 'UNBEKANNT'} ({h['date_status']})\",\n              f\"- Namensfund: {h['mention_location']}\"\
+        ,\n              f\"- Artikelabruf: {(h.get('article_probe') or {}).get('status','nicht erfolgt')}\",\"\"]\nlines+=[\"\
+        ## Redaktioneller Vorbehalt\",\"\",\"Keine Faktenfreigabe. Treffer ohne Datum nicht als aktuelle Nachrichten verwenden.\
+        \ Keine Publikation.\"]\nwith open(\"drafts/austrian-watch-51b.md\",\"w\",encoding=\"utf-8\") as f:f.write(\"\\n\"\
+        .join(lines)+\"\\n\")\nprint(\"51B:\",len(hits),\"Treffer,\",article_calls,\"Artikelabrufe\")\nPY\npython /tmp/austrian_watch_51b.py"
+    - name: Recherche-Artefakt hochladen
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-austrian-watch-51b
+        path: drafts/austrian-watch-51b.*
+        if-no-files-found: warn
+        retention-days: 7
