@@ -1,0 +1,212 @@
+name: THE HUDDLE - Austrian Watch 50X (manuell)
+
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'Recherchefenster in Tagen (1-14)'
+        required: false
+        default: '7'
+
+permissions:
+  contents: read
+
+jobs:
+  austrian-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhaengigkeiten installieren
+        run: python -m pip install --disable-pip-version-check requests feedparser beautifulsoup4
+      - name: Austrian Watch 50X recherchieren (nur lesend)
+        env:
+          LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+        run: |
+          mkdir -p drafts
+          cat > /tmp/austrian_watch_50x.py <<'PY'
+          import os, re, json, html, time
+          from datetime import datetime, timedelta, timezone
+          from urllib.parse import quote, urlparse
+          import requests, feedparser
+          from bs4 import BeautifulSoup
+
+          NOW = datetime.now(timezone.utc)
+          try:
+              DAYS = max(1, min(14, int(os.environ.get('LOOKBACK_DAYS') or '7')))
+          except ValueError:
+              DAYS = 7
+          CUTOFF = NOW - timedelta(days=DAYS)
+          HEADERS = {'User-Agent': 'TheHuddleResearch/50X (editorial metadata research; contact via repository)'}
+          S = requests.Session()
+          S.headers.update(HEADERS)
+          PEOPLE = {
+              'Bernhard Raimann': {'team': 'Indianapolis Colts', 'aliases': ['bernhard raimann', 'raimann']},
+              'Valentin Senn': {'team': 'Arizona Cardinals', 'aliases': ['valentin senn', 'big val']},
+          }
+          DOMAINS = ['football-austria.com', 'sport.orf.at', 'derstandard.at', 'krone.at', 'kurier.at', 'skysportaustria.at', 'colts.com', 'azcardinals.com']
+          rows, errors = [], []
+
+          def utc(value):
+              if not value:
+                  return None
+              if isinstance(value, (int, float)):
+                  return datetime.fromtimestamp(value, tz=timezone.utc)
+              try:
+                  return datetime.fromisoformat(str(value).replace('Z', '+00:00')).astimezone(timezone.utc)
+              except (ValueError, TypeError):
+                  return None
+
+          def add(title, url, published, channel, query, description=''):
+              title = html.unescape(re.sub(r'<[^>]*>', '', str(title or ''))).strip()
+              url = str(url or '').strip()
+              if not title or not url:
+                  return
+              date = utc(published)
+              if date and date < CUTOFF:
+                  return
+              if date and date > NOW + timedelta(hours=2):
+                  return
+              hay = (title + ' ' + description).casefold()
+              hits = [name for name, p in PEOPLE.items() if any(re.search(r'(?<!\w)' + re.escape(alias) + r'(?!\w)', hay) for alias in p['aliases'])]
+              team_hits = [name for name, p in PEOPLE.items() if p['team'].casefold() in hay]
+              if hits:
+                  kind = 'DIREKTER_NAMENSTREFFER'
+              elif team_hits:
+                  kind = 'TEAM_PRUEFKANDIDAT'
+              else:
+                  return
+              rows.append({'title': title, 'url': url, 'published_utc': date.isoformat() if date else None,
+                           'source_channel': channel, 'query': query, 'persons_named': hits,
+                           'team_context': team_hits, 'classification': kind,
+                           'link_is_publisher_original': urlparse(url).netloc.lower() not in ('news.google.com', 'www.google.com'),
+                           'fact_checked': False, 'editorial_approved': False})
+
+          # Google News RSS: Entdeckung, Google-Links werden NICHT als Original-URLs ausgegeben.
+          queries = [
+              '"Bernhard Raimann" when:7d', '"Valentin Senn" when:7d',
+              '"Bernhard Raimann" site:colts.com when:7d',
+              '"Valentin Senn" site:azcardinals.com when:7d',
+          ]
+          for domain in DOMAINS[:6]:
+              queries.append(f'("Bernhard Raimann" OR "Valentin Senn") site:{domain} when:7d')
+          for q in queries:
+              try:
+                  u = 'https://news.google.com/rss/search?q=' + quote(q) + '&hl=de&gl=AT&ceid=AT:de'
+                  resp = S.get(u, timeout=16)
+                  resp.raise_for_status()
+                  feed = feedparser.parse(resp.content)
+                  for item in feed.entries[:35]:
+                      stamp = item.get('published_parsed') or item.get('updated_parsed')
+                      published = datetime(*stamp[:6], tzinfo=timezone.utc) if stamp else None
+                      add(item.get('title'), item.get('link'), published.isoformat() if published else None,
+                          'Google News RSS (Discovery)', q, item.get('summary', ''))
+              except Exception as exc:
+                  errors.append({'source': 'Google News RSS', 'query': q, 'error': str(exc)[:180]})
+              time.sleep(0.2)
+
+          # ESPN News API: weitere direkte Artikel-URLs, keine Volltext-Verifikation.
+          try:
+              r = S.get('https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=100', timeout=18)
+              r.raise_for_status()
+              articles = r.json().get('articles', [])
+              for a in articles:
+                  links = a.get('links') or {}
+                  if isinstance(links, dict):
+                      web = links.get('web') or {}
+                      url = web.get('href', '') if isinstance(web, dict) else ''
+                  elif isinstance(links, list):
+                      url = next((x.get('href', '') for x in links if isinstance(x, dict) and x.get('href')), '')
+                  else:
+                      url = ''
+                  add(a.get('headline'), url, a.get('published') or a.get('lastModified'),
+                      'ESPN News API', 'NFL News API', a.get('description') or '')
+          except Exception as exc:
+              errors.append({'source': 'ESPN News API', 'error': str(exc)[:180]})
+
+          # Offizielle Teamseiten: nur aktuelle Headline-Links finden, KEINE Behauptung ueber Spielernennung.
+          for base, label in [('https://www.colts.com/news/', 'Indianapolis Colts'),
+                              ('https://www.azcardinals.com/news/', 'Arizona Cardinals')]:
+              try:
+                  r = S.get(base, timeout=18)
+                  if r.status_code != 200:
+                      errors.append({'source': label, 'status': r.status_code})
+                      continue
+                  soup = BeautifulSoup(r.text, 'html.parser')
+                  for a in soup.select('a[href]')[:350]:
+                      href = a.get('href', '')
+                      title = a.get_text(' ', strip=True)
+                      if href.startswith('/'):
+                          href = urlparse(base).scheme + '://' + urlparse(base).netloc + href
+                      if urlparse(href).netloc.lower() != urlparse(base).netloc.lower():
+                          continue
+                      if '/news/' not in urlparse(href).path:
+                          continue
+                      add(title, href, None, label + ' website', label)
+              except Exception as exc:
+                  errors.append({'source': label, 'error': str(exc)[:180]})
+
+          # Entdoppeln nach normalisierter Schlagzeile + Person; bevorzugt Publisher-Links.
+          rows.sort(key=lambda x: (not x['link_is_publisher_original'], x['published_utc'] or ''), reverse=True)
+          dedup = {}
+          for x in rows:
+              key = (re.sub(r'\W+', ' ', x['title'].casefold()).strip(), tuple(x['persons_named']))
+              prev = dedup.get(key)
+              if prev is None or (x['link_is_publisher_original'] and not prev['link_is_publisher_original']):
+                  dedup[key] = x
+          results = list(dedup.values())
+          results.sort(key=lambda x: (x['classification'] != 'DIREKTER_NAMENSTREFFER',
+                                      not x['link_is_publisher_original'],
+                                      -(utc(x['published_utc']).timestamp() if x['published_utc'] else 0)))
+          direct = [x for x in results if x['classification'] == 'DIREKTER_NAMENSTREFFER']
+          team = [x for x in results if x['classification'] == 'TEAM_PRUEFKANDIDAT']
+          report = {'version': '50X', 'created_utc': NOW.isoformat(), 'lookback_days': DAYS,
+                    'method': 'metadata-only; Google News links are discovery-only; no verified claims',
+                    'results': results, 'errors': errors,
+                    'counts': {'all': len(results), 'direct_name': len(direct), 'team_candidates': len(team)}}
+          with open('drafts/austrian-watch-50x.json', 'w', encoding='utf-8') as f:
+              json.dump(report, f, ensure_ascii=False, indent=2)
+          lines = ['# THE HUDDLE – Austrian Watch 50X', '',
+                   f'Recherchezeitpunkt (UTC): {NOW.isoformat()}', f'Fenster: {DAYS} Tage', '',
+                   '**Nur Recherchekandidaten. Keine Faktenprüfung, keine Freigabe, keine Veröffentlichung.**', '',
+                   f'Ergebnis: {len(direct)} direkte Namenstreffer, {len(team)} Team-Prüfkandidaten.', '']
+          for heading, group in [('Direkte Namenstreffer', direct), ('Nur Team-Kontext – manuell prüfen', team)]:
+              lines += ['## ' + heading, '']
+              if not group:
+                  lines += ['Keine Treffer in den abgefragten Quellen.', '']
+              for x in group[:35]:
+                  safe_title = x['title'].replace('[', '').replace(']', '')
+                  lines += [f'- **{safe_title}**',
+                            f'  - Quelle: {x["source_channel"]}; Datum: {x["published_utc"] or "nicht belegt"}',
+                            f'  - Link: {x["url"]}',
+                            f'  - Linkstatus: {"Publisher-URL (Inhalt ungeprüft)" if x["link_is_publisher_original"] else "Google-News-Discovery-Link (keine Original-URL)"}',
+                            f'  - Bezug: {", ".join(x["persons_named"] or x["team_context"])}', '']
+          lines += ['## Redaktionelle Kontrollpunkte', '',
+                    '- Direkte Spielernennung in einem Artikel ist noch kein neuer oder relevanter Sachverhalt.',
+                    '- Originalartikel öffnen; Publikationsdatum, konkrete Aussage und Quelle kontrollieren.',
+                    '- Keine Colts-/Cardinals-Teamnachricht automatisch Raimann oder Senn zuschreiben.',
+                    '- Google-News-Links nicht als Originalquelle ausgeben.',
+                    '- Keine alten Profilseiten als aktuelle Meldungen übernehmen.',
+                    '- Wenn keine relevante neue Meldung vorliegt: Austrian Watch bleibt leer.', '',
+                    '## Abrufprobleme', '']
+          lines += [f'- {e}' for e in errors] if errors else ['Keine technischen Abrufprobleme protokolliert.']
+          with open('drafts/austrian-watch-50x.md', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(lines) + '\n')
+          print('===== 50X: AUSTRIAN WATCH 2.0 =====')
+          print('Direkte Namenstreffer:', len(direct), 'Team-Pruefkandidaten:', len(team))
+          print('Abrufprobleme:', len(errors))
+          print('Dateien: drafts/austrian-watch-50x.json, drafts/austrian-watch-50x.md')
+          print('Keine Freigabe, keine Publikation, keine OpenAI-API-Kosten.')
+          PY
+          python /tmp/austrian_watch_50x.py
+      - name: Recherche-Artefakt hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-huddle-austrian-watch-50x
+          path: drafts/
+          if-no-files-found: warn
+          retention-days: 7
