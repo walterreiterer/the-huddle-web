@@ -20,7 +20,7 @@ jobs:
       - name: Abhängigkeiten installieren
         run: python -m pip install requests feedparser
 
-      - name: Redaktionstest 50I
+      - name: Redaktionstest 50J
         shell: bash
         run: |
           python - <<'PY'
@@ -28,7 +28,6 @@ jobs:
           import re
           from collections import defaultdict
           from datetime import datetime, timezone, timedelta
-          from difflib import SequenceMatcher
           from html import unescape
           from urllib.parse import urlencode
 
@@ -46,17 +45,17 @@ jobs:
           }
 
           TEAMS = {
-              "Cardinals": ["cardinals", "arizona cardinals"],
+              "Cardinals": ["cardinals", "arizona"],
               "Falcons": ["falcons", "atlanta falcons"],
-              "Ravens": ["ravens", "baltimore ravens"],
+              "Ravens": ["ravens", "baltimore"],
               "Bills": ["bills", "buffalo bills"],
               "Panthers": ["carolina panthers"],
               "Bears": ["bears", "chicago bears"],
               "Bengals": ["bengals", "cincinnati"],
-              "Browns": ["browns", "cleveland browns"],
-              "Cowboys": ["cowboys", "dallas cowboys"],
+              "Browns": ["browns", "cleveland"],
+              "Cowboys": ["cowboys", "dallas"],
               "Broncos": ["broncos", "denver"],
-              "Lions": ["lions", "detroit lions"],
+              "Lions": ["lions", "detroit"],
               "Packers": ["packers", "green bay"],
               "Texans": ["texans", "houston texans"],
               "Colts": ["colts", "indianapolis"],
@@ -66,13 +65,13 @@ jobs:
               "Chargers": ["chargers", "l a chargers"],
               "Rams": ["rams", "l a rams"],
               "Dolphins": ["dolphins", "miami dolphins"],
-              "Vikings": ["vikings", "minnesota vikings"],
+              "Vikings": ["vikings", "minnesota"],
               "Patriots": ["patriots", "new england"],
               "Saints": ["saints", "new orleans"],
               "Giants": ["new york giants"],
-              "Jets": ["new york jets", "jets"],
+              "Jets": ["jets", "new york jets"],
               "Eagles": ["eagles", "philadelphia"],
-              "Steelers": ["steelers", "pittsburgh steelers"],
+              "Steelers": ["steelers", "pittsburgh"],
               "49ers": ["49ers", "san francisco"],
               "Seahawks": ["seahawks", "seattle seahawks"],
               "Buccaneers": ["buccaneers", "bucs", "tampa bay"],
@@ -83,11 +82,6 @@ jobs:
           PLAYERS = {
               "Bernhard Raimann": r"\braimann\w*\b",
               "Valentin Senn": r"\bvalentin\s+senn\b"
-          }
-
-          PLAYER_TEAMS = {
-              "Bernhard Raimann": "Colts",
-              "Valentin Senn": "Cardinals"
           }
 
           OTHER_SPORTS = [
@@ -129,7 +123,8 @@ jobs:
               r"\bdominier\w*\b",
               r"\bcomeback\b",
               r"\bwende\b",
-              r"\bkrimi\b"
+              r"\bkrimi\b",
+              r"\bklatsche\b"
           ]
 
           NEWS_EVENTS = {
@@ -152,6 +147,21 @@ jobs:
                   r"\bverlänger\w*\b"
               ]
           }
+
+          SPECULATION = [
+              r"\bgerücht\w*\b",
+              r"\bkönnte\b",
+              r"\bsoll\b",
+              r"\bsollte\b",
+              r"\bangeblich\b",
+              r"\bim gespräch\b",
+              r"\binteresse\b",
+              r"\bwas wäre wenn\b",
+              r"\bwarum\b",
+              r"\bwer hat\b",
+              r"\bwer wird\b",
+              r"\b\d+\s+teams sollten\b"
+          ]
 
           NOW = datetime.now(timezone.utc)
           MAX_AGE = timedelta(hours=72)
@@ -197,6 +207,7 @@ jobs:
 
           def detect_players(title):
               text = normalize(title)
+
               return [
                   name
                   for name, pattern in PLAYERS.items()
@@ -259,10 +270,22 @@ jobs:
 
               return "SONSTIGES"
 
+          def editorial_status(title, kind):
+              text = normalize(title)
+
+              if kind in [
+                  "VIDEO", "DATENSEITE",
+                  "ANALYSE/VORSCHAU"
+              ]:
+                  return kind
+
+              if matches(SPECULATION, text):
+                  return "PRÜFEN/SPEKULATION"
+
+              return "NACHRICHTENKANDIDAT"
+
           def headline_key(title):
               title = clean(title)
-
-              # Medienbezeichnung am Ende entfernen.
               title = re.sub(
                   r"\s*[-|]\s*(?:Kicker|"
                   r"Sky Sport Austria|"
@@ -273,11 +296,9 @@ jobs:
                   title,
                   flags=re.I
               )
-
               return normalize(title)
 
           articles = []
-          rejected = []
 
           for source, domain in SOURCES.items():
               print(f"\n===== {source} =====", flush=True)
@@ -300,7 +321,6 @@ jobs:
 
               try:
                   response = session.get(url, timeout=25)
-                  print("HTTP:", response.status_code)
                   response.raise_for_status()
                   feed = feedparser.parse(response.content)
               except requests.RequestException as exc:
@@ -332,7 +352,6 @@ jobs:
                       continue
 
                   if not is_nfl(title):
-                      rejected.append(title)
                       continue
 
                   kind = content_type(title)
@@ -347,6 +366,7 @@ jobs:
                       "players": detect_players(title),
                       "type": kind,
                       "event": detect_event(title, kind),
+                      "status": editorial_status(title, kind),
                       "headline_key": headline_key(title)
                   }
 
@@ -355,8 +375,7 @@ jobs:
 
               print("NFL-Kandidaten:", accepted)
 
-          # 1. Exakte Schlagzeilen-Dubletten.
-          # Jede Variante bleibt als Quelle erhalten.
+          # Dubletten bereinigen.
           unique = []
           duplicates = defaultdict(list)
           by_headline = {}
@@ -377,8 +396,8 @@ jobs:
                   by_headline[key] = article
                   unique.append(article)
 
-          # 2. Spielpaarungen ausschließlich aus
-          # Überschriften mit zwei erkannten Teams.
+          # Bekannte Spielpaarungen:
+          # nur aus Überschriften mit zwei Teams.
           game_pairs = defaultdict(list)
 
           for article in unique:
@@ -391,6 +410,7 @@ jobs:
                   pair = tuple(article["teams"])
                   game_pairs[pair].append(article)
 
+          # Eindeutige Spielzuordnung.
           def find_game_pair(article):
               teams = set(article["teams"])
 
@@ -399,28 +419,8 @@ jobs:
                   if pair in game_pairs:
                       return pair
 
-              # Kein genereller Rückschluss von
-              # einem Team auf einen Gegner!
-              # Ausnahme nur für Austrian Watch.
-              if (
-                  len(teams) == 1
-                  and article["players"]
-                  and article["event"] == "SPIEL"
-              ):
-                  team = next(iter(teams))
-
-                  if any(
-                      PLAYER_TEAMS.get(player) == team
-                      for player in article["players"]
-                  ):
-                      candidates = [
-                          pair for pair in game_pairs
-                          if team in pair
-                      ]
-
-                      if len(candidates) == 1:
-                          return candidates[0]
-
+              # Kein Rückschluss nur anhand
+              # eines einzelnen Teams.
               return None
 
           groups = defaultdict(list)
@@ -456,28 +456,10 @@ jobs:
 
               groups[key].append(article)
 
-          def category(key, items):
-              if key.startswith("SPIEL:"):
-                  return "SPIELBERICHTE"
-
-              if any(
-                  item["players"] for item in items
-              ):
-                  return "AUSTRIAN WATCH"
-
-              if any(
-                  item["event"] in NEWS_EVENTS
-                  for item in items
-              ):
-                  return "TOP STORIES"
-
-              return "WEITERE MELDUNGEN"
-
           def print_group(key, items):
               print("\n--------------------")
               print("Ereignis:", key)
               print("Artikel:", len(items))
-
               print(
                   "Quellen:",
                   ", ".join(sorted(set(
@@ -485,60 +467,56 @@ jobs:
                   )))
               )
 
-              players = sorted(set(
-                  player
-                  for item in items
-                  for player in item["players"]
-              ))
-
-              if players:
+              for item in items[:6]:
                   print(
-                      "Austrian Watch:",
-                      ", ".join(players)
-                  )
-
-              for item in items[:5]:
-                  print(
-                      " - [" + item["type"] + "]",
+                      " - [" + item["status"] + "]",
                       item["title"]
                   )
 
-          print("\n===== DUBLETTENKONTROLLE =====")
-          print("Rohkandidaten:", len(articles))
-          print("Eindeutige Artikel:", len(unique))
-          print(
-              "Entfernte Schlagzeilen-Dubletten:",
-              len(articles) - len(unique)
-          )
+          sections = {
+              "AUSTRIAN WATCH": [],
+              "TOP STORIES": [],
+              "SPIELBERICHTE": [],
+              "PRÜFEN/SPEKULATION": [],
+              "WEITERE MELDUNGEN": []
+          }
 
-          for key, extra in list(
-              duplicates.items()
-          )[:12]:
-              original = by_headline[key]
-              print(
-                  "DUBLETTE:",
-                  original["title"]
-              )
-              print(
-                  "Quellen:",
-                  ", ".join(
-                      [original["source"]]
-                      + [item["source"] for item in extra]
+          for key, items in groups.items():
+              if any(
+                  item["players"] for item in items
+              ):
+                  sections["AUSTRIAN WATCH"].append(
+                      (key, items)
                   )
-              )
 
-          for section in [
-              "AUSTRIAN WATCH",
-              "TOP STORIES",
-              "SPIELBERICHTE",
-              "WEITERE MELDUNGEN"
-          ]:
-              selected = [
-                  (key, items)
-                  for key, items in groups.items()
-                  if category(key, items) == section
-              ]
+              if key.startswith("SPIEL:"):
+                  sections["SPIELBERICHTE"].append(
+                      (key, items)
+                  )
 
+              elif any(
+                  item["status"] == "PRÜFEN/SPEKULATION"
+                  for item in items
+              ):
+                  sections["PRÜFEN/SPEKULATION"].append(
+                      (key, items)
+                  )
+
+              elif any(
+                  item["event"] in NEWS_EVENTS
+                  and item["status"] == "NACHRICHTENKANDIDAT"
+                  for item in items
+              ):
+                  sections["TOP STORIES"].append(
+                      (key, items)
+                  )
+
+              else:
+                  sections["WEITERE MELDUNGEN"].append(
+                      (key, items)
+                  )
+
+          for section, selected in sections.items():
               selected.sort(
                   key=lambda pair: max(
                       item["date"] for item in pair[1]
@@ -554,20 +532,26 @@ jobs:
               for key, items in selected[:20]:
                   print_group(key, items)
 
-          print("\n===== SICHERHEITSKONTROLLE =====")
+          print("\n===== DUBLETTENKONTROLLE =====")
+          print("Rohkandidaten:", len(articles))
+          print("Eindeutige Artikel:", len(unique))
+          print(
+              "Schlagzeilen-Dubletten:",
+              len(articles) - len(unique)
+          )
+
+          print("\n===== UNGEKLÄRTE SPIELBERICHTE =====")
 
           for key, items in groups.items():
               if key.startswith("SPIEL:"):
-                  for item in items:
-                      if len(item["teams"]) == 1:
-                          print(
-                              "EIN-TEAM-ZUORDNUNG:",
-                              key,
-                              "|",
-                              item["title"]
-                          )
+                  continue
 
-          print(
-              "\nRedaktionstest 50I abgeschlossen."
-          )
+              for item in items:
+                  if item["event"] == "SPIEL":
+                      print(
+                          "UNGEKLÄRT:",
+                          item["title"]
+                      )
+
+          print("\nRedaktionstest 50J abgeschlossen.")
           PY
