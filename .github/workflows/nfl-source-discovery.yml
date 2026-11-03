@@ -1,0 +1,164 @@
+
+name: THE HUDDLE – NFL Quellenrecherche
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Abhängigkeiten installieren
+        run: python -m pip install requests feedparser
+
+      - name: NFL-Nachrichten über Google News suchen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests
+          import feedparser
+          import calendar
+          from datetime import datetime, timezone, timedelta
+          from urllib.parse import urlencode
+
+          SOURCES = {
+              "Kronen Zeitung": "krone.at",
+              "KURIER": "kurier.at",
+              "kicker Deutschland": "kicker.de",
+              "kicker Österreich": "kicker.at",
+              "Sky Sport Austria": "skysportaustria.at",
+              "LAOLA1": "laola1.at",
+              "football-world.news": "football-world.news"
+          }
+
+          SEARCH = (
+              '("NFL" OR "Super Bowl" OR '
+              '"Bernhard Raimann" OR "Valentin Senn")'
+          )
+
+          NOW = datetime.now(timezone.utc)
+          MAX_AGE = timedelta(hours=72)
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0"
+          })
+
+          all_results = []
+          seen = set()
+
+          for name, domain in SOURCES.items():
+              print(f"\n===== {name} =====", flush=True)
+
+              query = f"{SEARCH} site:{domain} when:3d"
+
+              params = urlencode({
+                  "q": query,
+                  "hl": "de",
+                  "gl": "AT",
+                  "ceid": "AT:de"
+              })
+
+              url = (
+                  "https://news.google.com/rss/search?"
+                  + params
+              )
+
+              try:
+                  response = session.get(
+                      url, timeout=25
+                  )
+                  print("HTTP:", response.status_code)
+                  response.raise_for_status()
+
+                  feed = feedparser.parse(
+                      response.content
+                  )
+
+                  print(
+                      "Gefundene Einträge:",
+                      len(feed.entries)
+                  )
+
+                  accepted = 0
+
+                  for entry in feed.entries:
+                      parsed = entry.get(
+                          "published_parsed"
+                      )
+
+                      if not parsed:
+                          continue
+
+                      published = datetime.fromtimestamp(
+                          calendar.timegm(parsed),
+                          timezone.utc
+                      )
+
+                      age = NOW - published
+
+                      if age < timedelta(0) or age > MAX_AGE:
+                          continue
+
+                      title = entry.get("title", "")
+                      link = entry.get("link", "")
+
+                      if not title or not link:
+                          continue
+
+                      key = title.lower().strip()
+
+                      if key in seen:
+                          continue
+
+                      seen.add(key)
+                      accepted += 1
+
+                      all_results.append({
+                          "source": name,
+                          "title": title,
+                          "date": published,
+                          "link": link
+                      })
+
+                  print(
+                      "Aktuelle Treffer:",
+                      accepted
+                  )
+
+              except requests.RequestException as exc:
+                  print("Abruffehler:", exc)
+
+          all_results.sort(
+              key=lambda item: item["date"],
+              reverse=True
+          )
+
+          print(
+              f"\n===== GESAMTERGEBNIS: "
+              f"{len(all_results)} ARTIKEL ====="
+          )
+
+          for item in all_results[:40]:
+              print("--------------------")
+              print("Quelle:", item["source"])
+              print("Titel:", item["title"])
+              print(
+                  "Datum:",
+                  item["date"].strftime(
+                      "%d.%m.%Y %H:%M UTC"
+                  )
+              )
+              print("Google-News-Link:", item["link"])
+
+          print("\nQuellenrecherche abgeschlossen.")
+          PY
