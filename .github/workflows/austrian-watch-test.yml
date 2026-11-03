@@ -1,0 +1,133 @@
+
+name: THE HUDDLE – Austrian Watch Quellencheck
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-sources:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Abhängigkeiten installieren
+        run: python -m pip install requests feedparser
+
+      - name: Österreichische Nachrichtenquellen prüfen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests
+          import feedparser
+
+          sources = {
+              "Football-Austria": [
+                  "https://football-austria.com/feed/"
+              ],
+              "ORF Sport": [
+                  "https://rss.orf.at/sport.xml"
+              ],
+              "LAOLA1": [
+                  "https://www.laola1.at/feed/",
+                  "https://www.laola1.at/rss/"
+              ]
+          }
+
+          terms = (
+              "raimann", "reimann", "senn",
+              "colts", "cardinals",
+              "american football", "nfl"
+          )
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "TheHuddleSourceCheck/1.0",
+              "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*"
+          })
+
+          for name, urls in sources.items():
+              print(f"\n===== {name} =====", flush=True)
+
+              for url in urls:
+                  print(f"Prüfe: {url}", flush=True)
+
+                  try:
+                      response = session.get(
+                          url, timeout=20
+                      )
+                      print(
+                          f"HTTP: {response.status_code}",
+                          flush=True
+                      )
+
+                      response.raise_for_status()
+
+                      feed = feedparser.parse(
+                          response.content
+                      )
+
+                      print(
+                          f"Feed-Einträge: {len(feed.entries)}",
+                          flush=True
+                      )
+
+                      if not feed.entries:
+                          print(
+                              "Keine auswertbaren Feed-Einträge."
+                          )
+                          continue
+
+                      matches = []
+
+                      for entry in feed.entries:
+                          title = entry.get("title", "")
+                          summary = entry.get("summary", "")
+                          content = (
+                              title + " " + summary
+                          ).lower()
+
+                          if any(
+                              term in content
+                              for term in terms
+                          ):
+                              matches.append(entry)
+
+                      print(
+                          f"Football-Treffer: {len(matches)}"
+                      )
+
+                      for entry in matches[:10]:
+                          print("--------------------")
+                          print(
+                              "Titel:",
+                              entry.get("title", "")
+                          )
+                          print(
+                              "Datum:",
+                              entry.get(
+                                  "published",
+                                  entry.get("updated", "Unbekannt")
+                              )
+                          )
+                          print(
+                              "Link:",
+                              entry.get("link", "")
+                          )
+
+                  except requests.RequestException as exc:
+                      print(
+                          "Abruffehler:",
+                          str(exc)
+                      )
+
+          print(
+              "\nQuellencheck abgeschlossen."
+          )
+          PY
