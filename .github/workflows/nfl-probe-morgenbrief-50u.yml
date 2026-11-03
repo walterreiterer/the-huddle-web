@@ -1,0 +1,340 @@
+name: THE HUDDLE – Probe-Morgenbrief 50U (manuell)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editorial-probe-50u:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Requests installieren
+        run: python -m pip install requests
+      - name: ESPN-Nachrichten bewerten und Game Center pruefen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, re, unicodedata
+          from datetime import datetime,timedelta,timezone
+          from pathlib import Path
+          from urllib.parse import urlparse
+          import requests
+          
+          NOW=datetime.now(timezone.utc); CUTOFF=NOW-timedelta(hours=72)
+          OUT=Path('drafts'); OUT.mkdir(exist_ok=True)
+          S=requests.Session(); S.headers.update({'User-Agent':'TheHuddleResearch/50T (manual metadata test)','Accept':'application/json'})
+          API='https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=100'
+          ALIASES={'ARI':['cardinals','arizona'],'ATL':['falcons','atlanta'],'BAL':['ravens','baltimore'],'BUF':['bills','buffalo'],'CAR':['panthers','carolina'],'CHI':['bears','chicago'],'CIN':['bengals','cincinnati'],'CLE':['browns','cleveland'],'DAL':['cowboys','dallas'],'DEN':['broncos','denver'],'DET':['lions','detroit'],'GB':['packers','green bay'],'HOU':['texans','houston'],'IND':['colts','indianapolis'],'JAX':['jaguars','jacksonville'],'KC':['chiefs','kansas city'],'LV':['raiders','las vegas'],'LAC':['chargers','los angeles chargers'],'LAR':['rams','los angeles rams'],'MIA':['dolphins','miami'],'MIN':['vikings','minnesota'],'NE':['patriots','new england'],'NO':['saints','new orleans'],'NYG':['giants','new york giants'],'NYJ':['jets','new york jets'],'PHI':['eagles','philadelphia'],'PIT':['steelers','pittsburgh'],'SF':['49ers','san francisco'],'SEA':['seahawks','seattle'],'TB':['buccaneers','bucs','tampa bay'],'TEN':['titans','tennessee'],'WSH':['commanders','washington']}
+          AUST={'bernhard raimann':'IND','valentin senn':'ARI'}
+          EXCLUDED=[r'\bfantasy\b',r'\bbet(?:ting|s)?\b',r'\bodds\b',r'\bprops?\b',r'\bwager',r'\bparlay\b',r'\bpicks? to bet\b',r'\bfashion\b',r'\bbest arrivals\b',r'\bdepth charts?\b',r'\bpower rankings?\b',r'\bmock draft\b',r'\bhighlights?\b',r'\bplayoff odds\b']
+          # Actual regexes: avoid broad 'pick' (draft pick can be news).
+          EVENTS=[('confirmed_trade',r'\btraded?\b|\btrade deadline\b|\btrade for\b',36),('coach_change',r'\bfir(?:e|ed|ing)\b|\bhir(?:e|ed|ing)\b|\bcoach(?:ing)? change\b',34),('qb_decision',r'\b(?:starting qb|starter|qb1|quarterback change|benched|bench(?:ing|ed)?)\b',31),('major_injury',r'\b(?:out for season|season ending|torn|hospital|surgery|injured reserve|placed on ir|out indefinitely)\b',30),('personnel',r'\b(?:signed|signs|released|suspended|suspension|contract|extension|waived)\b',23),('injury_update',r'\b(?:injur(?:y|ed)|ankle|hamstring|knee|practice|ruled out|questionable)\b',18),('result_story',r'\b(?:defeats?|beats?|wins?|loss|loses?|fell to|falls to|comeback|collapse)\b',14)]
+          SPEC=[r'\b(?:could|might|may|possibly|potential|rumou?r|reportedly|uncertain|expected|likely|chance to|eyes|would)\b',r'\btrade\\?']
+          BACKGROUND=[r'\b(?:analysis|explained|inside|why|how|preview|breakdown|evolution|projection|future|sizing up)\b',r'\ba look at\b']
+          
+          def norm(x):
+           s=unicodedata.normalize('NFKD',str(x or '')).lower()
+           return re.sub(r'\s+',' ',re.sub(r'[^a-z0-9]+',' ',''.join(c for c in s if not unicodedata.combining(c)))).strip()
+          def timestamp(x):
+           try:
+            if isinstance(x,(int,float)): return datetime.fromtimestamp(x/1000 if x>1e11 else x,timezone.utc)
+            if x: return datetime.fromisoformat(str(x).replace('Z','+00:00')).astimezone(timezone.utc)
+           except (ValueError,OverflowError,OSError,TypeError): pass
+           return None
+          def recursive_urls(x):
+           if isinstance(x,str): yield x
+           elif isinstance(x,dict):
+            for k in ('href','url','link','web','mobile'):
+             if k in x: yield from recursive_urls(x[k])
+           elif isinstance(x,list):
+            for y in x: yield from recursive_urls(y)
+          def url_of(article):
+           for obj in (article.get('links'),article.get('link'),article.get('url'),article.get('href')):
+            for u in recursive_urls(obj):
+             p=urlparse(u)
+             if p.scheme=='https' and p.hostname in ('espn.com','www.espn.com'): return u
+           return ''
+          def teams(title):
+           t=' '+norm(title)+' '
+           return [code for code,names in ALIASES.items() if any(' '+norm(n)+' ' in t for n in names)]
+          def matches(patterns,title): return any(re.search(p,title,re.I) for p in patterns)
+          def classify(title,url,published):
+           low=title.lower(); reasons=[]
+           if '/video/' in url or '/video/clip' in url or matches(EXCLUDED,title):
+            return 'AUSSORTIERT',0,['Nicht redaktionell relevantes Format (Video/Fantasy/Wetten/Service)'],False,'ausgeschlossen'
+           speculative=matches(SPEC,title)
+           background=matches(BACKGROUND,title)
+           # Ereignis-spezifische Gewichtung: nicht jede Trainer-Personalie ist ein Headline-Thema.
+           rules=[
+            ('Trade-Deadline / konkreter Transfer',r'\btrade deadline\b|\bon the move\b|\btraded to\b|\btrades? (?:for|to)\b',94),
+            ('Head-Coach / Coordinator-Wechsel',r'\bhead coach\b.*\b(?:fired|hired|out)\b|\b(?:fire|fired|hire|hired)\b.*\b(?:head coach|offensive coordinator|defensive coordinator)\b',83),
+            ('Quarterback-Entscheidung',r'\b(?:starting qb|starter|qb1|starting quarterback|named? .* starter|benched quarterback)\b',82),
+            ('Schwere Verletzung / Saisonende',r'\b(?:out for season|season.ending|torn|hospital|surgery|injured reserve|placed on ir|out indefinitely)\b',80),
+            ('Bedeutende Vertrags-/Kaderentscheidung',r'\b(?:contract extension|record.setting deal|released|suspended|suspension|signs? with)\b',72),
+            ('Verletzungsupdate',r'\b(?:injur(?:y|ed)|ankle|hamstring|knee|practice|ruled out|questionable)\b',59),
+            ('Spielanalyse',r'\b(?:defeats?|beats?|wins?|loss|loses?|fell to|falls to|comeback|collapse)\b',52),
+           ]
+           # Historische Rueckblicke und Meinungs-/Analyseformate nicht durch Keywords aufwerten.
+           historical=bool(re.search(r'\b(?:last|past|over the last|through the years|history|historical|decade|10 years|ten years|evolution|how .*changed|look back|retrospective)\b',title,re.I))
+           analytical=bool(re.search(r'\b(?:analysis|explained|sizing up|ranking|rankings|a look at|what we learned|inside|future|projection|preview)\b',title,re.I))
+           roundup=bool(re.search(r'\b(?:tracker|roundup|updates|everything to know|all the moves|latest news)\b',title,re.I))
+           found=[(label,weight) for label,pat,weight in rules if re.search(pat,title,re.I)]
+           if found:
+            signal,score=max(found,key=lambda x:x[1]); reasons.append('Nachrichtensignal: '+signal)
+            category='TOP_STORY' if score>=70 else 'WEITERE'
+           elif background:
+            score=38; category='HINTERGRUND'; signal='Analyse / Ausblick'; reasons.append(signal)
+           else:
+            score=43; category='WEITERE'; signal='Allgemeine NFL-Meldung'; reasons.append(signal)
+           if historical or analytical:
+            category='HINTERGRUND'; score=min(score,42 if historical else 47)
+            reasons.append('Historischer Rueckblick/Analyse statt aktuelle Einzelnachricht')
+           elif roundup:
+            score=min(score,74)
+            reasons.append('Sammelartikel: einzelne Ereignisse separat pruefen')
+           # Nebenrollen nicht übergewichten, selbst wenn ein Coach eingestellt/entlassen wird.
+           if re.search(r'\b(?:run.game coordinator|cb coach|cornerbacks coach|position coach|assistant coach)\b',title,re.I):
+            score=min(score,51); category='WEITERE'; reasons.append('Positionscoach/Nebenrolle: begrenzte Ligarelevanz')
+           # Eine Sammelübersicht ist nicht automatisch eine verifizierte Einzeltransaktion.
+           if re.search(r'\b(?:updates|tracker|roundup)\b',title,re.I):
+            reasons.append('Sammelartikel: Einzelmeldungen gesondert pruefen')
+           age=max(0,(NOW-published).total_seconds()/3600)
+           fresh=max(0,round(8-age/9)); score+=fresh; reasons.append('Aktualitaet +'+str(fresh))
+           if speculative:
+            score-=8; reasons.append('Moegliche Spekulation / Zukunftsaussage: Inhalt pruefen')
+           if 'trade' in low and not re.search(r'\b(?:traded|trade deadline|trade for|trades|on the move)\b',low):
+            score-=8; reasons.append('Trade-Bezug ohne gesicherten Vollzug')
+           score=max(0,score)
+           if category=='TOP_STORY' and score<70: category='WEITERE'
+           return category,score,reasons,speculative,signal
+          
+          print('===== 50T: REDAKTIONELLE PRIORISIERUNG =====',flush=True)
+          r=S.get(API,timeout=25); r.raise_for_status(); payload=r.json(); raw=payload.get('articles',[])
+          if not isinstance(raw,list): raise RuntimeError('ESPN articles ist keine Liste')
+          print('ESPN-Artikel:',len(raw),flush=True)
+          articles=[]; seen=set()
+          for a in raw:
+           if not isinstance(a,dict): continue
+           title=str(a.get('headline') or a.get('title') or '').strip()
+           pub=timestamp(a.get('published') or a.get('lastModified'))
+           url=url_of(a)
+           if not title or not pub or not CUTOFF<=pub<=NOW+timedelta(minutes=10) or not url: continue
+           key=re.sub(r'[^a-z0-9]','',norm(title))
+           if key in seen: continue
+           seen.add(key)
+           category,score,reasons,spec,signal=classify(title,url,pub)
+           detected=teams(title)
+           named=[name for name in AUST if name in title.lower()]
+           watch='NAMENSTREFFER' if named else ('TEAM-PRUEFKANDIDAT' if category!='AUSSORTIERT' and set(detected)&set(AUST.values()) else None)
+           if named: score+=35; reasons.append('Oesterreicher namentlich genannt')
+           article={'title':title,'published_utc':pub.isoformat(),'url':url,'teams':detected,'category':category,'priority_score':score,'priority_reasons':reasons,'main_signal':signal,'uncertain_wording':spec,'austrian_watch_status':watch,'austrian_names':named,'verification':'NUR ESPN-Metadaten; Originalartikel NICHT inhaltlich geprueft'}
+           articles.append(article)
+          articles.sort(key=lambda x:(-x['priority_score'],x['published_utc'],x['title']))
+          
+          # 50T: konservative Ereignisgruppen aus Eigennamen, Team und Ereignistyp.
+          # Bei Unsicherheit NICHT zusammenfassen; gleiche Teams sind keine Dubletten.
+          STOP={'the','and','with','from','after','before','their','this','that','nfl','week','says','said','per','report','reports','latest','new','team','teams','season','game','games','could','would','will','about','into','over','under','back','return','returns','trade','deadline','injury','coach','player','players','quarterback','qb','starter','starting','against','more','look','how','why','what','his','her','for','has','have','are','was','were','not','out'}
+          def tokens(a):
+           return {w for w in norm(a['title']).split() if len(w)>=4 and w not in STOP}
+          def event_family(a):
+           sig=a['main_signal'].lower()
+           if 'quarterback' in sig:return 'QB'
+           if 'verletz' in sig or 'injury' in sig:return 'INJURY'
+           if 'trade' in sig or 'transfer' in sig:return 'TRADE'
+           if 'coach' in sig or 'trainer' in sig:return 'COACH'
+           if 'vertrag' in sig or 'kader' in sig:return 'ROSTER'
+           return 'OTHER'
+          def same_event(a,b):
+           if event_family(a)!=event_family(b):return False
+           # Ein bekanntes gemeinsames Team ist notwendig, aber nicht hinreichend.
+           if not set(a['teams'])&set(b['teams']):return False
+           ta,tb=tokens(a),tokens(b)
+           common=ta&tb
+           # Mindestens zwei aussagekraeftige Woerter, davon eines laenger als 5 Zeichen.
+           # So werden z.B. zwei verschiedene Colts-QB-Geschichten nicht allein wegen 'Colts' gruppiert.
+           team_words={w for code in set(a['teams'])|set(b['teams']) for alias in ALIASES.get(code,[]) for w in norm(alias).split()}
+           specific=common-team_words
+           return len(specific)>=2 and any(len(w)>=6 for w in specific) and len(specific)/max(1,min(len(ta),len(tb)))>=0.45
+          clusters=[]
+          for a in articles:
+           match=next((i for i,group in enumerate(clusters) if same_event(a,group[0])),None)
+           if match is None: match=len(clusters);clusters.append([])
+           clusters[match].append(a)
+           a['event_cluster']='E'+str(match+1).zfill(3)
+          for group in clusters:
+           for a in group:a['possible_duplicate']=len(group)>1
+          # Weiche Themenvielfalt: keine starre Sperre fuer gleiche Nachrichtentypen.
+          # Maximal ein Artikel pro Ereigniscluster. Eine kleine Wiederholungsstrafe
+          # dient nur als Tiebreaker und kann keine 10+ Punkte Differenz aufwiegen.
+          brief=[]; selected_clusters=set(); team_counts={}; family_counts={}
+          eligible=[a for a in articles if a['category']=='TOP_STORY' and a['priority_score']>=70]
+          while len(brief)<4:
+           options=[]
+           for a in eligible:
+            if a['event_cluster'] in selected_clusters:continue
+            family=event_family(a)
+            # Diversitaet ist nachrangig: maximal 3 Punkte je bereits gewaehlt
+            # und maximal 2 Punkte fuer ein schon vertretenes Team.
+            repeated_family=min(2,family_counts.get(family,0))*3
+            repeated_team=min(2,max((team_counts.get(t,0) for t in a['teams']),default=0))*2
+            effective=a['priority_score']-repeated_family-repeated_team
+            options.append((effective,a['priority_score'],a['published_utc'],a,repeated_family,repeated_team))
+           if not options:break
+           effective,raw,_,chosen,fp,tp=max(options,key=lambda x:(x[0],x[1],x[2]))
+           chosen['brief_effective_score']=effective
+           chosen['brief_diversity_penalty']=fp+tp
+           chosen['brief_selection_reason']='Basis '+str(raw)+'; Themenart-Malus '+str(fp)+'; Team-Malus '+str(tp)+'; effektive Prioritaet '+str(effective)+'; eigenes Ereigniscluster '+chosen['event_cluster']
+           brief.append(chosen);selected_clusters.add(chosen['event_cluster'])
+           family=event_family(chosen);family_counts[family]=family_counts.get(family,0)+1
+           for t in chosen['teams']:team_counts[t]=team_counts.get(t,0)+1
+          # Spielstaende kommen ausschliesslich aus ESPN Scoreboard, nicht aus Headlines.
+          games=[]; errors=[]
+          for day in range(4):
+           date=(NOW-timedelta(days=day)).strftime('%Y%m%d')
+           try:
+            res=S.get('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',params={'dates':date},timeout=20);res.raise_for_status()
+            for event in res.json().get('events',[]):
+             comp=(event.get('competitions') or [{}])[0]
+             participants=comp.get('competitors') or []
+             if len(participants)!=2: continue
+             sides=[]
+             for t in participants:
+              team=t.get('team') or {}
+              sides.append({'team':team.get('displayName'),'abbreviation':team.get('abbreviation'),'home_away':t.get('homeAway'),'score':t.get('score')})
+             status=(event.get('status') or {}).get('type') or {}
+             games.append({'id':str(event.get('id')),'date':event.get('date'),'status':status.get('name'),'completed':bool(status.get('completed')),'teams':sides,'source':'ESPN Scoreboard','verification':'Strukturierte ESPN-Spielmetadaten, kein Game-Book-Abgleich'})
+           except (requests.RequestException,ValueError,TypeError) as exc:
+            errors.append(date+': '+str(exc))
+          games=list({g['id']:g for g in games}.values())
+          games.sort(key=lambda g:(g['date'] or '',g['id']),reverse=True)
+          
+          from collections import Counter
+          counts=dict(Counter(a['category'] for a in articles))
+          report={'brief_selection':[{'title':a['title'],'event_cluster':a['event_cluster'],'reason':a['brief_selection_reason'],'effective_score':a['brief_effective_score']} for a in brief],'event_clusters':len(clusters),'generated_utc':NOW.isoformat(),'source':'ESPN News API und ESPN Scoreboard','window_hours':72,'published':False,'editorial_approval':False,'article_content_verified':False,'articles':articles,'games':games,'scoreboard_errors':errors,'counts':counts}
+          (OUT/'research-50t.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          
+          def bullet(a):
+           flags=[]
+           if a['uncertain_wording']: flags.append('UNSICHERE FORMULIERUNG')
+           if a['austrian_watch_status']: flags.append(a['austrian_watch_status'])
+           return '- **'+str(a['priority_score'])+'** | '+a['title']+' | '+', '.join(a['teams'] or ['kein Team'])+' | '+', '.join(flags or ['nur Metadaten'])+' | '+a['url']
+          
+          # Brief-Auswahl wurde bereits vor der JSON-Ausgabe ermittelt.
+          lines=['# THE HUDDLE – Redaktionstest 50T','', 'Erstellt: '+NOW.isoformat(),'', '> **NICHT VERÖFFENTLICHEN.** Nur ESPN-Metadaten, kein inhaltlicher Artikelcheck. Keine redaktionelle Freigabe.','', '## 60-Sekunden-Brief – Themenvorschlaege mit Begruendung','']
+          for a in brief:
+           lines.extend([bullet(a),'  - **Warum vorgeschlagen:** '+a['brief_selection_reason']+'; '+'; '.join(a['priority_reasons']),'  - **Pruefung offen:** Originalartikel lesen, Zeitbezug und Sachverhalt gegenpruefen.'])
+          if not brief: lines.append('Keine ausreichend priorisierten Themen.')
+          for heading,selection in [('Top Stories – Kandidaten',[a for a in articles if a['category']=='TOP_STORY']),('Austrian Watch – namentliche Treffer',[a for a in articles if a['austrian_watch_status']=='NAMENSTREFFER']),('Austrian Watch – Team-Pruefkandidaten (kein belegter Oesterreich-Bezug)',[a for a in articles if a['austrian_watch_status']=='TEAM-PRUEFKANDIDAT']),('Weitere Meldungen',[a for a in articles if a['category']=='WEITERE']),('Hintergrund',[a for a in articles if a['category']=='HINTERGRUND']),('Aussortiert',[a for a in articles if a['category']=='AUSSORTIERT'])]:
+           lines+=['','## '+heading,'']
+           lines.extend(bullet(a) for a in selection[:30])
+           if not selection: lines.append('Keine Treffer.')
+          lines+=['','## Game Center – ESPN Scoreboard (Final und Live getrennt)','']
+          finals=[g for g in games if g['completed']]
+          active=[g for g in games if not g['completed'] and g['status'] in ('STATUS_IN_PROGRESS','STATUS_HALFTIME','STATUS_END_PERIOD')]
+          upcoming=[g for g in games if not g['completed'] and g not in active]
+          lines+=['### Abgeschlossene Spiele','']
+          for g in finals:
+           t=g['teams']; lines.append('- '+str(t[0]['team'])+' '+str(t[0]['score'])+' – '+str(t[1]['score'])+' '+str(t[1]['team'])+' | FINAL | ESPN Event '+g['id'])
+          if not finals: lines.append('Keine abgeschlossenen Spiele.')
+          lines+=['','### Laufende Spiele – Zwischenstand, KEIN Endergebnis','']
+          for g in active:
+           t=g['teams']; lines.append('- '+str(t[0]['team'])+' '+str(t[0]['score'])+' – '+str(t[1]['score'])+' '+str(t[1]['team'])+' | '+str(g['status'])+' | Abrufzeitpunkt '+NOW.isoformat()+' | ESPN Event '+g['id'])
+          if not active: lines.append('Zum Abrufzeitpunkt keine laufenden Spiele.')
+          lines+=['','### Noch nicht beendete / nicht laufende Spiele','']
+          for g in upcoming:
+           t=g['teams']; lines.append('- '+str(t[0]['team'])+' vs. '+str(t[1]['team'])+' | '+str(g['status'])+' | '+str(g['date'])+' | ESPN Event '+g['id'])
+          if not upcoming: lines.append('Keine.')
+          lines+=['','## Datenqualitaet und Grenzen','', '- Artikel: '+str(len(articles))+'; Kategorien: '+str(counts),'- ESPN-Spiele: '+str(len(games))+'; Final: '+str(len(finals))+'; Live: '+str(len(active))+'; sonstige: '+str(len(upcoming)),'- Scoreboard-Fehler: '+str(errors or 'keine'),'- Ereigniscluster: '+str(len(clusters))+' (heuristisch, nur Headlines).','- Prioritaeten sind regelbasiert, nicht redaktionell verifiziert.','- Live-Staende sind Momentaufnahmen vom angegebenen Abrufzeitpunkt.','- Keine Veroeffentlichung, keine OpenAI-API, keine Repository-Schreibrechte.']
+          (OUT/'morning-brief-50t.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          print('Cluster:',len(clusters),'Brief-Auswahl:',len(brief),flush=True)
+          print('Kandidaten:',len(articles),'Kategorien:',counts,'Spiele:',len(games),'Live:',len(active),'Fehler:',len(errors),flush=True)
+          print('Dateien: drafts/research-50t.json, drafts/morning-brief-50t.md',flush=True)
+          PY
+      - name: Vollstaendigen Probe-Morgenbrief und Pruefliste erstellen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from collections import Counter
+          P=Path('drafts')
+          data=json.loads((P/'research-50t.json').read_text(encoding='utf-8'))
+          articles=data.get('articles',[])
+          games=data.get('games',[])
+          selected=data.get('brief_selection',[])
+          by_title={a.get('title'):a for a in articles}
+          now=data.get('generated_utc') or datetime.now(timezone.utc).isoformat()
+          def safe(x):
+           return str(x or '').replace('\n',' ').replace('\r',' ').replace('|','/').strip()
+          def source(a):
+           u=a.get('url','')
+           return '[ESPN-Originalartikel]('+u+')' if u.startswith('https://www.espn.com/') or u.startswith('https://espn.com/') else 'Originaladresse nicht vorhanden – manuell recherchieren'
+          def item(a):
+           return '**'+safe(a.get('title'))+'** — '+source(a)+'; ESPN-Zeitstempel: '+safe(a.get('published_utc'))+'; Prioritaet: '+str(a.get('priority_score','?'))+'. **Status: NUR METADATEN, Inhalt nicht geprueft.**'
+          lines=['# THE HUDDLE – Probe-Morgenbrief 50U','', '> **NICHT ZUR VEROEFFENTLICHUNG.** Automatischer redaktioneller Arbeitsentwurf. Die folgenden Nachrichtenformulierungen sind ausschliesslich als Themenhinweise aus ESPN-Ueberschriften zu verstehen. Weder Artikelvolltexte noch Tatsachenbehauptungen wurden geprueft.','', '**Datenstand (UTC):** '+now,'**Quellen:** ESPN News API und ESPN Scoreboard','', '## Die NFL in 60 Sekunden – Themenvorschlaege (noch kein Nachrichtentext)','']
+          for i,b in enumerate(selected[:4],1):
+           a=by_title.get(b.get('title'),{})
+           lines+=['### '+str(i)+'. '+safe(b.get('title')),'', 'ESPN meldet laut Ueberschrift: **'+safe(b.get('title'))+'**. Die Einzelheiten und die Aussage der Ueberschrift muessen vor einer Formulierung im Brief am Originalartikel ueberprueft werden.','', '**Auswahlgrund:** '+safe(b.get('reason'))+'. **Quelle:** '+source(a),'']
+          if not selected: lines.append('Keine geeigneten Themenvorschlaege aus dem aktuellen ESPN-Fenster.')
+          lines+=['## Top Stories – Recherchekarten','']
+          top=[a for a in articles if a.get('category')=='TOP_STORY']
+          for a in top[:10]: lines+=['### '+safe(a.get('title')),'', 'Recherchehinweis: '+item(a),'', '**Vor Freigabe klaeren:** Sachverhalt, Datum, Beteiligte, Kontext, Zitate und etwaige Einschraenkungen im Originalartikel; ggf. zweite Primaerquelle.','']
+          if not top: lines+=['Keine Top-Story-Kandidaten.','']
+          lines+=['## Austrian Watch','']
+          direct=[a for a in articles if a.get('austrian_watch_status')=='NAMENSTREFFER']
+          indirect=[a for a in articles if a.get('austrian_watch_status')=='TEAM-PRUEFKANDIDAT']
+          if direct:
+           lines+=['### Direkte Namensnennungen – noch nicht verifiziert','']
+           for a in direct: lines+=['- '+item(a)]
+          else: lines+=['**Keine direkte Namensnennung** von Bernhard Raimann oder Valentin Senn in den ausgewerteten ESPN-Metadaten. Das ist keine Aussage darueber, ob es ausserhalb dieser Quelle Neuigkeiten gibt.','']
+          lines+=['### Team-Meldungen – nur Pruefkandidaten','']
+          for a in indirect[:8]: lines+=['- '+item(a)]
+          if not indirect: lines.append('Keine Team-Pruefkandidaten.')
+          lines+=['','## Game Center – ESPN-Snapshot','', '**Wichtig:** ESPN-Scoreboard ist die einzige hier verwendete Ergebnisquelle. Kein Game-Book-Abgleich. Zwischenstaende sind keine Endergebnisse.','']
+          finals=[g for g in games if g.get('completed')]
+          live=[g for g in games if not g.get('completed') and g.get('status') in ('STATUS_IN_PROGRESS','STATUS_HALFTIME','STATUS_END_PERIOD')]
+          other=[g for g in games if not g.get('completed') and g not in live]
+          lines+=['### Endergebnisse (FINAL)','']
+          for g in finals:
+           t=g.get('teams',[])
+           if len(t)>=2: lines.append('- '+safe(t[0].get('team'))+' '+safe(t[0].get('score'))+' : '+safe(t[1].get('score'))+' '+safe(t[1].get('team'))+' — FINAL (ESPN Event '+safe(g.get('id'))+')')
+          if not finals: lines.append('Keine Endergebnisse im abgefragten Zeitraum.')
+          lines+=['','### Laufende Spiele – Zwischenstaende','']
+          for g in live:
+           t=g.get('teams',[])
+           if len(t)>=2: lines.append('- '+safe(t[0].get('team'))+' '+safe(t[0].get('score'))+' : '+safe(t[1].get('score'))+' '+safe(t[1].get('team'))+' — '+safe(g.get('status'))+'; Datenstand '+now)
+          if not live: lines.append('Zum Abrufzeitpunkt keine laufenden Spiele erfasst.')
+          lines+=['','### Weitere angesetzte oder unvollstaendige Spiele','']
+          for g in other:
+           t=g.get('teams',[])
+           if len(t)>=2: lines.append('- '+safe(t[0].get('team'))+' vs. '+safe(t[1].get('team'))+' — '+safe(g.get('status'))+'; '+safe(g.get('date')))
+          if not other: lines.append('Keine weiteren Spiele im Snapshot.')
+          lines+=['','## Redaktioneller Freigabevermerk','', '- [ ] ESPN-Originalartikel zu allen verwendeten Themen gelesen','- [ ] Fakten, Datumsangaben und Formulierungen anhand des Volltexts geprueft','- [ ] Spekulationen und Vorwuerfe als solche kenntlich gemacht','- [ ] Relevante Fakten bei Bedarf mit Team-/Ligaquelle oder zweiter Quelle gegengeprueft','- [ ] Austrian Watch: persoenlichen Oesterreich-Bezug belegt','- [ ] Spielstatus und Ergebnisse unmittelbar vor Veroeffentlichung aktualisiert','- [ ] Ueberschriften, Kurztexte und Quellenlinks redaktionell freigegeben','', '**Freigabe:** NEIN. **Veroeffentlichung:** NEIN. **OpenAI API:** NICHT VERWENDET.']
+          (P/'probe-morgenbrief-50u.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          checks=['# THE HUDDLE – Redaktionelle Pruefliste 50U','', 'Stand: '+now,'', '## Die vier Brief-Kandidaten','']
+          for b in selected[:4]:
+           a=by_title.get(b.get('title'),{})
+           checks+=['- [ ] '+safe(b.get('title'))+' | '+safe(a.get('url'))+' | Originaltext und Kernaussage pruefen']
+          checks+=['','## Saemtliche Top-Story-Kandidaten','']
+          for a in top: checks+=['- [ ] '+safe(a.get('title'))+' | '+safe(a.get('url'))]
+          checks+=['','## Systemgrenzen','', '- Aus ESPN-Metadaten wird kein verifizierter Volltext erzeugt.','- Ergebnisdaten sind ein zeitpunktbezogener ESPN-Snapshot, kein Game-Book-Abgleich.','- Keine automatische Veroeffentlichung und keine Repository-Schreibrechte.']
+          (P/'pruefliste-50u.md').write_text('\n'.join(checks)+'\n',encoding='utf-8')
+          (P/'research-50u.json').write_text(json.dumps({'version':'50U','generated_utc':now,'publication_approved':False,'full_text_verified':False,'brief_selection':selected,'top_stories':top,'austrian_direct':direct,'austrian_team_candidates':indirect,'games':games,'source_research_file':'research-50t.json'},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('50U Probe erstellt: probe-morgenbrief-50u.md, pruefliste-50u.md, research-50u.json')
+          PY
+      - name: Ergebnisse als Artifact speichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-huddle-probe-50u
+          path: drafts/
+          if-no-files-found: warn
+          retention-days: 7
