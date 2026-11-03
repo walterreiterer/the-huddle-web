@@ -9,6 +9,12 @@ on:
         required: true
         default: "20261101"
 
+  # Geplanter täglicher Lauf um 09:00 UTC.
+  # Noch deaktiviert, bis die automatische Datumsauswahl fertig ist.
+  # schedule:
+  #   - cron: "0 9 * * *"
+
+
 permissions:
   contents: write
 
