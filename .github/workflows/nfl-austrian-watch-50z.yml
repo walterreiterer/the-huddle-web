@@ -1,0 +1,114 @@
+name: THE HUDDLE - Austrian Watch 50Z (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Optional: GitHub-Run-ID von 50Y (leer = neuestes Artifact)'
+        required: false
+        default: ''
+permissions:
+  contents: read
+  actions: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhaengigkeiten installieren
+      run: python -m pip install --disable-pip-version-check requests beautifulsoup4 googlenewsdecoder 'selectolax<1.0'
+    - name: Originalquellen pruefen (nur lesend)
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      run: "mkdir -p drafts\ncat > /tmp/austrian_watch_50z.py <<'PY'\nimport os, json, io, zipfile, re, time, html\nfrom datetime\
+        \ import datetime, timezone\nfrom urllib.parse import urlparse\nimport requests\nfrom bs4 import BeautifulSoup\nfrom\
+        \ googlenewsdecoder import gnewsdecoder\n\nREPO=os.environ[\"GH_REPO\"]\nTOKEN=os.environ[\"GH_TOKEN\"]\nRUN_ID=os.environ.get(\"\
+        SOURCE_RUN_ID\",\"\").strip()\nAPI=requests.Session()\nAPI.headers.update({\"Authorization\":\"Bearer \"+TOKEN,\"\
+        Accept\":\"application/vnd.github+json\",\"X-GitHub-Api-Version\":\"2022-11-28\"})\nWEB=requests.Session()\nWEB.headers.update({\"\
+        User-Agent\":\"Mozilla/5.0 (compatible; THE-HUDDLE/50Z; research only)\"})\nNOW=datetime.now(timezone.utc)\nDOMAIN_MAP={\n\
+        \ \"Sky Sport Austria\":[\"skysportaustria.at\",\"sky.at\"],\n \"Kronen Zeitung\":[\"krone.at\"],\n \"Der Standard\"\
+        :[\"derstandard.at\"],\n \"AmFoo.de\":[\"amfoo.de\"],\n \"Kurier\":[\"kurier.at\"],\n \"Football-Austria\":[\"football-austria.com\"\
+        ],\n \"ORF\":[\"orf.at\"],\n \"LAOLA1\":[\"laola1.at\"],\n \"Sport ORF\":[\"orf.at\"]\n}\ndef host(u):\n    try: return\
+        \ (urlparse(u).hostname or \"\").lower()\n    except Exception: return \"\"\ndef domain_ok(h,domains):\n    return\
+        \ any(h==d or h.endswith(\".\"+d) for d in domains)\ndef words(t):\n    return set(w for w in re.findall(r\"[a-zäöüß0-9]+\"\
+        ,html.unescape(t or \"\").lower())\n               if len(w)>=4 and w not in {\"bernhard\",\"raimann\",\"valentin\"\
+        ,\"senn\",\"colts\",\"cardinals\",\"nfl\",\"sport\",\"austria\",\"football\",\"zeitung\"})\ndef similarity(a,b):\n\
+        \    aa=words(a); bb=words(b)\n    return round(len(aa & bb)/len(aa),3) if aa else 0.0\ndef load_50y():\n    r=API.get(f\"\
+        https://api.github.com/repos/{REPO}/actions/artifacts\",\n              params={\"name\":\"the-huddle-austrian-watch-50y\"\
+        ,\"per_page\":100},timeout=25)\n    r.raise_for_status()\n    arts=[a for a in r.json().get(\"artifacts\",[]) if a.get(\"\
+        name\")==\"the-huddle-austrian-watch-50y\" and not a.get(\"expired\")]\n    if RUN_ID:\n        arts=[a for a in arts\
+        \ if str((a.get(\"workflow_run\") or {}).get(\"id\"))==RUN_ID]\n    if not arts: raise RuntimeError(\"Kein 50Y-Artifact\
+        \ gefunden. Run-ID pruefen oder 50Y erneut starten.\")\n    a=max(arts,key=lambda x:x.get(\"created_at\",\"\"))\n\
+        \    r=API.get(a[\"archive_download_url\"],timeout=60)\n    r.raise_for_status()\n    with zipfile.ZipFile(io.BytesIO(r.content))\
+        \ as z:\n        fn=next((n for n in z.namelist() if n.endswith(\"austrian-watch-50y.json\")),None)\n        if not\
+        \ fn: raise RuntimeError(\"50Y JSON fehlt im Artifact\")\n        return json.loads(z.read(fn)),a\ndef publisher_domains(hint):\n\
+        \    for key,domains in DOMAIN_MAP.items():\n        if hint.casefold()==key.casefold():return domains\n    return\
+        \ []\ndef resolve_google(url):\n    try:\n        result=gnewsdecoder(url,interval=1)\n        if not isinstance(result,dict)\
+        \ or not result.get(\"status\"):\n            return None,\"DECODE_FAILED: \"+str(result.get(\"message\",\"no result\"\
+        ))[:140]\n        return result.get(\"decoded_url\"),\"DECODED\"\n    except Exception as e:\n        return None,\"\
+        DECODE_ERROR: \"+str(e)[:140]\ndef probe(url,headline,expected):\n    result={\"original_url_candidate\":url,\"status\"\
+        :\"UNVERIFIED\"}\n    if not url or urlparse(url).scheme not in (\"https\",\"http\"):\n        result[\"status\"]=\"\
+        INVALID_URL\";return result\n    if not domain_ok(host(url),expected):\n        result[\"status\"]=\"PUBLISHER_MISMATCH\"\
+        ;return result\n    try:\n        r=WEB.get(url,timeout=20,allow_redirects=True)\n        result[\"http_status\"]=r.status_code\n\
+        \        result[\"final_url\"]=r.url\n        if not domain_ok(host(r.url),expected):\n            result[\"status\"\
+        ]=\"REDIRECT_OFF_PUBLISHER\";return result\n        if r.status_code!=200:\n            result[\"status\"]=\"HTTP_ERROR\"\
+        ;return result\n        soup=BeautifulSoup(r.text[:1200000],\"html.parser\")\n        meta=soup.find(\"meta\",attrs={\"\
+        property\":\"og:title\"})\n        title=meta.get(\"content\",\"\") if meta else \"\"\n        if not title and soup.title:title=soup.title.get_text(\"\
+        \ \",strip=True)\n        canonical=soup.find(\"link\",rel=\"canonical\")\n        canonical_url=canonical.get(\"\
+        href\",\"\") if canonical else \"\"\n        if canonical_url and domain_ok(host(canonical_url),expected):\n     \
+        \       result[\"canonical_url\"]=canonical_url\n        result[\"page_title\"]=title[:250]\n        result[\"title_similarity\"\
+        ]=similarity(headline.rsplit(\" - \",1)[0],title)\n        result[\"status\"]=\"TITLE_MATCH_CANDIDATE\" if result[\"\
+        title_similarity\"]>=0.45 else \"TITLE_MISMATCH\"\n        return result\n    except requests.RequestException as\
+        \ e:\n        result[\"status\"]=\"FETCH_ERROR\";result[\"error\"]=str(e)[:160];return result\n    except Exception\
+        \ as e:\n        result[\"status\"]=\"PARSER_ERROR\";result[\"error\"]=str(e)[:160];return result\n\nsource,artifact=load_50y()\n\
+        topics=[]\nstats={\"reports\":0,\"decoded\":0,\"publisher_domain_matched\":0,\"title_matches\":0,\"unresolved\":0}\n\
+        for topic in source.get(\"topics\",[]):\n    output={\"event_key\":topic.get(\"event_key\"),\"persons\":topic.get(\"\
+        persons\",[]),\n            \"reports_count\":topic.get(\"reports_count\",0),\"sources\":[],\"fact_checked\":False,\"\
+        editorial_approved\":False}\n    for item in topic.get(\"sources\",[]):\n        stats[\"reports\"]+=1\n        hint=item.get(\"\
+        publisher_hint\",\"\")\n        domains=publisher_domains(hint)\n        row={\"discovery_title\":item.get(\"discovery_title\"\
+        ),\"discovery_url\":item.get(\"discovery_url\"),\n             \"publisher_hint\":hint,\"expected_domains\":domains,\"\
+        published_utc_from_50x\":item.get(\"published_utc\"),\n             \"original_url\":None,\"resolution_status\":\"\
+        UNRESOLVED\",\"page_check\":None}\n        if not domains:\n            row[\"resolution_status\"]=\"UNKNOWN_PUBLISHER\"\
+        \n        elif not host(item.get(\"discovery_url\",\"\")).endswith(\"news.google.com\"):\n            row[\"resolution_status\"\
+        ]=\"NOT_GOOGLE_NEWS_LINK\"\n        else:\n            url,status=resolve_google(item[\"discovery_url\"])\n      \
+        \      row[\"decoder_status\"]=status\n            if url and host(url) not in (\"news.google.com\",\"www.google.com\"\
+        ):\n                stats[\"decoded\"]+=1\n                row[\"decoded_url\"]=url\n                if domain_ok(host(url),domains):\n\
+        \                    stats[\"publisher_domain_matched\"]+=1\n                    row[\"original_url\"]=url\n     \
+        \               row[\"page_check\"]=probe(url,item.get(\"discovery_title\",\"\"),domains)\n                    row[\"\
+        resolution_status\"]=row[\"page_check\"][\"status\"]\n                    if row[\"resolution_status\"]==\"TITLE_MATCH_CANDIDATE\"\
+        :\n                        stats[\"title_matches\"]+=1\n                else:\n                    row[\"resolution_status\"\
+        ]=\"PUBLISHER_MISMATCH\"\n            else:\n                row[\"resolution_status\"]=status\n        if row[\"\
+        resolution_status\"]!=\"TITLE_MATCH_CANDIDATE\":stats[\"unresolved\"]+=1\n        output[\"sources\"].append(row)\n\
+        \        print(topic.get(\"event_key\"),hint,row[\"resolution_status\"])\n        time.sleep(0.5)\n    topics.append(output)\n\
+        result={\"version\":\"50Z\",\"generated_utc\":NOW.isoformat(),\"source_50y_artifact_id\":artifact[\"id\"],\n     \
+        \   \"source_50y_run_id\":(artifact.get(\"workflow_run\") or {}).get(\"id\"),\n        \"topics\":topics,\"stats\"\
+        :stats,\"publication_approved\":False,\"fact_checked\":False,\n        \"method\":\"Google News URL decoder; strict\
+        \ publisher-domain validation; HTTP and title similarity check. Undocumented decoder may fail. No search-engine fallback.\"\
+        ,\n        \"notes\":[\"TITLE_MATCH_CANDIDATE is not article fact verification.\",\"Original URLs and dates require\
+        \ editorial review.\",\"No site modifications or OpenAI API calls.\"]}\nos.makedirs(\"drafts\",exist_ok=True)\nwith\
+        \ open(\"drafts/austrian-watch-50z.json\",\"w\",encoding=\"utf-8\") as f:json.dump(result,f,ensure_ascii=False,indent=2)\n\
+        lines=[\"# THE HUDDLE – Austrian Watch 50Z\",\"\",f\"Erstellt: {NOW.isoformat()}\",\n       f\"Berichte: {stats['reports']}\
+        \ | decodiert: {stats['decoded']} | Publisher-Domain passend: {stats['publisher_domain_matched']} | Titelkandidaten:\
+        \ {stats['title_matches']} | nicht bestaetigt: {stats['unresolved']}\",\n       \"\",\"**Nur Recherche: keine Faktenfreigabe\
+        \ und keine Publikation.**\",\"\"]\nfor t in topics:\n    lines.extend([\"## \"+str(t[\"event_key\"]),\"\"])\n   \
+        \ for s in t[\"sources\"]:\n        lines.extend([\"- **\"+str(s[\"discovery_title\"])+\"**\",\n                 \
+        \     \"  - Status: \"+s[\"resolution_status\"],\n                      \"  - Google News: \"+str(s[\"discovery_url\"\
+        ])])\n        if s[\"original_url\"]:lines.append(\"  - Verlagsadresse: \"+s[\"original_url\"])\n        if s[\"page_check\"\
+        ]:\n            p=s[\"page_check\"]\n            lines.append(\"  - Seitentitel: \"+str(p.get(\"page_title\",\"\"\
+        )))\n            lines.append(\"  - Titeluebereinstimmung: \"+str(p.get(\"title_similarity\",\"?\")))\n        if\
+        \ s.get(\"decoder_status\"):lines.append(\"  - Decoder: \"+s[\"decoder_status\"])\n    lines.append(\"\")\nwith open(\"\
+        drafts/austrian-watch-50z.md\",\"w\",encoding=\"utf-8\") as f:f.write(\"\\n\".join(lines)+\"\\n\")\nprint(\"50Z abgeschlossen\"\
+        ,stats)\nPY\npython /tmp/austrian_watch_50z.py"
+    - name: Ergebnisse hochladen
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-austrian-watch-50z
+        path: drafts/austrian-watch-50z.*
+        if-no-files-found: warn
+        retention-days: 7
