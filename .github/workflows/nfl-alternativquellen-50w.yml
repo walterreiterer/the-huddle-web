@@ -1,0 +1,119 @@
+name: THE HUDDLE - Alternative Originalquellen 50W (manuell)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quellencheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhaengigkeiten installieren
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Drei offizielle Teamquellen pruefen
+        shell: bash
+        run: |
+          python - <<'PY50W'
+          import json, re, html, time
+          from pathlib import Path
+          from datetime import datetime, timezone
+          import requests
+          from bs4 import BeautifulSoup
+          
+          SOURCES = [
+           {"id":"cardinals-minshew","topic":"Gardner Minshew wird Starting Quarterback der Arizona Cardinals","url":"https://www.azcardinals.com/news/gardner-minshew-named-cardinals-starting-quarterback-carson-beck-made-backup","domain":"www.azcardinals.com","must_include":["Gardner Minshew","starting quarterback"],"supporting_terms":["Mike LaFleur","Carson Beck","Jacoby Brissett"]},
+           {"id":"colts-jones","topic":"Daniel Jones bleibt Starting Quarterback der Indianapolis Colts","url":"https://www.colts.com/news/5-colts-things-daniel-jones-remains-starting-quarterback-shane-steichen-sees-execution-as-more-an-issue-than-effort-several-rookies-get-valuable-experience-in-week-8-loss-to-jaguars","domain":"www.colts.com","must_include":["Daniel Jones","starting quarterback"],"supporting_terms":["Shane Steichen","best chance to win","Anthony Richardson"]},
+           {"id":"lions-campbell","topic":"Jack Campbell erholt sich nach Verletzung im Krankenhaus","url":"https://www.detroitlions.com/news/lions-provide-update-on-jack-campbell","domain":"www.detroitlions.com","must_include":["Jack Campbell","hospital"],"supporting_terms":["recover","preliminary indications","neck injury"]}
+          ]
+          
+          session=requests.Session()
+          session.headers.update({"User-Agent":"TheHuddleEditorialResearch/50W (manual source-access test; contact via GitHub repository)","Accept":"text/html,application/xhtml+xml","Accept-Language":"en-US,en;q=0.8"})
+          
+          def norm(s): return re.sub(r'\s+', ' ', html.unescape(s or '')).strip()
+          def meta(soup, names):
+           for n in names:
+            t=soup.find('meta',attrs={'property':n}) or soup.find('meta',attrs={'name':n})
+            if t and t.get('content'): return norm(t['content'])
+           return ''
+          def evidence(text, terms):
+           out=[]
+           for term in terms:
+            m=re.search(re.escape(term),text,re.I)
+            if m:
+             out.append({'term':term,'matched':True,'context':text[max(0,m.start()-90):min(len(text),m.end()+130)]})
+            else: out.append({'term':term,'matched':False})
+           return out
+          
+          def check(item):
+           result={k:item[k] for k in ('id','topic','url')}
+           result.update({'status':'NICHT_GEPRUEFT','http_status':None,'final_url':None,'page_title':None,'published':None,'extracted_characters':0,'checks':[],'error':None})
+           try:
+            r=session.get(item['url'],timeout=22,allow_redirects=True)
+            result['http_status']=r.status_code;result['final_url']=r.url
+            if r.status_code!=200:
+             result['status']='ABRUF_FEHLGESCHLAGEN';return result
+            from urllib.parse import urlparse
+            if urlparse(r.url).hostname != item['domain']:
+             result['status']='UNERWARTETE_WEITERLEITUNG';return result
+            if 'html' not in r.headers.get('content-type','').lower():
+             result['status']='KEIN_HTML';return result
+            soup=BeautifulSoup(r.text,'html.parser')
+            result['page_title']=meta(soup,['og:title','twitter:title']) or norm(soup.title.get_text(' ',strip=True) if soup.title else '')
+            result['published']=meta(soup,['article:published_time','datePublished','pubdate','date']) or None
+            article=soup.find('article') or soup.find('main') or soup
+            for bad in article.select('script,style,nav,footer,header,aside,form,svg'):
+             bad.decompose()
+            paragraphs=[norm(p.get_text(' ',strip=True)) for p in article.find_all(['p','h1','h2'])]
+            paragraphs=[x for x in paragraphs if len(x)>=30]
+            extracted=norm(' '.join(paragraphs))
+            result['extracted_characters']=len(extracted)
+            checks=evidence(extracted,item['must_include']+item['supporting_terms'])
+            result['checks']=checks
+            required_ok=all(x['matched'] for x in checks[:len(item['must_include'])])
+            result['status']='TECHNISCH_AUSWERTBAR' if len(extracted)>=350 and required_ok else 'INHALT_UNZUREICHEND'
+            # Deliberately no article full text in artifacts; brief evidence snippets only.
+           except requests.RequestException as ex:
+            result['status']='NETZWERKFEHLER';result['error']=str(ex)[:250]
+           except Exception as ex:
+            result['status']='VERARBEITUNGSFEHLER';result['error']=type(ex).__name__+': '+str(ex)[:200]
+           return result
+          
+          results=[]
+          for item in SOURCES:
+           result=check(item);results.append(result)
+           print(f"{item['id']}: {result['status']} HTTP={result['http_status']} Zeichen={result['extracted_characters']}")
+           time.sleep(1)
+          
+          now=datetime.now(timezone.utc).isoformat()
+          report={'test':'50W','checked_at_utc':now,'method':'HTTP+HTML+begrenzte Stichwort-Evidenz; keine journalistische Faktenfreigabe','results':results}
+          Path('drafts').mkdir(exist_ok=True)
+          Path('drafts/quellencheck-50w.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          lines=['# THE HUDDLE – Quellencheck 50W','',f'Prüfzeitpunkt UTC: {now}','', '**Hinweis:** TECHNISCH_AUSWERTBAR bedeutet nur, dass eine Seite geladen und passende Textstellen erkannt wurden. Keine journalistische Faktenfreigabe.','', '| Thema | HTTP | Textzeichen | Status |','|---|---:|---:|---|']
+          for r in results:
+           lines.append(f"| {r['topic']} | {r['http_status'] or '–'} | {r['extracted_characters']} | {r['status']} |")
+          lines.extend(['','## Einzelprüfung',''])
+          for r in results:
+           lines.extend([f"### {r['topic']}",f"- Quelle: {r['url']}",f"- Finale URL: {r['final_url'] or '–'}",f"- Seitentitel: {r['page_title'] or '–'}",f"- Datumsmetadatum: {r['published'] or 'nicht erkannt'}",f"- Status: {r['status']}"])
+           if r['error']:lines.append(f"- Fehler: {r['error']}")
+           for c in r['checks']:
+            lines.append(f"- Stichwort {c['term']}: {'gefunden' if c['matched'] else 'nicht gefunden'}")
+           lines.append('')
+          lines.extend(['## Redaktionelle nächste Schritte','','- Quellen manuell lesen und konkrete Aussagen gegen den Originaltext prüfen.','- Datum und Kontext kontrollieren; Metadaten können fehlen.','- Bei Jack Campbell keine Diagnose oder Ausfalldauer aus Stichwörtern ableiten.','- Keine Texte automatisch veröffentlichen.'])
+          Path('drafts/quellencheck-50w.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          print('Dateien: drafts/quellencheck-50w.json und drafts/quellencheck-50w.md')
+          PY50W
+      - name: Redaktionelle Testergebnisse hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-huddle-quellencheck-50w
+          path: drafts/quellencheck-50w.*
+          if-no-files-found: warn
+          retention-days: 7
