@@ -1,0 +1,260 @@
+name: THE HUDDLE – Faktencheck 50L
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  factcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhängigkeiten installieren
+        run: python -m pip install requests feedparser beautifulsoup4 googlenewsdecoder
+      - name: NFL-Filter und URL-Diagnose
+        shell: bash
+        run: |
+          python - <<'PY'
+          import calendar
+          import re
+          from collections import Counter
+          from datetime import datetime, timedelta, timezone
+          from html import unescape
+          from urllib.parse import urlencode, urlparse
+          import feedparser
+          import requests
+          from bs4 import BeautifulSoup
+          from googlenewsdecoder import gnewsdecoder
+
+          SOURCES = {
+              'Kronen Zeitung': 'krone.at',
+              'KURIER': 'kurier.at',
+              'kicker Deutschland': 'kicker.de',
+              'kicker Österreich': 'kicker.at',
+              'Sky Sport Austria': 'skysportaustria.at',
+              'LAOLA1': 'laola1.at',
+              'football-world.news': 'football-world.news',
+          }
+          TEAMS = {
+              'ARI': ['cardinals', 'arizona cardinals'],
+              'ATL': ['falcons', 'atlanta falcons'],
+              'BAL': ['ravens', 'baltimore'],
+              'BUF': ['bills', 'buffalo bills'],
+              'CAR': ['carolina panthers'],
+              'CHI': ['bears', 'chicago bears'],
+              'CIN': ['bengals', 'cincinnati'],
+              'CLE': ['browns', 'cleveland'],
+              'DAL': ['cowboys', 'dallas'],
+              'DEN': ['broncos', 'denver'],
+              'DET': ['lions', 'detroit lions'],
+              'GB': ['packers', 'green bay'],
+              'HOU': ['texans', 'houston texans'],
+              'IND': ['colts', 'indianapolis', 'raimann'],
+              'JAX': ['jaguars', 'jacksonville'],
+              'KC': ['chiefs', 'kansas city', 'mahomes'],
+              'LV': ['raiders', 'las vegas raiders'],
+              'LAC': ['chargers', 'los angeles chargers'],
+              'LAR': ['rams', 'los angeles rams'],
+              'MIA': ['dolphins', 'miami dolphins'],
+              'MIN': ['vikings', 'minnesota vikings'],
+              'NE': ['patriots', 'new england'],
+              'NO': ['saints', 'new orleans'],
+              'NYG': ['new york giants'],
+              'NYJ': ['jets', 'new york jets'],
+              'PHI': ['eagles', 'philadelphia'],
+              'PIT': ['steelers', 'pittsburgh'],
+              'SF': ['49ers', 'san francisco'],
+              'SEA': ['seahawks', 'seattle seahawks'],
+              'TB': ['buccaneers', 'bucs', 'tampa bay'],
+              'TEN': ['titans', 'tennessee titans'],
+              'WSH': ['commanders', 'washington commanders'],
+          }
+          EXCLUDE = [
+              r'\bnhl\b', r'\bnba\b', r'\bmls\b', r'\bserie a\b',
+              r'\bbundesliga\b', r'\bchampions league\b', r'\bla liga\b',
+              r'\bdfb pokal\b', r'\binter miami\b', r'\bmessi\b',
+              r'\bwinnipeg jets\b', r'\bflorida panthers\b',
+              r'\bkraken\b', r'\bcanadiens\b', r'\bpenguins\b',
+              r'\boilers\b', r'\bflames\b', r'\bducks\b',
+              r'\bbeckham\b', r'\böfb\b',
+          ]
+          NFL_WORDS = [
+              r'\bnfl\b', r'\bsuper bowl\b', r'\bamerican football\b',
+              r'\bquarterback\b', r'\btouchdown\w*\b',
+              r'\braimann\w*\b', r'\bvalentin senn\b',
+              r'\bmahomes\b',
+          ]
+          now = datetime.now(timezone.utc)
+          session = requests.Session()
+          session.headers['User-Agent'] = 'Mozilla/5.0 (compatible; TheHuddleTest/50L)'
+
+          def normalize(s):
+              s = unescape(re.sub(r'<[^>]+>', ' ', s or '')).lower()
+              s = re.sub(r'[^a-z0-9äöüß]+', ' ', s)
+              return re.sub(r'\s+', ' ', s).strip()
+
+          def contains(text, patterns):
+              return any(re.search(p, text) for p in patterns)
+
+          def teams_in(title):
+              text = normalize(title)
+              return {code for code, aliases in TEAMS.items()
+                      if any(re.search(r'\b' + re.escape(a) + r'\b', text)
+                             for a in aliases)}
+
+          def is_nfl(title):
+              text = normalize(title)
+              if contains(text, EXCLUDE):
+                  return False
+              return bool(teams_in(title) or contains(text, NFL_WORDS))
+
+          def allowed(url, domain):
+              host = (urlparse(url).hostname or '').lower()
+              return host == domain or host.endswith('.' + domain)
+
+          def safe_url(url):
+              parts = urlparse(url)
+              if parts.scheme not in ('https', 'http'):
+                  return False
+              host = (parts.hostname or '').lower()
+              return bool(host) and not (host == 'localhost' or host.endswith('.local'))
+
+          print('===== ESPN: DATUMSABGLEICH =====')
+          games = []
+          game_ids = set()
+          for offset in range(5):
+              date = (now - timedelta(days=offset)).strftime('%Y%m%d')
+              url = ('https://site.api.espn.com/apis/site/v2/sports/'
+                     'football/nfl/scoreboard?dates=' + date)
+              try:
+                  response = session.get(url, timeout=12)
+                  response.raise_for_status()
+                  events = response.json().get('events', [])
+                  print(date, 'ESPN-Spiele:', len(events))
+                  for event in events:
+                      if event.get('id') in game_ids:
+                          continue
+                      comps = event.get('competitions', [])
+                      if not comps:
+                          continue
+                      members = comps[0].get('competitors', [])
+                      codes = {m.get('team', {}).get('abbreviation', '').upper()
+                               for m in members}
+                      if len(codes) != 2:
+                          continue
+                      game_ids.add(event.get('id'))
+                      games.append({'id': event.get('id'), 'teams': codes,
+                                    'date': event.get('date', ''),
+                                    'name': event.get('name', ''),
+                                    'state': event.get('status', {}).get('type', {}).get('state', '')})
+              except (requests.RequestException, ValueError) as exc:
+                  print(date, 'ESPN-Fehler:', type(exc).__name__, str(exc)[:100])
+
+          print('\n===== NFL-FILTER =====')
+          raw = 0
+          filtered = []
+          seen = set()
+          for source, domain in SOURCES.items():
+              query = ('("NFL" OR "Super Bowl" OR "Bernhard Raimann" '
+                       'OR "Valentin Senn") site:' + domain + ' when:3d')
+              url = 'https://news.google.com/rss/search?' + urlencode(
+                  {'q': query, 'hl': 'de', 'gl': 'AT', 'ceid': 'AT:de'})
+              try:
+                  response = session.get(url, timeout=18)
+                  response.raise_for_status()
+                  entries = feedparser.parse(response.content).entries
+              except requests.RequestException as exc:
+                  print(source, 'Feed-Fehler:', type(exc).__name__)
+                  continue
+              local_raw = local_kept = 0
+              for entry in entries:
+                  parsed = entry.get('published_parsed')
+                  if not parsed:
+                      continue
+                  published = datetime.fromtimestamp(calendar.timegm(parsed), timezone.utc)
+                  if not now - timedelta(hours=72) <= published <= now:
+                      continue
+                  title = unescape(re.sub(r'<[^>]+>', ' ', entry.get('title', ''))).strip()
+                  link = entry.get('link', '')
+                  if not title or not link:
+                      continue
+                  raw += 1
+                  local_raw += 1
+                  if not is_nfl(title):
+                      continue
+                  local_kept += 1
+                  key = normalize(title)
+                  if key in seen:
+                      continue
+                  seen.add(key)
+                  filtered.append({'title': title, 'link': link, 'domain': domain,
+                                   'source': source, 'date': published,
+                                   'teams': teams_in(title)})
+              print(source, 'roh:', local_raw, 'NFL:', local_kept)
+          filtered.sort(key=lambda a: a['date'], reverse=True)
+          print('Roh:', raw, '| eindeutige NFL-Kandidaten:', len(filtered))
+
+          print('\n===== ORIGINAL-URL-DIAGNOSE =====')
+          statuses = Counter()
+          sample = filtered[:30]
+          for i, item in enumerate(sample, 1):
+              original = None
+              method = 'ungeklärt'
+              error = ''
+              final_host = ''
+              http_status = '-'
+              try:
+                  r = session.get(item['link'], timeout=10, allow_redirects=True)
+                  http_status = str(r.status_code)
+                  final_host = (urlparse(r.url).hostname or '')
+                  if r.ok and allowed(r.url, item['domain']):
+                      original, method = r.url, 'HTTP-Redirect'
+                  elif r.ok:
+                      soup = BeautifulSoup(r.text[:250000], 'html.parser')
+                      canonical = soup.find('link', rel='canonical')
+                      candidate = canonical.get('href', '') if canonical else ''
+                      if safe_url(candidate) and allowed(candidate, item['domain']):
+                          original, method = candidate, 'Canonical'
+              except requests.RequestException as exc:
+                  error = type(exc).__name__ + ': ' + str(exc)[:90]
+              if not original:
+                  try:
+                      result = gnewsdecoder(item['link'], interval=0)
+                      candidate = result.get('decoded_url', '') if isinstance(result, dict) else ''
+                      if isinstance(result, dict) and result.get('status') and safe_url(candidate) and allowed(candidate, item['domain']):
+                          original, method = candidate, 'GoogleNewsDecoder'
+                      elif isinstance(result, dict):
+                          error = (error + ' Decoder: ' + str(result.get('message', 'no valid domain'))[:90]).strip()
+                  except Exception as exc:
+                      error = (error + ' Decoder: ' + type(exc).__name__ + ': ' + str(exc)[:70]).strip()
+              statuses[method] += 1
+              detected = item['teams']
+              matching = [g for g in games if len(detected) == 2 and detected == g['teams']]
+              print('\n---', i, item['source'], '---')
+              print('Titel:', item['title'])
+              print('HTTP:', http_status, '| End-Host:', final_host or '-')
+              print('URL-Methode:', method)
+              print('Original:', original or '-')
+              print('Diagnose:', error or '-')
+              print('Teams:', ', '.join(sorted(detected)) or '-')
+              if len(matching) == 1:
+                  print('ESPN:', matching[0]['name'], '|', matching[0]['state'],
+                        '| ID:', matching[0]['id'])
+              else:
+                  print('ESPN: keine eindeutige Zwei-Team-Paarung')
+              print('Artikelinhalt geprüft: NEIN')
+
+          print('\n===== ZUSAMMENFASSUNG 50L =====')
+          print('Roh:', raw)
+          print('NFL eindeutig:', len(filtered))
+          print('URL-Stichprobe:', len(sample))
+          for method, count in sorted(statuses.items()):
+              print(method + ':', count)
+          print('Faktencheck 50L abgeschlossen.')
+          PY
