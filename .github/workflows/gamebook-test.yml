@@ -1,8 +1,16 @@
 
 name: THE HUDDLE – NFL Game Book Recherchetest
 
+
 on:
   workflow_dispatch:
+    inputs:
+      game_date:
+        description: "NFL-Spieltag (YYYYMMDD)"
+        required: true
+        default: "20260118"
+        type: string
+
 
 permissions:
   contents: read
@@ -24,7 +32,7 @@ jobs:
 
       - name: NFL Game Books mehrerer Spiele prüfen
         env:
-          GAMEBOOK_DATE: "20260118"
+          GAMEBOOK_DATE: ${{ inputs.game_date }}
         run: python scripts/test_gamebooks.py
 
       
