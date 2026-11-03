@@ -1,0 +1,115 @@
+name: THE HUDDLE - Redaktionstest 54 (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Optional: 53-Run-ID, leer = neuester erfolgreicher Lauf'
+        required: false
+        default: ''
+permissions:
+  actions: read
+  contents: read
+jobs:
+  editorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhaengigkeiten installieren
+      run: python -m pip install requests beautifulsoup4
+    - name: Redaktionstest 54 ausfuehren
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      run: "mkdir -p drafts\ncat > /tmp/the_huddle_54.py <<'PY'\nimport os,io,json,zipfile,re,html,requests\nfrom datetime\
+        \ import datetime,timezone\nfrom urllib.parse import urlparse\nfrom bs4 import BeautifulSoup\n\nS=requests.Session()\n\
+        S.headers.update({\"User-Agent\":\"Mozilla/5.0 (compatible; TheHuddleEditorial/54)\"})\nTOKEN=os.environ[\"GITHUB_TOKEN\"\
+        ]\nREPO=os.environ[\"GITHUB_REPOSITORY\"]\nHEAD={\"Authorization\":\"Bearer \"+TOKEN,\"Accept\":\"application/vnd.github+json\"\
+        }\nNOW=datetime.now(timezone.utc)\n\ndef api(path,params=None):\n    r=S.get(\"https://api.github.com\"+path,headers=HEAD,params=params,timeout=25)\n\
+        \    r.raise_for_status()\n    return r.json()\n\ndef load_artifact(workflow,artifact,filename,explicit=\"\"):\n \
+        \   run=explicit\n    if not run:\n        result=api(\"/repos/\"+REPO+\"/actions/workflows/\"+workflow+\"/runs\"\
+        ,\n                   {\"status\":\"success\",\"per_page\":25})\n        runs=result.get(\"workflow_runs\",[])\n \
+        \       if not runs:\n            raise RuntimeError(\"Kein erfolgreicher Lauf: \"+workflow)\n        run=str(runs[0][\"\
+        id\"])\n    artifacts=api(\"/repos/\"+REPO+\"/actions/runs/\"+run+\"/artifacts\").get(\"artifacts\",[])\n    item=next((x\
+        \ for x in artifacts if x[\"name\"]==artifact and not x[\"expired\"]),None)\n    if not item:\n        raise RuntimeError(\"\
+        Artefakt nicht verfügbar: \"+artifact)\n    response=S.get(item[\"archive_download_url\"],headers=HEAD,timeout=40)\n\
+        \    response.raise_for_status()\n    with zipfile.ZipFile(io.BytesIO(response.content)) as z:\n        return json.loads(z.read(filename)),run\n\
+        \nold,run53=load_artifact(\"the-huddle-53.yml\",\"the-huddle-gesamtausgabe-53\",\n                        \"the-huddle-53.json\"\
+        ,os.getenv(\"SOURCE_RUN_ID\",\"\").strip())\naw=None\nawrun=None\ntry:\n    aw,awrun=load_artifact(\"nfl-austrian-watch-51d.yml\"\
+        ,\n                          \"the-huddle-austrian-watch-51d\",\"austrian-watch-51d.json\")\nexcept Exception as exc:\n\
+        \    print(\"Hinweis: 51D-Quellen konnten nicht geladen werden:\",str(exc))\n\ndef clean(s):\n    return re.sub(r\"\
+        \\s+\",\" \",html.unescape(re.sub(\"<[^>]+>\",\" \",s or \"\"))).strip()\n\ndef article_text(url):\n    if not url.startswith(\"\
+        https://\") or not (urlparse(url).hostname or \"\").endswith(\"espn.com\"):\n        return \"\", \"Domain nicht zugelassen\"\
+        \n    try:\n        r=S.get(url,timeout=18)\n        r.raise_for_status()\n        soup=BeautifulSoup(r.text,\"html.parser\"\
+        )\n        for x in soup([\"script\",\"style\",\"nav\",\"footer\",\"header\",\"aside\"]):\n            x.decompose()\n\
+        \        el=soup.select_one(\"article\") or soup.select_one(\"main\")\n        if el is None:\n            return\
+        \ \"\",\"Kein Artikeltext extrahierbar\"\n        paras=[clean(p.get_text(\" \",strip=True)) for p in el.select(\"\
+        p\")]\n        paras=[p for p in paras if len(p)>=55 and not any(\n            q in p.lower() for q in (\"all rights\
+        \ reserved\",\"espn betting\",\"sign up for\"))]\n        if len(paras)<2:\n            return \"\",\"Weniger als\
+        \ zwei aussagekräftige Absätze\"\n        return \" \".join(paras[:5])[:2200],\"Textauszug abrufbar; nicht unabhängig\
+        \ verifiziert\"\n    except Exception as exc:\n        return \"\", \"Abruf fehlgeschlagen: \"+str(exc)[:100]\n\n\
+        # News relevance, no auto-translated facts and no unsupported interpretations.\nban=(\"fantasy\",\"betting\",\"odds\"\
+        ,\"wager\",\"prop bet\",\"power ranking\",\n     \"things solak thinks\",\"mock draft\",\"how to watch\",\"prediction\"\
+        ,\"picks\",\n     \"opinion\",\"award odds\",\"preview\",\"weekly picks\")\nnews=[]\nfor item in old.get(\"top_stories\"\
+        ,[]):\n    title=clean(item.get(\"title\",\"\"))\n    if not title or any(word in title.lower() for word in ban):\n\
+        \        continue\n    excerpt,status=article_text(item.get(\"url\",\"\"))\n    news.append({\"title\":title,\"url\"\
+        :item[\"url\"],\"published\":item.get(\"published\",\"\"),\n                 \"excerpt\":excerpt,\"reading_status\"\
+        :status,\n                 \"fact_checked\":False})\nnews=news[:5]\n\ngames=[g for g in old.get(\"games\",[]) if g.get(\"\
+        completed\") and\n       g.get(\"away\",{}).get(\"score\") is not None and\n       g.get(\"home\",{}).get(\"score\"\
+        ) is not None]\ngames.sort(key=lambda x:x.get(\"date\",\"\"),reverse=True)\n\n# Source-grounded Austrian Watch: select\
+        \ only a few distinct items with real URLs.\naw_items=[]\nif aw:\n    priority_order={\"A\":0,\"B\":1,\"C\":2}\n \
+        \   seen=set()\n    for item in sorted(aw.get(\"selected\",[]),\n                       key=lambda x:(priority_order.get(x.get(\"\
+        priority\"),9),\n                                     x.get(\"date\",\"\")),reverse=False):\n        url=item.get(\"\
+        url\",\"\")\n        if url in seen or not url.startswith(\"https://\"):\n            continue\n        seen.add(url)\n\
+        \        topic=item.get(\"topic\",\"\")\n        if topic.startswith(\"Cardinals\") and not item.get(\"player_named\"\
+        ):\n            continue\n        aw_items.append(item)\n    aw_items=aw_items[:6]\n\ndef mdlink(title,url):\n   \
+        \ return \"[\"+title.replace(\"[\",\"(\").replace(\"]\",\")\")+\"](\"+url+\")\"\n\nlines=[\"# THE HUDDLE – Redaktionstest\
+        \ 54\",\"\",\n       \"**NICHT ZUR VERÖFFENTLICHUNG FREIGEGEBEN**\",\"\",\n       \"Stand: \"+NOW.strftime(\"%d.%m.%Y\
+        \ %H:%M UTC\"),\n       \"Quellenbasis: 53-Run \"+run53+\"; 51D-Run \"+str(awrun or \"nicht verfügbar\"),\"\",\n \
+        \      \"## Die NFL in 60 Sekunden\",\"\"]\n# A readable German briefing grounded in verified final-score fields and\
+        \ attributed headlines.\nif games:\n    latest=games[0]\n    a=latest[\"away\"];h=latest[\"home\"]\n    lines.append(\"\
+        Der jüngste in den ESPN-Daten erfasste abgeschlossene NFL-Spieltag \"\n                 \"liefert unter anderem das\
+        \ Ergebnis \"+\n                 a[\"team\"]+\" \"+str(a[\"score\"])+\" zu \"+str(h[\"score\"])+\" gegen \"+\n   \
+        \              h[\"team\"]+\".\")\nif news:\n    titles=\"; \".join(x[\"title\"] for x in news[:2])\n    lines.append(\"\
+        Zu den aktuellen ESPN-Themen gehören: \"+titles+\n                 \". Diese Überschriften sind redaktionelle Recherchehinweise,\
+        \ \"\n                 \"noch keine überprüften Inhaltszusammenfassungen.\")\nif aw_items:\n    lines.append(\"In\
+        \ der Austrian Watch stehen die Kaderentwicklung der Indianapolis Colts \"\n                 \"und ihr Umfeld um Bernhard\
+        \ Raimann im Mittelpunkt. \"\n                 \"Die Auswirkungen einzelner Personalentscheidungen müssen \"\n   \
+        \              \"anhand der Originalquellen geprüft werden.\")\nif not games and not news and not aw_items:\n    lines.append(\"\
+        Nicht genügend belastbare Daten für einen Morgenüberblick vorhanden.\")\nlines+=[\"\",\"## Top Stories\",\"\"]\nfor\
+        \ n in news:\n    lines.append(\"### \"+n[\"title\"])\n    lines.append(mdlink(\"Originalartikel bei ESPN\",n[\"url\"\
+        ]))\n    lines.append(\"**Quellenstatus:** \"+n[\"reading_status\"]+\".\")\n    if n[\"excerpt\"]:\n        lines.append(\"\
+        **Originaltext zur redaktionellen Prüfung (Auszug, nicht zur Übernahme):** \"\n                     +n[\"excerpt\"\
+        ][:500]+\" …\")\n    else:\n        lines.append(\"Keine belastbare Inhaltszusammenfassung möglich; Originalartikel\
+        \ prüfen.\")\n    lines.append(\"\")\nif not news:lines+=[\"Keine geeigneten aktuellen ESPN-Artikel aus Schritt 53\
+        \ übrig.\",\"\"]\nlines+=[\"## Austrian Watch\",\"\"]\nif aw_items:\n    for a in aw_items:\n        lines.append(\"\
+        - **\"+a.get(\"priority\",\"?\")+\"** \"+mdlink(\n            a.get(\"title\",\"Quelle\"),a[\"url\"])+\" – \"+\n \
+        \           a.get(\"reason\",\"Relevanz prüfen\"))\nelse:\n    lines.append(\"51D-Originalquellen nicht verfügbar\
+        \ oder keine qualifizierten Treffer.\")\nlines+=[\"\",\"## Game Center\",\"\"]\nfor g in games:\n    a=g[\"away\"\
+        ];h=g[\"home\"]\n    lines.append(\"- \"+a[\"team\"]+\" **\"+str(a[\"score\"])+\" : \"+\n                 str(h[\"\
+        score\"])+\"** \"+h[\"team\"]+\" (Final; \"+\n                 g.get(\"date\",\"\")[:10]+\")\")\nif not games:lines.append(\"\
+        Keine bestätigten Endergebnisse im 53-Datensatz.\")\nlines+=[\"\",\"Quelle: https://www.espn.com/nfl/scoreboard\"\
+        ,\"\",\n        \"## Redaktionsfreigabe\",\"\",\n        \"- [ ] Artikeltexte prüfen und deutsche Kurzmeldungen formulieren\"\
+        ,\n        \"- [ ] Alle Überschriften und ihre Aktualität gegenprüfen\",\n        \"- [ ] Austrian Watch auf 2–3 geprüfte\
+        \ Absätze verdichten\",\n        \"- [ ] Game-Center-Ergebnisse und Zeitfenster kontrollieren\",\n        \"- [ ]\
+        \ Erst nach manueller Freigabe veröffentlichen\",\"\",\n        \"**Hinweis:** Ohne Sprachmodell oder manuelle Redaktion\
+        \ sind aus \"\n        \"Artikeltexten keine verlässlich formulierten deutschen \"\n        \"Nachrichten-Zusammenfassungen\
+        \ ableitbar. Dieser Workflow \"\n        \"erstellt deshalb einen strukturierten, deutschsprachigen Prüfentwurf \"\
+        \n        \"statt unbestätigte Fakten zu erfinden.\",\"\"]\nos.makedirs(\"drafts\",exist_ok=True)\nopen(\"drafts/the-huddle-54.md\"\
+        ,\"w\",encoding=\"utf-8\").write(\"\\n\".join(lines))\nwith open(\"drafts/the-huddle-54.json\",\"w\",encoding=\"utf-8\"\
+        ) as f:\n    json.dump({\"version\":\"54\",\"generated_utc\":NOW.isoformat(),\n               \"source_53_run\":run53,\"\
+        source_51d_run\":awrun,\n               \"news\":news,\"austrian_watch\":aw_items,\"games\":games,\n             \
+        \  \"approved\":False,\"fact_checked\":False,\"published\":False,\n               \"openai_api_calls\":0},f,ensure_ascii=False,indent=2)\n\
+        print(\"54 erstellt:\",len(news),\"Top Stories,\",len(aw_items),\n      \"Austrian-Watch-Quellen,\",len(games),\"\
+        Endergebnisse\")\nPY\npython /tmp/the_huddle_54.py"
+    - name: Ergebnisse sichern
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-redaktionstest-54
+        path: drafts/the-huddle-54.*
+        if-no-files-found: warn
+        retention-days: 7
