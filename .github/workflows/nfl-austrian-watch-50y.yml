@@ -1,0 +1,154 @@
+name: THE HUDDLE - Austrian Watch 50Y (manuell)
+
+'on':
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Optional: GitHub-Run-ID von 50X (leer = neuestes Artifact)"
+        required: false
+        default: ''
+permissions:
+  contents: read
+  actions: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhaengigkeiten installieren
+        run: python -m pip install --disable-pip-version-check requests feedparser beautifulsoup4
+      - name: Recherche und Relevanzfilter (nur lesend)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          mkdir -p drafts
+          cat > /tmp/austrian_watch_50y.py <<'PY'
+          import os, json, re, zipfile, io, html, time
+          from datetime import datetime, timezone, timedelta
+          from urllib.parse import urlparse, quote, parse_qs, unquote
+          import requests, feedparser
+          from bs4 import BeautifulSoup
+          
+          TOKEN=os.environ['GH_TOKEN']; REPO=os.environ['GH_REPO']; RUN_ID=os.environ.get('SOURCE_RUN_ID','').strip()
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 (compatible; TheHuddle/50Y; editorial research)'})
+          API=requests.Session(); API.headers.update({'Authorization':'Bearer '+TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+          NOW=datetime.now(timezone.utc); errors=[]
+          
+          def get_source():
+              r=API.get(f'https://api.github.com/repos/{REPO}/actions/artifacts',params={'name':'the-huddle-austrian-watch-50x','per_page':100},timeout=25);r.raise_for_status()
+              arts=[a for a in r.json().get('artifacts',[]) if not a.get('expired') and a.get('name')=='the-huddle-austrian-watch-50x']
+              if RUN_ID: arts=[a for a in arts if str((a.get('workflow_run') or {}).get('id'))==RUN_ID]
+              if not arts: raise RuntimeError('Kein passendes 50X-Artifact gefunden. source_run_id pruefen oder 50X erneut starten.')
+              a=max(arts,key=lambda x:x.get('created_at',''))
+              r=API.get(a['archive_download_url'],timeout=60);r.raise_for_status()
+              with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+                  name=next((n for n in z.namelist() if n.endswith('austrian-watch-50x.json')),None)
+                  if not name: raise RuntimeError('50X-JSON fehlt im Artifact')
+                  return json.loads(z.read(name)),a
+          
+          def norm(t):
+              return re.sub(r'[^a-z0-9äöüß]+',' ',html.unescape(t or '').lower()).strip()
+          
+          def event_key(row):
+              t=norm(row.get('title',''))
+              if any(w in t for w in ('nelson','trade','nebenmann','umbruch','ausverkauf','topstar')): return 'raimann-colts-trades'
+              if any(w in t for w in ('jacksonville','jaguars','pleite','niederlage','unterliegen','42','verlier')): return 'raimann-colts-jaguars'
+              if 'senn' in t and any(w in t for w in ('practice squad','kader','aktivier','vertrag','entlass')):return 'senn-roster'
+              if 'raimann' in t and any(w in t for w in ('verletz','injur')):return 'raimann-injury'
+              if 'senn' in t and any(w in t for w in ('verletz','injur')):return 'senn-injury'
+              return 'other-'+str(row.get('_index',0))
+          
+          def publisher_hint(title):
+              return title.rsplit(' - ',1)[-1].strip() if ' - ' in title else ''
+          
+          DOMAINS={'Sky Sport Austria':['skysportaustria.at'],'Kronen Zeitung':['krone.at'],'Der Standard':['derstandard.at'],'AmFoo.de':['amfoo.de'],'Kurier':['kurier.at'],'Football-Austria':['football-austria.com'],'ORF':['sport.orf.at'],'LAOLA1':['laola1.at']}
+          
+          def candidate_urls(row):
+              # RSS contains a Google News discovery URL, never treat it as publisher URL.
+              title=row.get('title',''); source=publisher_hint(title)
+              domains=DOMAINS.get(source,[])
+              q='"'+title.rsplit(' - ',1)[0].strip()+'"'+(' site:'+domains[0] if domains else '')
+              out=[]
+              try:
+                  feed=feedparser.parse(S.get('https://www.bing.com/search',params={'q':q,'format':'rss'},timeout=16).content)
+                  for e in feed.entries[:8]:
+                      u=e.get('link',''); host=urlparse(u).hostname or ''
+                      if domains and not any(host==d or host.endswith('.'+d) for d in domains):continue
+                      if host and not host.endswith('bing.com') and not host.endswith('google.com'):
+                          out.append({'url':u,'search_title':e.get('title',''),'search_engine':'Bing RSS'})
+              except Exception as e:errors.append('Suche '+source+': '+str(e)[:150])
+              return out[:5]
+          
+          def overlap(a,b):
+              stop={'und','die','der','das','von','mit','bei','auch','für','nach','in','zu','den','im','am','ein','eine','nfl','colts','raimann','bernhard','senn','valentin'}
+              x={w for w in norm(a).split() if len(w)>3 and w not in stop};y=set(norm(b).split())
+              return round(len(x&y)/max(1,len(x)),3)
+          
+          def probe(u,headline):
+              try:
+                  r=S.get(u,timeout=18,allow_redirects=True);host=urlparse(r.url).hostname or ''
+                  soup=BeautifulSoup(r.text[:1500000],'html.parser'); title=(soup.title.get_text(' ',strip=True) if soup.title else '')
+                  meta=soup.find('meta',attrs={'property':'og:title'})
+                  if meta and meta.get('content'):title=meta['content']
+                  score=overlap(headline.rsplit(' - ',1)[0],title)
+                  return {'url':r.url,'http_status':r.status_code,'page_title':title[:250],'headline_overlap':score,'status':'POTENTIAL_MATCH' if r.status_code==200 and score>=0.45 and host not in ('news.google.com','www.google.com') else 'UNVERIFIED'}
+              except Exception as e:return {'url':u,'status':'FETCH_ERROR','error':str(e)[:180]}
+          
+          source,art=get_source(); rows=source.get('results',[]); cutoff=NOW-timedelta(days=int(source.get('lookback_days',7)))
+          accepted=[]; excluded=[]
+          for i,row in enumerate(rows):
+              row=dict(row);row['_index']=i
+              names=row.get('persons_named') or []
+              if row.get('classification')!='DIREKTER_NAMENSTREFFER' or not names:
+                  excluded.append({'title':row.get('title'),'reason':'Nur Teamkontext, keine direkte Spielernennung','source_url':row.get('url')});continue
+              try:published=datetime.fromisoformat(row['published_utc'].replace('Z','+00:00'))
+              except (TypeError,ValueError,KeyError):published=None
+              if not published or published<cutoff-timedelta(hours=2) or published>NOW+timedelta(hours=2):
+                  excluded.append({'title':row.get('title'),'reason':'Ausserhalb Recherchefenster oder Datum unklar'});continue
+              row['event_key']=event_key(row);accepted.append(row)
+          
+          clusters={}
+          for row in accepted:clusters.setdefault(row['event_key'],[]).append(row)
+          reports=[]
+          for key,items in clusters.items():
+              sources=[]
+              for row in items:
+                  matches=[]
+                  for c in candidate_urls(row)[:3]:
+                      p=probe(c['url'],row['title']);p['search_title']=c['search_title'];matches.append(p)
+                  sources.append({'discovery_title':row.get('title'),'discovery_url':row.get('url'),'published_utc':row.get('published_utc'),'persons_named':row.get('persons_named'),'publisher_hint':publisher_hint(row.get('title','')),'publisher_candidates':matches,'original_verified':False})
+                  time.sleep(0.3)
+              reports.append({'event_key':key,'persons':sorted(set(n for x in items for n in x.get('persons_named',[]))),'reports_count':len(items),'sources':sources,'status':'RESEARCH_CANDIDATE','fact_checked':False,'editorial_approved':False})
+          
+          output={'version':'50Y','generated_utc':NOW.isoformat(),'source_artifact_id':art['id'],'source_run_id':(art.get('workflow_run') or {}).get('id'),'lookback_days':source.get('lookback_days'),'input_count':len(rows),'direct_name_hits':len(accepted),'excluded_count':len(excluded),'topic_count':len(reports),'topics':reports,'excluded':excluded,'errors':errors,'method':'Bing RSS publisher discovery + publisher-page title similarity. Original URLs are candidates, NOT verified reporting.','publication_approved':False,'fact_checked':False}
+          os.makedirs('drafts',exist_ok=True)
+          with open('drafts/austrian-watch-50y.json','w',encoding='utf8') as f:json.dump(output,f,ensure_ascii=False,indent=2)
+          lines=['# THE HUDDLE – Austrian Watch 50Y','',f'Erstellt: {NOW.isoformat()}','',f'50X-Treffer: {len(rows)} | direkte Namenstreffer: {len(accepted)} | ausgeschieden: {len(excluded)} | Themencluster: {len(reports)}','','**Nur Recherche. Keine Faktenfreigabe, keine Publikation.**','']
+          for t in reports:
+              lines += ['## '+t['event_key'],f"Spieler: {', '.join(t['persons'])} | Berichte: {t['reports_count']}",'']
+              for s in t['sources']:
+                  lines += ['- '+s['discovery_title'], '  - Discovery: '+s['discovery_url']]
+                  if not s['publisher_candidates']:lines += ['  - Keine belastbare Publisher-URL automatisch gefunden']
+                  for p in s['publisher_candidates']:lines += [f"  - Kandidat ({p['status']}, HTTP {p.get('http_status','?')}, Titeluebereinstimmung {p.get('headline_overlap','?')}): {p['url']}"]
+              lines += ['']
+          lines += ['## Ausgeschlossen','']+[f"- {e['title']} – {e['reason']}" for e in excluded]
+          if errors:lines+=['','## Technische Hinweise','']+['- '+x for x in errors]
+          with open('drafts/austrian-watch-50y.md','w',encoding='utf8') as f:f.write('\n'.join(lines)+'\n')
+          print('50Y abgeschlossen:',len(rows),'Treffer,',len(accepted),'direkte,',len(reports),'Themen,',len(excluded),'ausgeschlossen')
+          for t in reports:print(t['event_key'],t['reports_count'],'Berichte')
+          PY
+          python /tmp/austrian_watch_50y.py
+      - name: Recherche-Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-huddle-austrian-watch-50y
+          path: |
+            drafts/austrian-watch-50y.json
+            drafts/austrian-watch-50y.md
+          retention-days: 7
