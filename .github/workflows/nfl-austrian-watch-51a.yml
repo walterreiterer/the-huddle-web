@@ -1,0 +1,102 @@
+name: THE HUDDLE - Austrian Watch 51A (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Recherchefenster (1-30 Tage)
+        required: false
+        default: '7'
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhaengigkeiten installieren
+      run: python -m pip install --disable-pip-version-check requests feedparser beautifulsoup4
+    - name: Direkte Publisher-Feeds pruefen (nur lesend)
+      env:
+        LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+      run: "mkdir -p drafts\ncat > /tmp/austrian_watch_51a.py <<'PY'\nimport os, re, json, html, time, calendar\nfrom datetime\
+        \ import datetime, timezone, timedelta\nfrom urllib.parse import urlparse, urljoin\nfrom xml.etree import ElementTree\
+        \ as ET\nimport requests, feedparser\nfrom bs4 import BeautifulSoup\n\nNOW=datetime.now(timezone.utc)\nDAYS=max(1,min(30,int(os.environ.get(\"\
+        LOOKBACK_DAYS\",\"7\"))))\nCUTOFF=NOW-timedelta(days=DAYS)\nS=requests.Session()\nS.headers.update({\"User-Agent\"\
+        :\"TheHuddle-Research/51A (+manual editorial RSS audit)\"})\nSOURCES=[\n {\"name\":\"Football-Austria\",\"kind\":\"\
+        wordpress\",\"url\":\"https://football-austria.com/feed/\",\"domains\":[\"football-austria.com\"]},\n {\"name\":\"\
+        ORF Sport\",\"kind\":\"rss\",\"url\":\"https://rss.orf.at/sport.xml\",\"domains\":[\"orf.at\"]},\n {\"name\":\"ORF\
+        \ News\",\"kind\":\"rss\",\"url\":\"https://rss.orf.at/news.xml\",\"domains\":[\"orf.at\"]},\n {\"name\":\"Arizona\
+        \ Cardinals\",\"kind\":\"rss\",\"url\":\"https://www.azcardinals.com/rss/news\",\"domains\":[\"azcardinals.com\"]},\n\
+        \ {\"name\":\"Indianapolis Colts\",\"kind\":\"rss\",\"url\":\"https://www.colts.com/rss/news\",\"domains\":[\"colts.com\"\
+        ]},\n {\"name\":\"DER STANDARD\",\"kind\":\"wordpress\",\"url\":\"https://www.derstandard.at/rss\",\"domains\":[\"\
+        derstandard.at\"]},\n]\nPLAYERS={\"Bernhard Raimann\":re.compile(r\"\\bbernhard\\s+raimann\\b|\\braimann\\b\",re.I),\n\
+        \         \"Valentin Senn\":re.compile(r\"\\bvalentin\\s+senn\\b|\\bsenn\\b\",re.I)}\ndef hostname(url):\n    try:return\
+        \ (urlparse(url).hostname or \"\").lower()\n    except:return \"\"\ndef allowed(url,domains):\n    h=hostname(url)\n\
+        \    return urlparse(url).scheme in (\"http\",\"https\") and any(h==d or h.endswith(\".\"+d) for d in domains)\ndef\
+        \ date_parse(entry):\n    for key in (\"published_parsed\",\"updated_parsed\",\"created_parsed\"):\n        p=entry.get(key)\n\
+        \        if p:\n            try:return datetime.fromtimestamp(calendar.timegm(p),timezone.utc)\n            except\
+        \ (TypeError,ValueError,OverflowError):pass\n    return None\ndef strip(t):\n    return BeautifulSoup(html.unescape(t\
+        \ or \"\"),\"html.parser\").get_text(\" \",strip=True)\ndef classify(text):\n    return [name for name,rx in PLAYERS.items()\
+        \ if rx.search(text)]\ndef article_check(url,domains):\n    try:\n        r=S.get(url,timeout=14,allow_redirects=True)\n\
+        \        if not allowed(r.url,domains):return {\"status\":\"OFF_DOMAIN\",\"final_url\":r.url}\n        if r.status_code!=200:return\
+        \ {\"status\":\"HTTP_ERROR\",\"http_status\":r.status_code}\n        soup=BeautifulSoup(r.text[:850000],\"html.parser\"\
+        )\n        title=(soup.find(\"meta\",attrs={\"property\":\"og:title\"}) or {}).get(\"content\",\"\")\n        if not\
+        \ title and soup.title:title=soup.title.get_text(\" \",strip=True)\n        body=soup.find(\"article\")\n        #\
+        \ Text used only for matching; never saved.\n        txt=body.get_text(\" \",strip=True) if body else \"\"\n     \
+        \   return {\"status\":\"FETCHED\",\"http_status\":200,\"final_url\":r.url,\n                \"page_title\":title[:220],\"\
+        player_names_in_article\":classify(txt),\n                \"article_element_found\":bool(body)}\n    except Exception\
+        \ as e:return {\"status\":\"FETCH_ERROR\",\"error\":str(e)[:140]}\nresults=[];health=[];seen=set()\nfor source in\
+        \ SOURCES:\n    stat={\"source\":source[\"name\"],\"feed_url\":source[\"url\"],\"feed_status\":\"UNKNOWN\",\n    \
+        \      \"feed_items\":0,\"dated_items\":0,\"direct_name_hits\":0,\"undated_items\":0,\"errors\":[]}\n    try:\n  \
+        \      r=S.get(source[\"url\"],timeout=20)\n        stat[\"http_status\"]=r.status_code\n        r.raise_for_status()\n\
+        \        if not allowed(r.url,source[\"domains\"]):\n            raise RuntimeError(\"Feed-Weiterleitung ausserhalb\
+        \ Publisher-Domain\")\n        feed=feedparser.parse(r.content)\n        stat[\"feed_items\"]=len(feed.entries)\n\
+        \        if not feed.entries:\n            stat[\"feed_status\"]=\"EMPTY_OR_UNREADABLE\"\n            if feed.get(\"\
+        bozo\"):stat[\"errors\"].append(str(feed.bozo_exception)[:150])\n        else:stat[\"feed_status\"]=\"OK\"\n     \
+        \   for entry in feed.entries[:150]:\n            url=entry.get(\"link\",\"\")\n            if not allowed(url,source[\"\
+        domains\"]):continue\n            title=strip(entry.get(\"title\",\"\"))\n            summary=strip(entry.get(\"summary\"\
+        ,\"\"))[:600]\n            dt=date_parse(entry)\n            if dt:stat[\"dated_items\"]+=1\n            else:stat[\"\
+        undated_items\"]+=1\n            if dt and (dt<CUTOFF or dt>NOW+timedelta(hours=2)):continue\n            names=classify(title+\"\
+        \ \"+summary)\n            if not names:continue\n            canonical=url.split(\"#\",1)[0]\n            if canonical\
+        \ in seen:continue\n            seen.add(canonical)\n            stat[\"direct_name_hits\"]+=1\n            result={\"\
+        source\":source[\"name\"],\"title\":title,\"url\":canonical,\n                    \"published_utc\":dt.isoformat()\
+        \ if dt else None,\n                    \"date_status\":\"WITHIN_WINDOW\" if dt else \"UNKNOWN_DATE\",\n         \
+        \           \"players\":names,\"match_basis\":\"FEED_TITLE_OR_SUMMARY\",\n                    \"editorial_status\"\
+        :\"RESEARCH_CANDIDATE\",\n                    \"fact_checked\":False,\"publication_approved\":False}\n           \
+        \ # Only inspect up to 12 directly relevant articles to avoid excessive requests.\n            if len(results)<12:\n\
+        \                result[\"article_probe\"]=article_check(canonical,source[\"domains\"])\n                time.sleep(0.3)\n\
+        \            results.append(result)\n    except Exception as e:\n        stat[\"feed_status\"]=\"ERROR\";stat[\"errors\"\
+        ].append(str(e)[:200])\n    health.append(stat)\n    print(source[\"name\"],stat[\"feed_status\"],\"items\",stat[\"\
+        feed_items\"],\"hits\",stat[\"direct_name_hits\"])\n# Do not treat missing results as evidence of no news: feed coverage\
+        \ may be limited.\nresult={\"version\":\"51A\",\"generated_utc\":NOW.isoformat(),\"lookback_days\":DAYS,\n       \
+        \ \"sources\":health,\"direct_hits\":results,\"direct_hits_count\":len(results),\n        \"fact_checked\":False,\"\
+        publication_approved\":False,\n        \"limitations\":[\"Feeds contain only a limited number of recent entries.\"\
+        ,\n                       \"Feed summaries and titles are discovery metadata, not verified article facts.\",\n   \
+        \                    \"Missing or inaccessible feeds do not prove absence of news.\",\n                       \"Unknown\
+        \ publication dates are not claimed as current.\",\n                       \"No Google News URLs, no search engine,\
+        \ no AI API.\"]}\nos.makedirs(\"drafts\",exist_ok=True)\nwith open(\"drafts/austrian-watch-51a.json\",\"w\",encoding=\"\
+        utf-8\") as f:json.dump(result,f,ensure_ascii=False,indent=2)\nlines=[\"# THE HUDDLE – Austrian Watch 51A\",\"\",\n\
+        \       \"Erstellt: \"+NOW.isoformat(),f\"Recherchefenster: {DAYS} Tage\",\n       f\"Direkte Namenstreffer: {len(results)}\"\
+        ,\"\",\"## Quellenstatus\",\"\"]\nfor s in health:\n    lines.append(f\"- **{s['source']}**: {s['feed_status']}; {s['feed_items']}\
+        \ Feed-Eintraege; {s['direct_name_hits']} Namenstreffer\"+(\" | \"+\", \".join(s[\"errors\"]) if s[\"errors\"] else\
+        \ \"\"))\nlines.extend([\"\",\"## Direkt verlinkte Recherchekandidaten\",\"\"])\nif not results:lines.append(\"Keine\
+        \ direkten Namenstreffer in den abrufbaren Feed-Eintraegen.\")\nfor r in results:\n    lines.extend([f\"### {r['title']}\"\
+        ,\"\",\n                  f\"- Quelle: {r['source']}\",\n                  f\"- Link: {r['url']}\",\n            \
+        \      f\"- Spieler: {', '.join(r['players'])}\",\n                  f\"- Datum: {r['published_utc'] or 'unbekannt\
+        \ – nicht als aktuell bestaetigt'}\",\n                  f\"- Artikelabruf: {(r.get('article_probe') or {}).get('status','nicht\
+        \ getestet')}\",\"\"])\nlines.extend([\"## Grenzen\",\"\",\"Nur Recherchekandidaten. Keine redaktionelle Freigabe.\
+        \ Keine Veroeffentlichung. Fehlende Feed-Treffer bedeuten nicht, dass es keine Nachrichten gibt.\"])\nwith open(\"\
+        drafts/austrian-watch-51a.md\",\"w\",encoding=\"utf-8\") as f:f.write(\"\\n\".join(lines)+\"\\n\")\nprint(\"51A abgeschlossen:\"\
+        ,len(results),\"direkte Treffer\")\nPY\npython /tmp/austrian_watch_51a.py"
+    - name: Rechercheberichte hochladen
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-austrian-watch-51a
+        path: drafts/austrian-watch-51a.*
+        if-no-files-found: warn
+        retention-days: 7
