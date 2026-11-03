@@ -1,0 +1,104 @@
+name: THE HUDDLE - Gesamtausgabe 52 (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Optional: 51D Run-ID, leer = neuester erfolgreicher Lauf'
+        required: false
+        default: ''
+permissions:
+  actions: read
+  contents: read
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+    - name: Python 3.11 einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Requests installieren
+      run: python -m pip install requests
+    - name: Gesamtausgabe als redaktionellen Entwurf bauen
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      run: "mkdir -p drafts\ncat > /tmp/the_huddle_52.py <<'PY'\nimport os,io,json,re,zipfile,requests\nfrom datetime import\
+        \ datetime,timezone,timedelta\nfrom urllib.parse import urlparse\nfrom collections import defaultdict\nNOW=datetime.now(timezone.utc)\n\
+        S=requests.Session();S.headers.update({\"User-Agent\":\"TheHuddle/52 manual editorial research\"})\nrepo=os.environ[\"\
+        GITHUB_REPOSITORY\"]\nheaders={\"Authorization\":\"Bearer \"+os.environ[\"GITHUB_TOKEN\"],\"Accept\":\"application/vnd.github+json\"\
+        }\ndef gh(path,params=None):\n    r=S.get(\"https://api.github.com\"+path,params=params,headers=headers,timeout=25)\n\
+        \    r.raise_for_status();return r.json()\nrunid=os.environ.get(\"SOURCE_RUN_ID\",\"\").strip()\nif not runid:\n \
+        \   runs=gh(f\"/repos/{repo}/actions/workflows/nfl-austrian-watch-51d.yml/runs\",\n            {\"status\":\"success\"\
+        ,\"per_page\":20}).get(\"workflow_runs\",[])\n    if not runs:raise RuntimeError(\"Kein erfolgreicher 51D-Lauf vorhanden\"\
+        )\n    runid=str(runs[0][\"id\"])\narts=gh(f\"/repos/{repo}/actions/runs/{runid}/artifacts\").get(\"artifacts\",[])\n\
+        art=next((a for a in arts if a.get(\"name\")==\"the-huddle-austrian-watch-51d\" and not a.get(\"expired\")),None)\n\
+        if not art:raise RuntimeError(\"51D-Artefakt nicht gefunden oder abgelaufen\")\nr=S.get(art[\"archive_download_url\"\
+        ],headers=headers,timeout=40);r.raise_for_status()\nwith zipfile.ZipFile(io.BytesIO(r.content)) as z: aw=json.loads(z.read(\"\
+        austrian-watch-51d.json\"))\nif aw.get(\"version\")!=\"51D\":raise RuntimeError(\"Falsche 51D-Version\")\n# Newest\
+        \ original-source headlines; no unsupported story-body claims.\nstories=[];errors=[]\ntry:\n    url=\"https://site.api.espn.com/apis/site/v2/sports/football/nfl/news\"\
+        \n    r=S.get(url,params={\"limit\":50},timeout=20);r.raise_for_status()\n    for a in r.json().get(\"articles\",[]):\n\
+        \        title=a.get(\"headline\",\"\").strip()\n        link=\"\"\n        if not link:\n            link=a.get(\"\
+        links\",{}).get(\"web\",{}).get(\"href\",\"\")\n        if not isinstance(link,str):link=\"\"\n        published=a.get(\"\
+        published\",\"\")\n        try:dt=datetime.fromisoformat(published.replace(\"Z\",\"+00:00\"))\n        except:continue\n\
+        \        if not title or not link.startswith(\"https://\") or not (urlparse(link).hostname or \"\").endswith(\"espn.com\"\
+        ):continue\n        if not NOW-timedelta(hours=48)<=dt<=NOW+timedelta(hours=2):continue\n        if any(s[\"title\"\
+        ]==title for s in stories):continue\n        stories.append({\"title\":title,\"url\":link,\"published\":published,\"\
+        source\":\"ESPN\",\"status\":\"HEADLINE_ONLY\"})\n    stories=sorted(stories,key=lambda x:x[\"published\"],reverse=True)[:7]\n\
+        except Exception as e:errors.append(\"ESPN News: \"+str(e)[:180])\n# ESPN Scoreboard: status must explicitly be final;\
+        \ never infer outcomes.\ngames=[]\ntry:\n    r=S.get(\"https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard\"\
+        ,\n            params={\"dates\":NOW.strftime(\"%Y%m%d\"),\"limit\":100},timeout=20)\n    r.raise_for_status()\n \
+        \   # ESPN default scoreboard may contain games from current NFL week; restrict date separately.\n    for ev in r.json().get(\"\
+        events\",[]):\n        comp=(ev.get(\"competitions\") or [{}])[0]\n        teams=comp.get(\"competitors\",[])\n  \
+        \      if len(teams)!=2:continue\n        date=ev.get(\"date\",\"\")\n        try:dt=datetime.fromisoformat(date.replace(\"\
+        Z\",\"+00:00\"))\n        except:continue\n        if not NOW-timedelta(days=4)<=dt<=NOW+timedelta(hours=12):continue\n\
+        \        status=(ev.get(\"status\") or {}).get(\"type\",{})\n        finished=bool(status.get(\"completed\"))\n  \
+        \      side={}\n        for t in teams:\n            side[t.get(\"homeAway\",\"\")]={\n                \"team\":(t.get(\"\
+        team\") or {}).get(\"displayName\",\"\"),\n                \"score\":str(t.get(\"score\",\"\")) if finished else None}\n\
+        \        if \"home\" not in side or \"away\" not in side:continue\n        games.append({\"date\":date,\"away\":side[\"\
+        away\"],\"home\":side[\"home\"],\n                      \"status\":status.get(\"description\",\"unbekannt\"),\n  \
+        \                    \"completed\":finished,\"source\":\"ESPN Scoreboard\",\n                      \"url\":\"https://www.espn.com/nfl/scoreboard\"\
+        })\nexcept Exception as e:errors.append(\"ESPN Scoreboard: \"+str(e)[:180])\n# Editorial: cap Austrian Watch, exclude\
+        \ Cardinals without direct Senn mention.\nselected=aw.get(\"selected\",[])\ngroups=defaultdict(list)\nfor a in selected:\n\
+        \    if a.get(\"topic\",\"\").startswith(\"Cardinals\") and not a.get(\"player_named\"):continue\n    if a.get(\"\
+        topic\")==\"Colts Depth Chart\":pass\n    if a.get(\"priority\") not in (\"A\",\"B\",\"C\"):continue\n    groups[a.get(\"\
+        topic\",\"Unsortiert\")].append(a)\npreferred=[\"Nelson-Trade und Colts-Umbau\",\"Colts Offensive Line und Personal\"\
+        ,\n           \"Colts nach Jacksonville\",\"Colts Depth Chart\",\"Colts Training und Kader\",\n           \"Senn und\
+        \ Cardinals\",\"Cardinals-Kader und Practice Squad\"]\ntopics=[t for t in preferred if t in groups][:4]\ndef link(title,url):\n\
+        \    return \"[\"+title.replace(\"[\",\"(\").replace(\"]\",\")\")+\"](\"+url+\")\"\nlines=[\"# THE HUDDLE – NFL-Morgenjournal\
+        \ | Integrationstest 52\",\"\",\n       \"**REDAKTIONELLER ENTWURF – NICHT VERÖFFENTLICHEN**\",\"\",\n       \"Erstellt:\
+        \ \"+NOW.isoformat()+\" | Austrian Watch aus 51D-Run \"+runid,\"\",\n       \"## Die NFL in 60 Sekunden\",\"\",\n\
+        \       \"Redaktioneller Platzhalter: Die folgenden Quellenüberschriften und Spielergebnisse \"\n       \"müssen für\
+        \ einen faktengeprüften 60-Sekunden-Brief eingeordnet werden. \"\n       \"Es werden keine Meldungen aus Überschriften\
+        \ erfunden.\",\"\",\n       \"## Top Stories\",\"\"]\nif stories:\n    for s in stories[:5]:lines.append(\"- \"+link(s[\"\
+        title\"],s[\"url\"])+f\" ({s['source']}, {s['published'][:10]}; Überschrift, nicht faktengeprüft)\")\nelse:lines.append(\"\
+        Keine aktuellen, ausreichend datierten ESPN-Schlagzeilen abrufbar.\")\nlines+=[\"\",\"## Austrian Watch\",\"\"]\n\
+        if not topics:lines.append(\"Keine hinreichend belegten Themen aus 51D übernommen.\")\nfor topic in topics:\n    arr=sorted(groups[topic],key=lambda\
+        \ x:x.get(\"date\",\"\"),reverse=True)\n    lines += [\"### \"+topic,\"\",\n              \"Redaktioneller Ansatz:\
+        \ \"+arr[0].get(\"reason\",\"Quellenlage prüfen\")+\n              \". Details und konkrete Auswirkungen vor Veröffentlichung\
+        \ im Originalartikel kontrollieren.\",\"\"]\n    for a in arr[:3]:lines.append(\"- \"+link(a[\"title\"],a[\"url\"\
+        ])+f\" ({a['source']})\")\n    lines.append(\"\")\nlines+=[\"## Game Center\",\"\"]\nif games:\n    for g in sorted(games,key=lambda\
+        \ x:x[\"date\"],reverse=True):\n        if g[\"completed\"]:\n            lines.append(f\"- {g['away']['team']} {g['away']['score']}\
+        \ – {g['home']['score']} {g['home']['team']} (Final; ESPN Scoreboard, {g['date']})\")\n        else:\n           \
+        \ lines.append(f\"- {g['away']['team']} @ {g['home']['team']} ({g['status']}; {g['date']}, kein Endstand)\")\nelse:lines.append(\"\
+        Keine Spiele im ausgewerteten Zeitraum aus der ESPN-Scoreboard-Antwort.\")\nlines+=[\"\",\"## Redaktionskontrolle\"\
+        ,\"\",\n        \"- [ ] Top-Story-Artikeltext und Veröffentlichungsdatum prüfen\",\n        \"- [ ] Austrian-Watch-Fakten\
+        \ anhand der verlinkten Originalartikel bestätigen\",\n        \"- [ ] Spielstände und Zeitzonen gegen offiziellen\
+        \ Spielstatus prüfen\",\n        \"- [ ] 60-Sekunden-Brief nach Faktenprüfung schreiben\",\n        \"- [ ] Freigabe\
+        \ ausdrücklich erteilen; dieser Workflow veröffentlicht nichts\",\"\"]\nif errors:lines+=[\"## Abruffehler\",\"\"\
+        ]+[\"- \"+x for x in errors]\nos.makedirs(\"drafts\",exist_ok=True)\nwith open(\"drafts/the-huddle-52.md\",\"w\",encoding=\"\
+        utf-8\") as f:f.write(\"\\n\".join(lines)+\"\\n\")\nwith open(\"drafts/the-huddle-52.json\",\"w\",encoding=\"utf-8\"\
+        ) as f:\n    json.dump({\"version\":\"52\",\"created\":NOW.isoformat(),\"austrian_watch_run_id\":runid,\n        \
+        \       \"top_stories\":stories,\"austrian_watch_topics\":topics,\"games\":games,\n               \"errors\":errors,\"\
+        fact_checked\":False,\"approved\":False,\n               \"published\":False,\"openai_api_calls\":0},f,ensure_ascii=False,indent=2)\n\
+        print(\"Schritt 52:\",len(stories),\"ESPN-Headlines,\",len(topics),\"Austrian-Watch-Themen,\",len(games),\"Spiele;\
+        \ Fehler:\",errors)\nPY\npython /tmp/the_huddle_52.py"
+    - name: Entwurf als Artifact sichern
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-gesamtausgabe-52
+        path: drafts/the-huddle-52.*
+        if-no-files-found: warn
+        retention-days: 7
