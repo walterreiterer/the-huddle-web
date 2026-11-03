@@ -171,6 +171,11 @@ jobs:
           PY
 
             # Nur bestätigte Änderungen committen.
+                        if [ ! -f "data/gamebooks/${GAME_DATE}.json" ]; then
+              echo "${GAME_DATE}: Spielfreier Tag – kein Archiv vorhanden."
+              continue
+            fi
+
             git add "data/gamebooks/${GAME_DATE}.json"
 
             if git diff --cached --quiet; then
