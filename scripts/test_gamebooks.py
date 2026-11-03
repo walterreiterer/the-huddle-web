@@ -228,7 +228,23 @@ def main():
         ) + "\n",
         encoding="utf-8"
     )
-    print("Test-JSON geschrieben:", output, "| Einträge:", len(verified_links))
+    print("Test-JSON geschrieben:", output, "| Einträge:", len(verified_links)) 
+    
+    # Zusätzlich ein eigenes Archiv pro NFL-Spieltag anlegen.
+    archive = Path("data/gamebooks") / f"{TEST_DATE}.json"
+    archive.parent.mkdir(parents=True, exist_ok=True)
+
+    archive.write_text(
+        json.dumps(
+            {"date": TEST_DATE, "gamebooks": verified_links},
+            ensure_ascii=False,
+            indent=2
+        ) + "\n",
+        encoding="utf-8"
+    )
+
+    print("Spieltagsarchiv geschrieben:", archive)
+
 
     print("\n=== ZUSAMMENFASSUNG ===")
     print("ESPN-Spiele:", len(events))
