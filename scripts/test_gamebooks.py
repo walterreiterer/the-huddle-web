@@ -208,9 +208,26 @@ def main():
         except requests.RequestException as exc:
             print("NFL-Abfrage fehlgeschlagen:", str(exc)[:180])
 
+        # Sicherheitsregel: Keine vorhandenen Game Books durch
+    # einen Spieltag ohne bestätigte PDFs ersetzen.
+    if not verified_links:
+        print(
+            "SICHERHEIT: Keine bestätigten Game Books gefunden. "
+            "Vorhandene JSON-Datei bleibt unverändert.",
+            flush=True
+        )
+        return
+
     output = Path("data/gamebooks-preview.json")
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps({"date": TEST_DATE, "gamebooks": verified_links}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(
+            {"date": TEST_DATE, "gamebooks": verified_links},
+            ensure_ascii=False,
+            indent=2
+        ) + "\n",
+        encoding="utf-8"
+    )
     print("Test-JSON geschrieben:", output, "| Einträge:", len(verified_links))
 
     print("\n=== ZUSAMMENFASSUNG ===")
