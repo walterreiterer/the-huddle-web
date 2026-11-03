@@ -180,12 +180,22 @@ def main():
 
         year = scoreboard.get("season", {}).get("year") or event.get("season", {}).get("year")
         season_type = scoreboard.get("season", {}).get("type") or event.get("season", {}).get("type")
-        if year != 2026 or season_type != 2:
+        
+        if year < 2026 or season_type not in (2, 3):
             skipped += 1
-            print("ÜBERSPRUNGEN: Saison oder Regular-Season-Typ nicht bestätigt:", year, season_type)
+            print(
+                "ÜBERSPRUNGEN: Saison oder Spieltyp nicht unterstützt:",
+                year, season_type
+            )
             continue
 
-        game_url = f"https://www.nfl.com/games/{away_slug}-at-{home_slug}-{year}-reg-{week}?tab=recap"
+
+        
+        season_slug = "post" if season_type == 3 else "reg"
+        game_url = (
+            f"https://www.nfl.com/games/{away_slug}-at-{home_slug}-{year}-{season_slug}-{week}?tab=recap"
+        )
+
         print("NFL-Spielseite:", game_url)
         checked += 1
         try:
