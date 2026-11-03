@@ -20,12 +20,14 @@ jobs:
       - name: Abhängigkeiten installieren
         run: python -m pip install requests feedparser
 
-      - name: Österreichische Nachrichtenquellen prüfen
+      - name: Österreichische NFL-Quellen prüfen
         shell: bash
         run: |
           python - <<'PY'
           import requests
           import feedparser
+          from html import unescape
+          import re
 
           sources = {
               "Football-Austria": [
@@ -37,18 +39,44 @@ jobs:
               "LAOLA1": [
                   "https://www.laola1.at/feed/",
                   "https://www.laola1.at/rss/"
+              ],
+              "Kronen Zeitung": [
+                  "https://www.krone.at/sport/rss",
+                  "https://www.krone.at/rss"
+              ],
+              "DER STANDARD": [
+                  "https://www.derstandard.at/rss/sport",
+                  "https://derstandard.at/rss/sport"
+              ],
+              "kicker.at": [
+                  "https://www.kicker.at/rss/news"
+              ],
+              "kicker.de": [
+                  "https://www.kicker.de/rss/news"
+              ],
+              "football-world.news": [
+                  "https://www.football-world.news/feed/"
+              ],
+              "Sky Sport Austria": [
+                  "https://www.skysportaustria.at/feed/"
+              ],
+              "KURIER": [
+                  "https://kurier.at/rss/sport",
+                  "https://kurier.at/rss"
               ]
           }
 
           terms = (
-              "raimann", "reimann", "senn",
-              "colts", "cardinals",
-              "american football", "nfl"
+              "nfl", "american football", "raimann",
+              "reimann", "valentin senn",
+              "indianapolis colts", "arizona cardinals",
+              "super bowl", "mahomes", "chiefs",
+              "seahawks", "touchdown", "quarterback"
           )
 
           session = requests.Session()
           session.headers.update({
-              "User-Agent": "TheHuddleSourceCheck/1.0",
+              "User-Agent": "Mozilla/5.0 (compatible; TheHuddleSourceCheck/1.0)",
               "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*"
           })
 
@@ -69,19 +97,14 @@ jobs:
 
                       response.raise_for_status()
 
-                      feed = feedparser.parse(
-                          response.content
-                      )
-
+                      feed = feedparser.parse(response.content)
                       print(
                           f"Feed-Einträge: {len(feed.entries)}",
                           flush=True
                       )
 
                       if not feed.entries:
-                          print(
-                              "Keine auswertbaren Feed-Einträge."
-                          )
+                          print("Kein auswertbarer RSS-/Atom-Feed.")
                           continue
 
                       matches = []
@@ -89,26 +112,21 @@ jobs:
                       for entry in feed.entries:
                           title = entry.get("title", "")
                           summary = entry.get("summary", "")
-                          content = (
-                              title + " " + summary
+                          content = unescape(
+                              re.sub(
+                                  r"<[^>]+>", " ",
+                                  title + " " + summary
+                              )
                           ).lower()
 
-                          if any(
-                              term in content
-                              for term in terms
-                          ):
+                          if any(term in content for term in terms):
                               matches.append(entry)
 
-                      print(
-                          f"Football-Treffer: {len(matches)}"
-                      )
+                      print(f"NFL-Treffer: {len(matches)}")
 
-                      for entry in matches[:10]:
+                      for entry in matches[:8]:
                           print("--------------------")
-                          print(
-                              "Titel:",
-                              entry.get("title", "")
-                          )
+                          print("Titel:", entry.get("title", ""))
                           print(
                               "Datum:",
                               entry.get(
@@ -116,18 +134,10 @@ jobs:
                                   entry.get("updated", "Unbekannt")
                               )
                           )
-                          print(
-                              "Link:",
-                              entry.get("link", "")
-                          )
+                          print("Link:", entry.get("link", ""))
 
                   except requests.RequestException as exc:
-                      print(
-                          "Abruffehler:",
-                          str(exc)
-                      )
+                      print("Abruffehler:", str(exc))
 
-          print(
-              "\nQuellencheck abgeschlossen."
-          )
+          print("\nErweiterter Quellencheck abgeschlossen.")
           PY
