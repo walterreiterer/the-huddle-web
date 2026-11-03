@@ -1,0 +1,442 @@
+
+name: THE HUDDLE – Faktencheck 50K
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  factcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Abhängigkeiten installieren
+        run: python -m pip install requests feedparser
+
+      - name: Quellen und Spiele prüfen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import calendar
+          import re
+          import time
+          from datetime import datetime, timedelta, timezone
+          from html import unescape
+          from urllib.parse import urlencode, urlparse
+
+          import requests
+          import feedparser
+
+          SOURCES = {
+              "Kronen Zeitung": "krone.at",
+              "KURIER": "kurier.at",
+              "kicker Deutschland": "kicker.de",
+              "kicker Österreich": "kicker.at",
+              "Sky Sport Austria": "skysportaustria.at",
+              "LAOLA1": "laola1.at",
+              "football-world.news": "football-world.news",
+          }
+
+          TEAMS = {
+              "ARI": ["cardinals", "arizona"],
+              "ATL": ["falcons", "atlanta"],
+              "BAL": ["ravens", "baltimore"],
+              "BUF": ["bills", "buffalo"],
+              "CAR": ["panthers", "carolina"],
+              "CHI": ["bears", "chicago"],
+              "CIN": ["bengals", "cincinnati"],
+              "CLE": ["browns", "cleveland"],
+              "DAL": ["cowboys", "dallas"],
+              "DEN": ["broncos", "denver"],
+              "DET": ["lions", "detroit"],
+              "GB": ["packers", "green bay"],
+              "HOU": ["texans", "houston"],
+              "IND": ["colts", "indianapolis"],
+              "JAX": ["jaguars", "jacksonville"],
+              "KC": ["chiefs", "kansas city"],
+              "LV": ["raiders", "las vegas"],
+              "LAC": ["chargers"],
+              "LAR": ["rams"],
+              "MIA": ["dolphins", "miami"],
+              "MIN": ["vikings", "minnesota"],
+              "NE": ["patriots", "new england"],
+              "NO": ["saints", "new orleans"],
+              "NYG": ["giants"],
+              "NYJ": ["jets"],
+              "PHI": ["eagles", "philadelphia"],
+              "PIT": ["steelers", "pittsburgh"],
+              "SF": ["49ers", "san francisco"],
+              "SEA": ["seahawks", "seattle"],
+              "TB": ["buccaneers", "bucs", "tampa bay"],
+              "TEN": ["titans", "tennessee"],
+              "WSH": ["commanders", "washington"],
+          }
+
+          now = datetime.now(timezone.utc)
+          cutoff = now - timedelta(hours=72)
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (compatible; "
+                            "TheHuddleResearch/0.1)"
+          })
+
+          def get(url, timeout=15):
+              for attempt in range(2):
+                  try:
+                      r = session.get(
+                          url,
+                          timeout=timeout,
+                          allow_redirects=True
+                      )
+                      r.raise_for_status()
+                      return r
+                  except requests.RequestException:
+                      if attempt == 0:
+                          time.sleep(1)
+              return None
+
+          def norm(value):
+              value = unescape(value or "").lower()
+              value = re.sub(r"<[^>]*>", " ", value)
+              value = re.sub(
+                  r"[^a-z0-9äöüß]+", " ", value
+              )
+              return re.sub(r"\s+", " ", value).strip()
+
+          def detect_teams(title):
+              text = norm(title)
+              result = set()
+
+              for code, aliases in TEAMS.items():
+                  for alias in aliases:
+                      if re.search(
+                          r"\b" + re.escape(alias) + r"\b",
+                          text
+                      ):
+                          result.add(code)
+                          break
+
+              return result
+
+          def valid_domain(url, domain):
+              host = (
+                  urlparse(url).hostname or ""
+              ).lower()
+
+              return (
+                  host == domain
+                  or host.endswith("." + domain)
+              )
+
+          # ESPN: vergangene Spieltage und heute.
+          games = []
+          seen_games = set()
+
+          print("===== ESPN-SPIELPLAN =====")
+
+          for offset in range(5):
+              day = (
+                  now - timedelta(days=offset)
+              ).strftime("%Y%m%d")
+
+              url = (
+                  "https://site.api.espn.com/apis/"
+                  "site/v2/sports/football/nfl/"
+                  "scoreboard?dates=" + day
+              )
+
+              response = get(url)
+
+              if response is None:
+                  print(day, "ESPN nicht erreichbar")
+                  continue
+
+              try:
+                  events = response.json().get(
+                      "events", []
+                  )
+              except ValueError:
+                  print(day, "Ungültige ESPN-Antwort")
+                  continue
+
+              print(day, "Spiele:", len(events))
+
+              for event in events:
+                  game_id = event.get("id")
+
+                  if not game_id or game_id in seen_games:
+                      continue
+
+                  seen_games.add(game_id)
+
+                  competitions = event.get(
+                      "competitions", []
+                  )
+
+                  if not competitions:
+                      continue
+
+                  competitors = competitions[0].get(
+                      "competitors", []
+                  )
+
+                  if len(competitors) != 2:
+                      continue
+
+                  codes = set()
+
+                  for competitor in competitors:
+                      team = competitor.get("team", {})
+                      code = team.get("abbreviation", "")
+                      codes.add(code.upper())
+
+                  if len(codes) != 2:
+                      continue
+
+                  status = event.get("status", {})
+                  state = status.get(
+                      "type", {}
+                  ).get("state", "unknown")
+
+                  games.append({
+                      "id": game_id,
+                      "teams": codes,
+                      "date": event.get("date", ""),
+                      "name": event.get("name", ""),
+                      "state": state,
+                      "competitors": competitors,
+                  })
+
+          for game in games:
+              scores = []
+
+              for competitor in game["competitors"]:
+                  code = competitor.get(
+                      "team", {}
+                  ).get("abbreviation", "?")
+
+                  score = competitor.get("score", "")
+
+                  scores.append(
+                      f"{code} {score}"
+                  )
+
+              print(
+                  "ESPN:",
+                  game["name"],
+                  "|",
+                  " - ".join(scores),
+                  "| Status:",
+                  game["state"]
+              )
+
+          print("\n===== ORIGINALQUELLEN =====")
+
+          candidates = []
+          seen = set()
+
+          for source, domain in SOURCES.items():
+              query = (
+                  '("NFL" OR "Super Bowl" OR '
+                  '"Bernhard Raimann" OR '
+                  '"Valentin Senn") '
+                  f"site:{domain} when:3d"
+              )
+
+              url = (
+                  "https://news.google.com/rss/search?"
+                  + urlencode({
+                      "q": query,
+                      "hl": "de",
+                      "gl": "AT",
+                      "ceid": "AT:de",
+                  })
+              )
+
+              response = get(url)
+
+              if response is None:
+                  print(source, "Feed nicht erreichbar")
+                  continue
+
+              feed = feedparser.parse(response.content)
+              count = 0
+
+              for entry in feed.entries:
+                  parsed = entry.get("published_parsed")
+
+                  if not parsed:
+                      continue
+
+                  published = datetime.fromtimestamp(
+                      calendar.timegm(parsed),
+                      timezone.utc
+                  )
+
+                  if not cutoff <= published <= now:
+                      continue
+
+                  title = unescape(
+                      re.sub(
+                          r"<[^>]*>", " ",
+                          entry.get("title", "")
+                      )
+                  ).strip()
+
+                  link = entry.get("link", "")
+
+                  if not title or not link:
+                      continue
+
+                  key = norm(title)
+
+                  if key in seen:
+                      continue
+
+                  seen.add(key)
+
+                  candidates.append({
+                      "source": source,
+                      "domain": domain,
+                      "title": title,
+                      "link": link,
+                      "published": published,
+                  })
+
+                  count += 1
+
+              print(source, "Kandidaten:", count)
+
+          # Für den ersten kontrollierten Test
+          # höchstens 30 URLs auflösen.
+          candidates.sort(
+              key=lambda x: x["published"],
+              reverse=True
+          )
+
+          sample = candidates[:30]
+
+          original_count = 0
+          unresolved_count = 0
+          matched_count = 0
+          uncertain_count = 0
+
+          print("\n===== QUELLENPRÜFUNG =====")
+
+          for index, item in enumerate(sample, 1):
+              title = item["title"]
+              source = item["source"]
+              domain = item["domain"]
+
+              response = get(
+                  item["link"],
+                  timeout=12
+              )
+
+              original = None
+
+              if response is not None:
+                  final_url = response.url
+
+                  if valid_domain(final_url, domain):
+                      original = final_url
+
+              if original:
+                  source_status = "ORIGINAL-URL ERKANNT"
+                  original_count += 1
+              else:
+                  source_status = "ORIGINAL-URL UNGEKLÄRT"
+                  unresolved_count += 1
+
+              detected = detect_teams(title)
+
+              # Nur ausdrücklich erkannte
+              # Teamkombinationen vergleichen.
+              matches = [
+                  game for game in games
+                  if detected == game["teams"]
+                  and len(detected) == 2
+              ]
+
+              if len(matches) == 1:
+                  game_status = "ESPN-PAARUNG GEFUNDEN"
+                  matched_count += 1
+
+              elif len(matches) > 1:
+                  game_status = "MEHRERE ESPN-PAARUNGEN"
+                  uncertain_count += 1
+
+              else:
+                  game_status = "SPIELBEZUG UNGEKLÄRT"
+                  uncertain_count += 1
+
+              print("\n--------------------")
+              print("Nr:", index)
+              print("Quelle:", source)
+              print("Titel:", title)
+              print(
+                  "Veröffentlicht (UTC):",
+                  item["published"].isoformat()
+              )
+              print("URL-Status:", source_status)
+
+              if original:
+                  print("Original:", original)
+
+              print(
+                  "Erkannte Teams:",
+                  ", ".join(sorted(detected)) or "-"
+              )
+              print("ESPN:", game_status)
+
+              if len(matches) == 1:
+                  game = matches[0]
+                  print("Spiel:", game["name"])
+                  print("Spielstatus:", game["state"])
+                  print("ESPN-ID:", game["id"])
+
+              # Der Titel allein gilt nie als
+              # bestätigte Nachrichtenmeldung.
+              print(
+                  "Inhaltlich verifiziert: NEIN"
+              )
+
+          print("\n===== ZUSAMMENFASSUNG 50K =====")
+          print(
+              "Recherchekandidaten:",
+              len(candidates)
+          )
+          print(
+              "Geprüfte Stichprobe:",
+              len(sample)
+          )
+          print(
+              "Original-URLs erkannt:",
+              original_count
+          )
+          print(
+              "Original-URLs ungeklärt:",
+              unresolved_count
+          )
+          print(
+              "Eindeutige ESPN-Paarungen:",
+              matched_count
+          )
+          print(
+              "Ungeklärte Spielbezüge:",
+              uncertain_count
+          )
+
+          print(
+              "\nFaktencheck 50K abgeschlossen."
+          )
+          PY
