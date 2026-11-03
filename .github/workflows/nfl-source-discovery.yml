@@ -20,14 +20,18 @@ jobs:
       - name: Abhängigkeiten installieren
         run: python -m pip install requests feedparser
 
-      - name: NFL-Nachrichten über Google News suchen
+      - name: NFL-Nachrichten filtern
         shell: bash
         run: |
           python - <<'PY'
           import requests
           import feedparser
           import calendar
+          import re
+
           from datetime import datetime, timezone, timedelta
+          from difflib import SequenceMatcher
+          from html import unescape
           from urllib.parse import urlencode
 
           SOURCES = {
@@ -40,10 +44,41 @@ jobs:
               "football-world.news": "football-world.news"
           }
 
-          SEARCH = (
-              '("NFL" OR "Super Bowl" OR '
-              '"Bernhard Raimann" OR "Valentin Senn")'
-          )
+          AUSTRIAN_PLAYERS = {
+              "Bernhard Raimann": [
+                  r"\braimann\b"
+              ],
+              "Valentin Senn": [
+                  r"\bvalentin\s+senn\b"
+              ]
+          }
+
+          NFL_PATTERNS = [
+              r"\bnfl\b",
+              r"\bsuper[\s-]?bowl\b",
+              r"\bamerican[\s-]?football\b",
+              r"\bcolts\b",
+              r"\bchiefs\b",
+              r"\bseahawks\b",
+              r"\bpackers\b",
+              r"\b49ers\b",
+              r"\bpatriots\b",
+              r"\bquarterback\b",
+              r"\btouchdown\b",
+              r"\bmahomes\b",
+              r"\braimann\b",
+              r"\bvalentin\s+senn\b"
+          ]
+
+          EXCLUDE_PATTERNS = [
+              r"\bnba\b",
+              r"\bnhl\b",
+              r"\bla liga\b",
+              r"\bbundesliga\b",
+              r"\bchampions league\b",
+              r"\bdfb[\s-]?pokal\b",
+              r"\bmatch[\s-]?clip\b"
+          ]
 
           NOW = datetime.now(timezone.utc)
           MAX_AGE = timedelta(hours=72)
@@ -53,24 +88,69 @@ jobs:
               "User-Agent": "Mozilla/5.0"
           })
 
-          all_results = []
-          seen = set()
+          austrian_watch = []
+          nfl_news = []
+          seen_titles = []
 
-          for name, domain in SOURCES.items():
-              print(f"\n===== {name} =====", flush=True)
+          def clean(value):
+              value = unescape(value or "")
+              value = re.sub(r"<[^>]+>", " ", value)
+              return re.sub(r"\s+", " ", value).strip()
 
-              query = f"{SEARCH} site:{domain} when:3d"
+          def normalized_title(title):
+              title = title.lower()
+              title = re.sub(
+                  r"[^a-zäöüß0-9 ]", " ", title
+              )
+              return re.sub(
+                  r"\s+", " ", title
+              ).strip()
 
-              params = urlencode({
-                  "q": query,
-                  "hl": "de",
-                  "gl": "AT",
-                  "ceid": "AT:de"
-              })
+          def is_duplicate(title):
+              candidate = normalized_title(title)
+
+              for previous in seen_titles:
+                  similarity = SequenceMatcher(
+                      None, candidate, previous
+                  ).ratio()
+
+                  if similarity >= 0.85:
+                      return True
+
+              seen_titles.append(candidate)
+              return False
+
+          def is_nfl(title):
+              text = title.lower()
+
+              if any(
+                  re.search(pattern, text)
+                  for pattern in EXCLUDE_PATTERNS
+              ):
+                  return False
+
+              return any(
+                  re.search(pattern, text)
+                  for pattern in NFL_PATTERNS
+              )
+
+          for source, domain in SOURCES.items():
+              print(f"\n===== {source} =====", flush=True)
+
+              query = (
+                  '("NFL" OR "Super Bowl" OR '
+                  '"Bernhard Raimann" OR "Valentin Senn") '
+                  f"site:{domain} when:3d"
+              )
 
               url = (
                   "https://news.google.com/rss/search?"
-                  + params
+                  + urlencode({
+                      "q": query,
+                      "hl": "de",
+                      "gl": "AT",
+                      "ceid": "AT:de"
+                  })
               )
 
               try:
@@ -84,81 +164,123 @@ jobs:
                       response.content
                   )
 
-                  print(
-                      "Gefundene Einträge:",
-                      len(feed.entries)
-                  )
-
-                  accepted = 0
-
-                  for entry in feed.entries:
-                      parsed = entry.get(
-                          "published_parsed"
-                      )
-
-                      if not parsed:
-                          continue
-
-                      published = datetime.fromtimestamp(
-                          calendar.timegm(parsed),
-                          timezone.utc
-                      )
-
-                      age = NOW - published
-
-                      if age < timedelta(0) or age > MAX_AGE:
-                          continue
-
-                      title = entry.get("title", "")
-                      link = entry.get("link", "")
-
-                      if not title or not link:
-                          continue
-
-                      key = title.lower().strip()
-
-                      if key in seen:
-                          continue
-
-                      seen.add(key)
-                      accepted += 1
-
-                      all_results.append({
-                          "source": name,
-                          "title": title,
-                          "date": published,
-                          "link": link
-                      })
-
-                  print(
-                      "Aktuelle Treffer:",
-                      accepted
-                  )
-
               except requests.RequestException as exc:
                   print("Abruffehler:", exc)
+                  continue
 
-          all_results.sort(
-              key=lambda item: item["date"],
-              reverse=True
-          )
-
-          print(
-              f"\n===== GESAMTERGEBNIS: "
-              f"{len(all_results)} ARTIKEL ====="
-          )
-
-          for item in all_results[:40]:
-              print("--------------------")
-              print("Quelle:", item["source"])
-              print("Titel:", item["title"])
               print(
-                  "Datum:",
-                  item["date"].strftime(
-                      "%d.%m.%Y %H:%M UTC"
-                  )
+                  "Suchergebnisse:", len(feed.entries)
               )
-              print("Google-News-Link:", item["link"])
 
-          print("\nQuellenrecherche abgeschlossen.")
+              accepted = 0
+
+              for entry in feed.entries:
+                  parsed = entry.get(
+                      "published_parsed"
+                  )
+
+                  if not parsed:
+                      continue
+
+                  published = datetime.fromtimestamp(
+                      calendar.timegm(parsed),
+                      timezone.utc
+                  )
+
+                  age = NOW - published
+
+                  if age < timedelta(0) or age > MAX_AGE:
+                      continue
+
+                  title = clean(
+                      entry.get("title", "")
+                  )
+
+                  link = entry.get("link", "")
+
+                  if not title or not link:
+                      continue
+
+                  if not is_nfl(title):
+                      continue
+
+                  if is_duplicate(title):
+                      continue
+
+                  players = [
+                      player
+                      for player, patterns
+                      in AUSTRIAN_PLAYERS.items()
+                      if any(
+                          re.search(
+                              pattern, title.lower()
+                          )
+                          for pattern in patterns
+                      )
+                  ]
+
+                  item = {
+                      "source": source,
+                      "title": title,
+                      "date": published,
+                      "link": link,
+                      "players": players
+                  }
+
+                  if players:
+                      austrian_watch.append(item)
+                  else:
+                      nfl_news.append(item)
+
+                  accepted += 1
+
+              print(
+                  "Relevante NFL-Artikel:",
+                  accepted
+              )
+
+          def show_results(label, items):
+              items.sort(
+                  key=lambda item: item["date"],
+                  reverse=True
+              )
+
+              print(
+                  f"\n===== {label}: "
+                  f"{len(items)} ====="
+              )
+
+              for item in items[:40]:
+                  print("--------------------")
+                  print("Quelle:", item["source"])
+                  print("Titel:", item["title"])
+                  print(
+                      "Datum:",
+                      item["date"].strftime(
+                          "%d.%m.%Y %H:%M UTC"
+                      )
+                  )
+
+                  if item["players"]:
+                      print(
+                          "Österreich-Bezug:",
+                          ", ".join(item["players"])
+                      )
+
+                  print(
+                      "Google-News-Link:",
+                      item["link"]
+                  )
+
+          show_results(
+              "AUSTRIAN WATCH",
+              austrian_watch
+          )
+
+          show_results(
+              "ALLGEMEINE NFL-NEWS",
+              nfl_news
+          )
+
+          print("\nNFL-Filtertest abgeschlossen.")
           PY
