@@ -1,0 +1,94 @@
+name: THE HUDDLE - Austrian Watch 51C (manuell)
+'on':
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Optional: erfolgreicher 51B Run ID; leer = neuester'
+        required: false
+        default: ''
+permissions:
+  actions: read
+  contents: read
+jobs:
+  editorial_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhaengigkeiten
+      run: python -m pip install requests feedparser beautifulsoup4
+    - name: 51B Artefakt laden und redaktionell vorbewerten
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      run: "mkdir -p drafts\ncat > /tmp/51c.py <<'PY'\nimport os,io,re,json,zipfile,requests,feedparser,html\nfrom datetime\
+        \ import datetime,timezone,timedelta\nfrom urllib.parse import urlparse\nfrom bs4 import BeautifulSoup\nNOW=datetime.now(timezone.utc)\n\
+        S=requests.Session();S.headers.update({'User-Agent':'TheHuddle/51C editorial research read-only'})\nrepo=os.environ['GITHUB_REPOSITORY'];\
+        \ token=os.environ['GITHUB_TOKEN']\nheaders={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}\n\
+        run_id=os.environ.get('SOURCE_RUN_ID','').strip()\ndef github(path,params=None):\n r=S.get('https://api.github.com'+path,headers=headers,params=params,timeout=25);r.raise_for_status();return\
+        \ r.json()\nif not run_id:\n runs=github('/repos/'+repo+'/actions/workflows/nfl-austrian-watch-51b.yml/runs',{'status':'success','per_page':30}).get('workflow_runs',[])\n\
+        \ if not runs:raise RuntimeError('Kein erfolgreicher 51B-Lauf gefunden. Bitte 51B ausfuehren oder source_run_id angeben.')\n\
+        \ run_id=str(runs[0]['id'])\narts=github('/repos/'+repo+'/actions/runs/'+run_id+'/artifacts').get('artifacts',[])\n\
+        art=next((a for a in arts if a['name']=='the-huddle-austrian-watch-51b' and not a['expired']),None)\nif not art:raise\
+        \ RuntimeError('51B-Artefakt nicht gefunden oder abgelaufen.')\nr=S.get(art['archive_download_url'],headers=headers,timeout=40);r.raise_for_status()\n\
+        with zipfile.ZipFile(io.BytesIO(r.content)) as z: data=json.loads(z.read('austrian-watch-51b.json'))\ncutoff=NOW-timedelta(days=max(1,min(30,int(data.get('lookback_days',7)))))\n\
+        def dateok(s):\n if not s:return False\n try:return datetime.fromisoformat(s.replace('Z','+00:00'))>=cutoff\n except:return\
+        \ False\ndef clean(s):return BeautifulSoup(html.unescape(s or ''),'html.parser').get_text(' ',strip=True)\ndef valid(url,domain):\n\
+        \ try:\n  p=urlparse(url);h=p.hostname or ''\n  return p.scheme in ('http','https') and (h==domain or h.endswith('.'+domain))\n\
+        \ except:return False\nitems=[];seen=set()\nfor h in data.get('direct_hits',[]):\n u=h.get('url','');d=h.get('published_utc')\n\
+        \ if not dateok(d) or not valid(u,('colts.com' if 'colts.com' in u else 'football-austria.com' if 'football-austria.com'\
+        \ in u else 'azcardinals.com' if 'azcardinals.com' in u else 'orf.at' if 'orf.at' in u else 'derstandard.at')):continue\n\
+        \ if u.rstrip('/') in seen:continue\n seen.add(u.rstrip('/'))\n items.append({'title':h.get('title',''),'url':u,'date':d,'source':h.get('source',''),\n\
+        \               'player_named':bool(h.get('players')),'origin':'51B'})\n# Add Colts/Cardinals team context, even when\
+        \ the player's name is not present.\n# Bounded to recent entries; article bodies are NOT claimed to be verified.\n\
+        team_feeds=[('Indianapolis Colts','https://www.colts.com/rss/news','colts.com'),('Arizona Cardinals','https://www.azcardinals.com/rss/news','azcardinals.com')]\n\
+        for team,feedurl,domain in team_feeds:\n try:\n  r=S.get(feedurl,timeout=20);r.raise_for_status();feed=feedparser.parse(r.content)\n\
+        \  for e in feed.entries[:100]:\n   if not e.get('published_parsed'):continue\n   import calendar\n   dt=datetime.fromtimestamp(calendar.timegm(e.published_parsed),timezone.utc)\n\
+        \   if dt<cutoff or dt>NOW+timedelta(hours=2):continue\n   u=e.get('link','');title=clean(e.get('title',''))\n   if\
+        \ not valid(u,domain) or u.rstrip('/') in seen:continue\n   # Limit broad context to editorially relevant football\
+        \ news.\n   low=title.lower()\n   relevant=any(x in low for x in ['depth chart','quarterback','starting','injur','practice','notebook','trade','roster','sign\
+        \ ','release','coach','steichen','cardinals lose','cardinals win','colts lose','colts win','loss','defeat','preview','recap','jaguars','cowboys','offensive\
+        \ line','guard','tackle','week 8','week 9','5 colts things'])\n   if not relevant:continue\n   seen.add(u.rstrip('/'));items.append({'title':title,'url':u,'date':dt.isoformat(),'source':team,'player_named':False,'origin':'TEAM_RSS_CONTEXT'})\n\
+        \ except Exception as ex:print('Feed warning',team,str(ex)[:120])\ndef category(item):\n t=item['title'].lower();src=item['source'].lower()\n\
+        \ if any(k in t for k in ['quenton nelson','offensive line','left guard','raimann','senn','injury','injur','trade','trading','traded']):return\
+        \ 'A','Personelle Veraenderung / direkter Spielerbezug'\n if any(k in t for k in ['jaguars','loss','defeat','quarterback','daniel\
+        \ jones','steichen','practice','notebook','coach','starting','5 colts things','recap','win','cardinals']):return 'B','Sportliche\
+        \ Situation / Teamkontext'\n return 'C','Kader- oder Spieltagskontext'\ndef topic(item):\n t=item['title'].lower()\n\
+        \ if 'nelson' in t or 'buckner' in t and 'trad' in t:return 'Nelson-Trade und Colts-Umbau'\n if 'jaguars' in t or\
+        \ 'week 8 loss' in t or 'daniel jones' in t:return 'Colts nach Jacksonville / Quarterback'\n if 'depth chart' in t:return\
+        \ 'Colts Depth Chart'\n if 'practice' in t or 'notebook' in t:return 'Colts Training und Personal'\n if 'preview'\
+        \ in t:return 'Spielvorschau'\n return 'Weitere Colts-/Cardinals-Meldungen'\nfor item in items:\n item['priority'],item['reason']=category(item);item['topic']=topic(item)\n\
+        \ # These are explicitly heuristic assessments, not factual claims.\n item['editorial_status']='REVIEW_REQUIRED';item['fact_checked']=False\n\
+        clusters={}\nfor x in items:clusters.setdefault(x['topic'],[]).append(x)\nrank={'A':0,'B':1,'C':2}\nordered=sorted(clusters.items(),key=lambda\
+        \ kv:(min(rank[i['priority']] for i in kv[1]),-len(kv[1]),kv[0]))\nreport={'version':'51C','generated_utc':NOW.isoformat(),'source_51b_run_id':run_id,\n\
+        \ 'input_51b_hits':len(data.get('direct_hits',[])),'editorial_candidates':len(items),\n 'clusters':[{'topic':name,'priority':min((i['priority']\
+        \ for i in group),key=lambda x:rank[x]),'articles':group} for name,group in ordered],\n 'publication_approved':False,'fact_checked':False,\n\
+        \ 'notes':['Colts-Teamnachrichten koennen auch ohne Raimann-Namensnennung relevant sein.',\n 'Bewertung und Clusterung\
+        \ beruhen auf Titel-Schluesselwoertern, nicht auf KI oder manueller Faktenpruefung.',\n 'A/B/C ist eine redaktionelle\
+        \ Vorpriorisierung, kein verifizierter Artikelinhalt.',\n 'Bei fehlenden Senn-Treffern keine Meldung erfinden.',\n\
+        \ 'Keine automatische Publikation und keine OpenAI API.']}\nos.makedirs('drafts',exist_ok=True)\nwith open('drafts/austrian-watch-51c.json','w',encoding='utf-8')\
+        \ as f:json.dump(report,f,ensure_ascii=False,indent=2)\nlines=['# THE HUDDLE – Austrian Watch 51C: Redaktionstest','',f'Erstellt:\
+        \ {NOW.isoformat()}',f'51B-Run: {run_id}',f'Kandidaten: {len(items)} | Themencluster: {len(ordered)}','',\n '## Redaktioneller\
+        \ Entwurf (NICHT FREIGEGEBEN)','',\n 'Die Colts-Nachrichten werden als Umfeld von Bernhard Raimann behandelt, auch\
+        \ wenn sein Name nicht in jeder Meldung vorkommt. Die folgenden Kurztexte sind bewusst nur Themenhinweise, keine aus\
+        \ den Artikeln verifizierten Zusammenfassungen.','']\nfor name,group in ordered:\n p=min((i['priority'] for i in group),key=lambda\
+        \ x:rank[x]);lines.extend([f'### [{p}] {name}',''])\n for x in sorted(group,key=lambda y:y['date'],reverse=True):\n\
+        \  lines.append(f'- [{x[\"title\"]}]({x[\"url\"]}) — {x[\"source\"]}, {x[\"date\"][:10]}, {\"mit\" if x[\"player_named\"\
+        ] else \"ohne\"} direkte Namensnennung, Prioritaet {x[\"priority\"]}')\n lines.append('')\nlines+=['## Redaktionsentscheidung','',\n\
+        \ 'Vor einer Veroeffentlichung: Relevanz manuell bestaetigen, Originalartikel inhaltlich lesen, Fakten gegenpruefen,\
+        \ Dopplungen streichen und Formulierungen freigeben.',\n 'Ein reiner Titel-/Feed-Treffer ist kein verifizierter Nachrichtenbericht.','',\n\
+        \ '## Technische Grenzen','',\n '- Nur aktuelle und datierte 51B-Treffer sowie begrenzte offizielle Team-RSS-Eintraege.',\n\
+        \ '- Heuristische Bewertung kann falsch priorisieren.',\n '- Keine automatische Publikation, keine OpenAI-API-Kosten.']\n\
+        with open('drafts/austrian-watch-51c.md','w',encoding='utf-8') as f:f.write('\\n'.join(lines)+'\\n')\nprint('51C:\
+        \ ',len(items),'Kandidaten,',len(ordered),'Cluster')\nPY\npython /tmp/51c.py"
+    - name: Redaktionstest-Artefakt
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: the-huddle-austrian-watch-51c
+        path: drafts/austrian-watch-51c.*
+        if-no-files-found: warn
+        retention-days: 7
