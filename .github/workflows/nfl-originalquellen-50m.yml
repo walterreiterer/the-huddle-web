@@ -1,0 +1,96 @@
+name: THE HUDDLE – Originalquellen-Test 50M
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  source_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhängigkeiten installieren
+      run: python -m pip install requests feedparser
+    - name: Direkte Quellen mit Google-News-Hinweisen vergleichen
+      shell: bash
+      run: |
+        python - <<'PY'
+        import calendar, difflib, re, json, xml.etree.ElementTree as ET
+        from collections import defaultdict
+        from datetime import datetime, timezone, timedelta
+        from html import unescape
+        from urllib.parse import urlencode, urlparse
+        import requests, feedparser
+        
+        SOURCES = {
+          'Kronen Zeitung': ('krone.at', ['https://www.krone.at/rss']),
+          'KURIER': ('kurier.at', ['https://kurier.at/rss']),
+          'kicker Deutschland': ('kicker.de', ['https://www.kicker.de/news/football/startseite/rss']),
+          'kicker Österreich': ('kicker.at', ['https://www.kicker.at/news/football/startseite/rss']),
+          'Sky Sport Austria': ('skysportaustria.at', ['https://www.skysportaustria.at/feed/']),
+          'LAOLA1': ('laola1.at', ['https://www.laola1.at/de/red/football/rss/']),
+          'football-world.news': ('football-world.news', ['https://football-world.news/feed/']),
+        }
+        # Candidate feeds are probes, not asserted working endpoints.
+        NOW=datetime.now(timezone.utc); CUTOFF=NOW-timedelta(hours=72)
+        S=requests.Session(); S.headers.update({'User-Agent':'TheHuddle-Research-Test/0.1 (+manual GitHub Actions)'})
+        NFL_RE=re.compile(r'\b(nfl|super\s*bowl|american football|quarterback|touchdown|raimann|valentin senn|mahomes|chiefs|colts|jaguars|ravens|bills|broncos|patriots|dolphins|packers|steelers|browns|cowboys|eagles|commanders|vikings|lions|49ers|seahawks|buccaneers|bucs|falcons|titans|bengals|raiders|jets|giants|cardinals|chargers|rams|texans|saints|panthers|bears)\b',re.I)
+        OTHER_RE=re.compile(r'\b(nhl|nba|mls|serie a|bundesliga|champions league|oilers|fiorentina|sassuolo|messi|inter miami|ice hockey|eishockey)\b',re.I)
+        STOP={'der','die','das','und','mit','von','für','gegen','bei','nach','ein','eine','einer','einem','den','des','im','in','am','auf','zu','ist','nfl','video','kicker','news','sport','sports','football','2026','woche'}
+        def norm(s):
+         s=unescape(re.sub('<[^>]*>',' ',s or '')).lower(); s=re.sub(r'[^\wäöüß]+',' ',s); return re.sub(r'\s+',' ',s).strip()
+        def clean_title(t,source=None):
+         t=unescape(re.sub('<[^>]*>',' ',t or '')).strip()
+         # Remove trailing publisher attribution only (not arbitrary headline suffixes).
+         t=re.sub(r'\s+[-|]\s+(?:Kicker|Sky Sport Austria|Kronen Zeitung|LAOLA1|football-world\s*\|\s*News|KURIER)\s*$', '',t, flags=re.I)
+         return t.strip()
+        def tokens(t): return set(norm(t).split())-STOP
+        def nfl(t): return bool(NFL_RE.search(norm(t))) and not OTHER_RE.search(norm(t))
+        def host_ok(url,domain):
+         u=urlparse(url); h=(u.hostname or '').lower(); return u.scheme in ('https','http') and (h==domain or h.endswith('.'+domain))
+        def get(url):
+         try:
+          r=S.get(url,timeout=12,allow_redirects=True); r.raise_for_status()
+          if len(r.content)>5_000_000: return None,'too large'
+          return r,None
+         except requests.RequestException as e: return None,str(e)[:100]
+        def pubdate(entry):
+         p=entry.get('published_parsed') or entry.get('updated_parsed')
+         return datetime.fromtimestamp(calendar.timegm(p),timezone.utc) if p else None
+        def add(target,source,domain,title,url,date,origin):
+         if not host_ok(url,domain) or not nfl(title): return
+         if date and not (CUTOFF<=date<=NOW+timedelta(minutes=5)): return
+         target.append(dict(source=source,domain=domain,title=clean_title(title),url=url,date=date.isoformat() if date else None,origin=origin))
+        
+        hints=[]; direct=[]
+        print('===== GOOGLE-NEWS-HINWEISE (KEINE ORIGINAL-URLS) =====')
+        for source,(domain,feeds) in SOURCES.items():
+         q=f'("NFL" OR "Super Bowl" OR "Bernhard Raimann" OR "Valentin Senn") site:{domain} when:3d'
+         url='https://news.google.com/rss/search?'+urlencode({'q':q,'hl':'de','gl':'AT','ceid':'AT:de'})
+         r,error=get(url)
+         if not r: print(source,'Fehler:',error);continue
+         for e in feedparser.parse(r.content).entries:
+          t=clean_title(e.get('title','')); d=pubdate(e)
+          if nfl(t) and d and CUTOFF<=d<=NOW: hints.append(dict(source=source,domain=domain,title=t,date=d.isoformat()))
+         print(source,'NFL-Hinweise:',sum(x['source']==source for x in hints))
+        print('===== DIREKTE PUBLISHER-FEEDS =====')
+        for source,(domain,feeds) in SOURCES.items():
+         for url in feeds:
+          r,error=get(url)
+          if not r: print(source,'FEED FEHLER',url,error);continue
+          if not host_ok(r.url,domain): print(source,'FEED FREMDHOST',r.url);continue
+          parsed=feedparser.parse(r.content); count=0
+          for e in parsed.entries[:150]:
+           before=len(direct); add(direct,source,domain,e.get('title',''),e.get('link',''),pubdate(e),'RSS')
+           count+=len(direct)-before
+          print(source,'HTTP',r.status_code,'Feed-Einträge',len(parsed.entries),'NFL akzeptiert',count)
+        
+        print('===== NEWS-SITEMAP-PROBEN =====')
+        # Small fixed probe list. No broad crawling of sitemap indexes.
+        for source,(domain,_) in SOURCES.items():
+         for path in ('/news-sitemap.xml','/sitemap-news.xml'):
+          url='https://'+domain+path; r,error=get(url)
