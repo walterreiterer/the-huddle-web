@@ -27,10 +27,14 @@ jobs:
           GAMEBOOK_DATE: "20261030"
         run: python scripts/test_gamebooks.py
 
+      
       - name: Game-Book-Testdaten als Artifact sichern
         uses: actions/upload-artifact@v4
         with:
           name: huddle-gamebooks-preview
-          path: data/gamebooks-preview.json
+          path: |
+            data/gamebooks-preview.json
+            data/gamebooks/*.json
           if-no-files-found: warn
           retention-days: 7
+
