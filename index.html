@@ -11,4 +11,66 @@
 <a href="https://www.colts.com/news/colts-acquire-2027-fourth-round-pick-in-exchange-for-dt-deforest-buckner-in-trade-with-san-francisco-49ers">DeForest Buckner Trade Colts-49ers</a><br/>
 <a href="https://football-austria.com/quenton-nelson-trade-seahawks-bernhard-raimann/">Raimann verliert Nebenmann Nelson</a></p>
 <hr/>
-</div></div></section><section class="section sources" id="sources"><h2>Quellen &amp; Methodik</h2><p class="sub">Diese Testausgabe wurde aus einem gespeicherten Recherche-Snapshot erstellt. Quellen sind in den jeweiligen Beiträgen direkt verlinkt. Es handelt sich nicht um einen Live-Newsfeed.</p><p><a href="https://www.nfl.com/scores/" rel="noopener noreferrer" target="_blank">NFL.com Scores</a> · <a href="https://www.espn.com/nfl/scoreboard" rel="noopener noreferrer" target="_blank">ESPN Scoreboard</a> · <a href="https://apnews.com/hub/nfl" rel="noopener noreferrer" target="_blank">Associated Press NFL</a> · <a href="https://www.nbcsports.com/nfl" rel="noopener noreferrer" target="_blank">NBC Sports NFL</a></p><p class="mini">Automatisch erstellter Entwurf. Redaktionelle Prüfung und Freigabe ausständig.</p></section></main><footer><div class="wrap">THE HUDDLE · Redaktionelle Testausgabe · Nicht mit der NFL verbunden</div></footer><script>const b=document.getElementById('spoiler'),s=document.getElementById('scores');b.addEventListener('click',()=>{s.hidden=!s.hidden;b.textContent=s.hidden?'Ergebnisse anzeigen':'Ergebnisse verbergen';b.setAttribute('aria-pressed',String(!s.hidden))});</script></body></html>
+</div></div></section><section class="section sources" id="sources"><h2>Quellen &amp; Methodik</h2><p class="sub">Diese Testausgabe wurde aus einem gespeicherten Recherche-Snapshot erstellt. Quellen sind in den jeweiligen Beiträgen direkt verlinkt. Es handelt sich nicht um einen Live-Newsfeed.</p><p><a href="https://www.nfl.com/scores/" rel="noopener noreferrer" target="_blank">NFL.com Scores</a> · <a href="https://www.espn.com/nfl/scoreboard" rel="noopener noreferrer" target="_blank">ESPN Scoreboard</a> · <a href="https://apnews.com/hub/nfl" rel="noopener noreferrer" target="_blank">Associated Press NFL</a> · <a href="https://www.nbcsports.com/nfl" rel="noopener noreferrer" target="_blank">NBC Sports NFL</a></p><p class="mini">Automatisch erstellter Entwurf. Redaktionelle Prüfung und Freigabe ausständig.</p></section></main><footer><div class="wrap">THE HUDDLE · Redaktionelle Testausgabe · Nicht mit der NFL verbunden</div></footer><script>const b=document.getElementById('spoiler'),s=document.getElementById('scores');b.addEventListener('click',()=>{s.hidden=!s.hidden;b.textContent=s.hidden?'Ergebnisse anzeigen':'Ergebnisse verbergen';b.setAttribute('aria-pressed',String(!s.hidden))});</script><script>
+// Bewahrt die 13 redaktionellen Snapshot-Ergebnisse und ergänzt archivierte NFL Game Books.
+// Die Zuordnung erfolgt ausschließlich über ESPN Event-ID und die beiden Teamnamen.
+(async function restoreGameBooks() {
+  const cards = [...document.querySelectorAll('#scorelist .score')];
+  const status = document.createElement('p');
+  status.className = 'mini';
+  status.id = 'gamebook-status';
+  status.textContent = 'Game-Book-Archiv wird geprüft …';
+  document.getElementById('scorelist').after(status);
+  const dates = ['20261101', '20261102'];
+  let count = 0;
+  let archiveFound = false;
+  const normalize = name => String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cardMap = new Map();
+  for (const card of cards) {
+    const names = [...card.querySelectorAll('.team')].map(x => normalize(x.textContent));
+    if (names.length === 2) cardMap.set(names.sort().join('|'), card);
+  }
+  for (const date of dates) {
+    try {
+      const [booksResponse, scoresResponse] = await Promise.all([
+        fetch('./data/gamebooks/' + date + '.json', {cache:'no-store'}),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=' + date + '&limit=100', {headers:{Accept:'application/json'}})
+      ]);
+      if (!booksResponse.ok || !scoresResponse.ok) continue;
+      const booksData = await booksResponse.json();
+      const scoreData = await scoresResponse.json();
+      if (booksData.date !== date || !booksData.gamebooks || typeof booksData.gamebooks !== 'object' || Array.isArray(booksData.gamebooks)) continue;
+      archiveFound = true;
+      for (const event of (scoreData.events || [])) {
+        if (!event.status?.type?.completed) continue;
+        const competitors = event.competitions?.[0]?.competitors || [];
+        if (competitors.length !== 2) continue;
+        const key = competitors.map(x => normalize(x.team?.displayName)).sort().join('|');
+        const card = cardMap.get(key);
+        const pdfUrl = booksData.gamebooks[String(event.id)];
+        if (!card || typeof pdfUrl !== 'string' || card.querySelector('.gamebook-link')) continue;
+        let url;
+        try { url = new URL(pdfUrl); } catch (_) { continue; }
+        if (url.protocol !== 'https:' || url.hostname !== 'static.www.nfl.com' || !url.pathname.toLowerCase().includes('/gamecenter/') || !url.pathname.toLowerCase().endsWith('.pdf')) continue;
+        const row = document.createElement('div');
+        row.style.cssText = 'grid-column:1/-1;text-align:center;border-top:1px solid #35435b;padding-top:12px';
+        const link = document.createElement('a');
+        link.className = 'gamebook-link';
+        link.href = url.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = '📄 Offizielles NFL Game Book (PDF)';
+        link.style.cssText = 'color:#9fc3ff;font-size:13px';
+        row.append(link);
+        card.append(row);
+        count++;
+      }
+    } catch (_) { /* Ergebnisdarstellung funktioniert auch ohne Archiv oder ESPN */ }
+  }
+  status.textContent = count
+    ? count + ' offizielle NFL Game Books verlinkt (Archiv).'
+    : archiveFound
+      ? 'Für diese Ergebnisse konnten keine Game Books eindeutig zugeordnet werden.'
+      : 'Game-Book-Archiv derzeit nicht erreichbar. Die Ergebnisse bleiben sichtbar.';
+})();
+</script></body></html>
