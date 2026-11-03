@@ -24,7 +24,7 @@ jobs:
 
       - name: NFL Game Books mehrerer Spiele prüfen
         env:
-          GAMEBOOK_DATE: "20261030"
+          GAMEBOOK_DATE: "20261101"
         run: python scripts/test_gamebooks.py
 
       
