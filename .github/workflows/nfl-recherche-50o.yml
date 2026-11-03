@@ -1,0 +1,170 @@
+name: THE HUDDLE – Recherche-Pipeline 50O
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: requests installieren
+        run: python -m pip install requests
+      - name: Redaktioneller Recherchetest 50O
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from datetime import datetime, timedelta, timezone
+          from urllib.parse import urlparse
+          import requests
+
+          NOW = datetime.now(timezone.utc)
+          CUTOFF = NOW - timedelta(hours=72)
+          SESSION = requests.Session()
+          SESSION.headers.update({'User-Agent': 'TheHuddleEditorialResearch/0.1 (manual GitHub Actions test)'})
+
+          KEYWORDS = ('nfl', 'football', 'quarterback', 'touchdown', 'super bowl', 'colts', 'broncos', 'chiefs', 'ravens', 'jaguars', 'raimann', 'senn')
+          TEAM_ALIASES = {
+              'IND': ('colts', 'indianapolis'), 'JAX': ('jaguars', 'jacksonville'),
+              'DEN': ('broncos', 'denver'), 'KC': ('chiefs', 'kansas city'),
+              'BAL': ('ravens', 'baltimore'), 'BUF': ('bills', 'buffalo'),
+              'NE': ('patriots', 'new england'), 'MIA': ('dolphins', 'miami'),
+              'PHI': ('eagles', 'philadelphia'), 'WSH': ('commanders', 'washington'),
+              'LAR': ('rams',), 'LAC': ('chargers',), 'DET': ('lions', 'detroit'),
+              'MIN': ('vikings', 'minnesota'), 'DAL': ('cowboys', 'dallas'),
+              'ARI': ('cardinals', 'arizona'), 'NYJ': ('jets',), 'LV': ('raiders',),
+              'GB': ('packers', 'green bay'), 'SF': ('49ers',), 'SEA': ('seahawks', 'seattle'),
+          }
+
+
+          def fetch_json(url):
+              try:
+                  response = SESSION.get(url, timeout=15)
+                  response.raise_for_status()
+                  return response.json(), None
+              except (requests.RequestException, ValueError) as exc:
+                  return None, str(exc)
+
+
+          def parse_date(value):
+              if not value:
+                  return None
+              try:
+                  return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
+              except (ValueError, TypeError):
+                  return None
+
+
+          def teams_in(text):
+              value = text.lower()
+              return sorted(code for code, names in TEAM_ALIASES.items()
+                            if any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', value)
+                                   for name in names))
+
+
+          def clean(text):
+              return re.sub(r'\s+', ' ', re.sub(r'<[^>]*>', ' ', str(text or ''))).strip()
+
+
+          print('===== 50O: ESPN NEWS API – QUELLENKANDIDATEN =====')
+          news_url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=100'
+          news, error = fetch_json(news_url)
+          if error:
+              print('ESPN NEWS FEHLER:', error)
+          articles = (news or {}).get('articles', [])
+          print('API-Artikel:', len(articles))
+
+          candidates = []
+          for article in articles:
+              headline = clean(article.get('headline'))
+              published = parse_date(article.get('published') or article.get('lastModified'))
+              links = article.get('links') or {}
+              web = links.get('web') or {}
+              url = web.get('href') or ''
+              host = (urlparse(url).hostname or '').lower()
+              if not headline or not published or not (CUTOFF <= published <= NOW):
+                  continue
+              if not url.startswith('https://') or not (host == 'espn.com' or host.endswith('.espn.com')):
+                  continue
+              if not any(term in headline.lower() for term in KEYWORDS):
+                  # The endpoint is NFL-specific; keep other NFL headlines as well.
+                  pass
+              candidates.append({
+                  'headline': headline, 'published_utc': published.isoformat(),
+                  'original_url': url, 'publisher': 'ESPN',
+                  'teams_in_headline': teams_in(headline),
+                  'url_status': 'publisher_domain_in_api_not_http_verified',
+                  'editorial_status': 'REQUIRES_HUMAN_REVIEW',
+                  'content_verified': False,
+              })
+
+          print('Kandidaten letzte 72 Stunden:', len(candidates))
+          for item in candidates[:20]:
+              print('TITEL:', item['headline'])
+              print('DATUM:', item['published_utc'])
+              print('ORIGINAL-URL (API):', item['original_url'])
+              print('TEAMS:', ', '.join(item['teams_in_headline']) or '-')
+
+          print('\n===== ESPN: SPIELDATEN-KONTROLLSCHICHT =====')
+          games = {}
+          for days_back in range(5):
+              date = (NOW - timedelta(days=days_back)).strftime('%Y%m%d')
+              url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=' + date
+              data, err = fetch_json(url)
+              if err:
+                  print(date, 'FEHLER:', err)
+                  continue
+              events = (data or {}).get('events', [])
+              print(date, 'Spiele:', len(events))
+              for event in events:
+                  competitors = (event.get('competitions') or [{}])[0].get('competitors') or []
+                  codes = sorted((c.get('team') or {}).get('abbreviation', '').upper() for c in competitors)
+                  if len(codes) != 2 or not all(codes):
+                      continue
+                  games[event['id']] = {
+                      'espn_id': event['id'], 'name': event.get('name'),
+                      'date_utc': event.get('date'), 'teams': codes,
+                      'state': ((event.get('status') or {}).get('type') or {}).get('state'),
+                      'scores': { (c.get('team') or {}).get('abbreviation', '').upper(): c.get('score')
+                                  for c in competitors },
+                  }
+
+          for item in candidates:
+              detected = item['teams_in_headline']
+              matches = [game for game in games.values() if sorted(game['teams']) == detected] if len(detected) == 2 else []
+              item['espn_game_match'] = matches[0] if len(matches) == 1 else None
+              item['espn_match_note'] = ('unique_team_pair' if len(matches) == 1 else
+                                         'ambiguous_pair' if len(matches) > 1 else 'not_matched')
+
+          output = {
+              'test': '50O', 'generated_utc': NOW.isoformat(),
+              'window_hours': 72, 'news_api_error': error,
+              'editorial_note': 'Technical candidate collection only; no article content fact-checked or published.',
+              'candidates': candidates, 'espn_games': list(games.values()),
+          }
+          with open('research-50o.json', 'w', encoding='utf-8') as handle:
+              json.dump(output, handle, ensure_ascii=False, indent=2)
+          print('\n===== ZUSAMMENFASSUNG =====')
+          print('News-Kandidaten:', len(candidates))
+          print('ESPN-Spiele:', len(games))
+          print('Eindeutige Spielpaarungen:', sum(bool(c['espn_game_match']) for c in candidates))
+          print('Datei: research-50o.json')
+          print('Keine Veröffentlichung, keine API-Kosten, keine inhaltliche Freigabe.')
+          PY
+      - name: Recherchebericht als Artifact sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-huddle-research-50o
+          path: research-50o.json
+          if-no-files-found: warn
+          retention-days: 7
