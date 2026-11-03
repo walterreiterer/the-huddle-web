@@ -20,14 +20,14 @@ jobs:
       - name: Abhängigkeiten installieren
         run: python -m pip install requests feedparser
 
-      - name: NFL-Nachrichten redaktionell sortieren
+      - name: NFL-Ereignisse erkennen
         shell: bash
         run: |
           python - <<'PY'
           import calendar
           import re
+          from collections import defaultdict
           from datetime import datetime, timezone, timedelta
-          from difflib import SequenceMatcher
           from html import unescape
           from urllib.parse import urlencode
 
@@ -44,58 +44,99 @@ jobs:
               "football-world.news": "football-world.news"
           }
 
-          SEARCH = (
-              '("NFL" OR "Super Bowl" OR '
-              '"Bernhard Raimann" OR "Valentin Senn")'
-          )
+          TEAMS = {
+              "Cardinals": ["cardinals", "arizona"],
+              "Falcons": ["falcons", "atlanta"],
+              "Ravens": ["ravens", "baltimore"],
+              "Bills": ["bills", "buffalo"],
+              "Panthers": ["panthers", "carolina"],
+              "Bears": ["bears", "chicago"],
+              "Bengals": ["bengals", "cincinnati"],
+              "Browns": ["browns", "cleveland"],
+              "Cowboys": ["cowboys", "dallas"],
+              "Broncos": ["broncos", "denver"],
+              "Lions": ["lions", "detroit"],
+              "Packers": ["packers", "green bay"],
+              "Texans": ["texans", "houston"],
+              "Colts": ["colts", "indianapolis"],
+              "Jaguars": ["jaguars", "jacksonville"],
+              "Chiefs": ["chiefs", "kansas city"],
+              "Raiders": ["raiders", "las vegas"],
+              "Chargers": ["chargers", "l a chargers"],
+              "Rams": ["rams", "l a rams"],
+              "Dolphins": ["dolphins", "miami"],
+              "Vikings": ["vikings", "minnesota"],
+              "Patriots": ["patriots", "new england"],
+              "Saints": ["saints", "new orleans"],
+              "Giants": ["giants", "new york giants"],
+              "Jets": ["jets", "new york jets"],
+              "Eagles": ["eagles", "philadelphia"],
+              "Steelers": ["steelers", "pittsburgh"],
+              "49ers": ["49ers", "san francisco"],
+              "Seahawks": ["seahawks", "seattle"],
+              "Buccaneers": ["buccaneers", "bucs", "tampa bay"],
+              "Titans": ["titans", "tennessee"],
+              "Commanders": ["commanders", "washington"]
+          }
 
-          PLAYER_PATTERNS = {
+          PLAYERS = {
               "Bernhard Raimann": r"\braimann\w*\b",
               "Valentin Senn": r"\bvalentin\s+senn\b"
           }
 
-          NFL_PATTERNS = [
-              r"\bnfl\b", r"\bsuper[\s-]?bowl\b",
+          EVENTS = {
+              "TRADE": [
+                  r"\btrade\w*\b",
+                  r"\btraden\b"
+              ],
+              "VERLETZUNG": [
+                  r"\bverletz\w*\b",
+                  r"\bausfall\b",
+                  r"\bhiobsbotschaft\w*\b"
+              ],
+              "TRAINER": [
+                  r"\btrainerwechsel\b",
+                  r"\bcoach\b",
+                  r"\bentlass\w*\b"
+              ],
+              "VERTRAG": [
+                  r"\bvertrag\w*\b",
+                  r"\bverlänger\w*\b"
+              ],
+              "SPIEL": [
+                  r"\bgewin\w*\b",
+                  r"\bverlier\w*\b",
+                  r"\bsieg\b",
+                  r"\bniederlage\b",
+                  r"\bpleite\b",
+                  r"\bschlagen\b",
+                  r"\bunterliegen\b",
+                  r"\bspielschema\b",
+                  r"\bhighlights?\b",
+                  r"\büberrollen\b",
+                  r"\bschocken\b",
+                  r"\bdominier\w*\b"
+              ]
+          }
+
+          NFL_TERMS = [
+              r"\bnfl\b",
+              r"\bsuper[\s-]?bowl\b",
               r"\bamerican[\s-]?football\b",
-              r"\bcolts\b", r"\bchiefs\b",
-              r"\bseahawks\b", r"\bpackers\b",
-              r"\b49ers\b", r"\bpatriots\b",
-              r"\bquarterback\b", r"\btouchdown\b",
-              r"\bmahomes\b", r"\braimann\w*\b",
-              r"\bvalentin\s+senn\b",
-              r"\bjaguars\b", r"\bravens\b",
-              r"\bbroncos\b", r"\beagles\b",
-              r"\braiders\b", r"\bvikings\b",
-              r"\bcowboys\b", r"\bbills\b",
-              r"\brams\b", r"\bchargers\b",
-              r"\blions\b", r"\bsteelers\b"
+              r"\bquarterback\b",
+              r"\btouchdown\b",
+              r"\bmahomes\b",
+              r"\braimann\w*\b",
+              r"\bvalentin\s+senn\b"
           ]
 
           EXCLUDE = [
-              r"\bnba\b", r"\bnhl\b",
-              r"\bla liga\b", r"\bbundesliga\b",
+              r"\bnba\b",
+              r"\bnhl\b",
+              r"\bla liga\b",
+              r"\bbundesliga\b",
               r"\bchampions league\b",
-              r"\bdfb[\s-]?pokal\b",
-              r"\bmatch[\s-]?clip\b"
-          ]
-
-          GAME_PATTERNS = [
-              r"\bgewin\w*\b", r"\bverlier\w*\b",
-              r"\bsieg\b", r"\bniederlage\b",
-              r"\bpleite\b", r"\bhighlights?\b",
-              r"\bspielbericht\b", r"\bspielschema\b",
-              r"\bspielinfo\b", r"\bduell\b",
-              r"\bgegen\b", r"\bschlagen\b",
-              r"\bunterliegen\b"
-          ]
-
-          TOP_PATTERNS = [
-              r"\btrade\w*\b", r"\bverletz\w*\b",
-              r"\bentlass\w*\b", r"\bvertrag\w*\b",
-              r"\bwechsel\b", r"\brekord\w*\b",
-              r"\bsperre\b", r"\bskandal\b",
-              r"\btrainer\w*\b", r"\bcoach\w*\b",
-              r"\bdraft\b", r"\bentscheidung\b"
+              r"\bdfb[\s-]?pokal\b"
           ]
 
           NOW = datetime.now(timezone.utc)
@@ -106,8 +147,6 @@ jobs:
               "User-Agent": "Mozilla/5.0"
           })
 
-          articles = []
-
           def clean(value):
               value = unescape(value or "")
               value = re.sub(r"<[^>]+>", " ", value)
@@ -115,8 +154,12 @@ jobs:
 
           def normalize(value):
               value = clean(value).lower()
-              value = re.sub(r"[^a-zäöüß0-9 ]", " ", value)
-              return re.sub(r"\s+", " ", value).strip()
+              value = re.sub(
+                  r"[^a-zäöüß0-9]+", " ", value
+              )
+              return re.sub(
+                  r"\s+", " ", value
+              ).strip()
 
           def matches(patterns, text):
               return any(
@@ -124,28 +167,100 @@ jobs:
                   for pattern in patterns
               )
 
-          def classify(title):
-              text = title.lower()
+          def detect_teams(title):
+              text = normalize(title)
+              found = []
 
-              players = [
-                  name for name, pattern
-                  in PLAYER_PATTERNS.items()
+              for team, aliases in TEAMS.items():
+                  if any(
+                      re.search(
+                          r"\b" + re.escape(alias) + r"\b",
+                          text
+                      )
+                      for alias in aliases
+                  ):
+                      found.append(team)
+
+              return sorted(set(found))
+
+          def detect_players(title):
+              text = normalize(title)
+
+              return [
+                  name
+                  for name, pattern in PLAYERS.items()
                   if re.search(pattern, text)
               ]
 
+          def detect_event(title):
+              text = normalize(title)
+
+              for event in [
+                  "TRADE",
+                  "VERLETZUNG",
+                  "TRAINER",
+                  "VERTRAG",
+                  "SPIEL"
+              ]:
+                  if matches(EVENTS[event], text):
+                      return event
+
+              return "SONSTIGES"
+
+          def is_nfl(title):
+              text = normalize(title)
+
+              if matches(EXCLUDE, text):
+                  return False
+
+              if detect_teams(title):
+                  return True
+
+              return matches(NFL_TERMS, text)
+
+          def event_key(article):
+              teams = article["teams"]
+              event = article["event"]
+              players = article["players"]
+
+              # Zwei Teams + Spielereignis:
+              # gleicher Match-Kontext.
+              if event == "SPIEL" and len(teams) == 2:
+                  return (
+                      "SPIEL:"
+                      + ":".join(teams)
+                  )
+
+              # Österreichischer Spieler:
+              # vorläufig ein eigener Themenbereich.
               if players:
-                  return "AUSTRIAN WATCH", players
+                  return (
+                      "AUSTRIAN:"
+                      + ":".join(players)
+                      + ":"
+                      + event
+                  )
 
-              if matches(TOP_PATTERNS, text):
-                  return "TOP STORIES", []
+              # Teambezogene Nachrichten:
+              # Ereignistyp und Team.
+              if len(teams) == 1 and event != "SONSTIGES":
+                  return event + ":" + teams[0]
 
-              if matches(GAME_PATTERNS, text):
-                  return "SPIELBERICHTE", []
+              # Sonstige Nachrichten bleiben einzeln.
+              return "EINZEL:" + article["id"]
 
-              return "WEITERE NFL-MELDUNGEN", []
+          articles = []
+          article_id = 0
 
           for source, domain in SOURCES.items():
-              query = f"{SEARCH} site:{domain} when:3d"
+              print(f"\n===== {source} =====", flush=True)
+
+              query = (
+                  '("NFL" OR "Super Bowl" OR '
+                  '"Bernhard Raimann" OR "Valentin Senn") '
+                  f"site:{domain} when:3d"
+              )
+
               url = (
                   "https://news.google.com/rss/search?"
                   + urlencode({
@@ -155,8 +270,6 @@ jobs:
                       "ceid": "AT:de"
                   })
               )
-
-              print(f"\n===== {source} =====", flush=True)
 
               try:
                   response = session.get(url, timeout=25)
@@ -191,128 +304,86 @@ jobs:
                   if not title or not link:
                       continue
 
-                  text = title.lower()
-
-                  if matches(EXCLUDE, text):
+                  if not is_nfl(title):
                       continue
 
-                  if not matches(NFL_PATTERNS, text):
-                      continue
+                  article_id += 1
+                  accepted += 1
 
-                  category, players = classify(title)
-
-                  articles.append({
+                  article = {
+                      "id": str(article_id),
                       "source": source,
                       "title": title,
                       "date": published,
                       "link": link,
-                      "category": category,
-                      "players": players
-                  })
+                      "teams": detect_teams(title),
+                      "players": detect_players(title),
+                      "event": detect_event(title)
+                  }
 
-                  accepted += 1
+                  article["key"] = event_key(article)
+                  articles.append(article)
 
               print("Suchergebnisse:", len(feed.entries))
               print("NFL-Kandidaten:", accepted)
 
-          articles.sort(
-              key=lambda item: item["date"],
+          groups = defaultdict(list)
+
+          for article in articles:
+              groups[article["key"]].append(article)
+
+          sorted_groups = sorted(
+              groups.items(),
+              key=lambda pair: max(
+                  item["date"] for item in pair[1]
+              ),
               reverse=True
           )
 
-          # Erste Gruppierung ähnlicher Überschriften.
-          # Keine Meldung wird dabei gelöscht.
-          groups = []
+          print(
+              "\n===== EREIGNISCLUSTER: "
+              + str(len(sorted_groups))
+              + " ====="
+          )
 
-          for article in articles:
-              title = normalize(article["title"])
-
-              # Mediennamen am Titelende entfernen.
-              title = re.sub(
-                  r"\s+(kicker|sky sport austria|"
-                  r"kronen zeitung|laola1|"
-                  r"football world news)$",
-                  "",
-                  title
+          for key, items in sorted_groups:
+              items.sort(
+                  key=lambda item: item["date"],
+                  reverse=True
               )
 
-              matched_group = None
+              print("\n--------------------")
+              print("Ereignis:", key)
+              print("Artikel:", len(items))
 
-              for group in groups:
-                  if group["category"] != article["category"]:
-                      continue
+              sources = sorted(set(
+                  item["source"] for item in items
+              ))
 
-                  representative = normalize(
-                      group["items"][0]["title"]
-                  )
+              print("Quellen:", ", ".join(sources))
 
-                  similarity = SequenceMatcher(
-                      None, title, representative
-                  ).ratio()
+              players = sorted(set(
+                  player
+                  for item in items
+                  for player in item["players"]
+              ))
 
-                  if similarity >= 0.72:
-                      matched_group = group
-                      break
-
-              if matched_group is None:
-                  groups.append({
-                      "category": article["category"],
-                      "items": [article]
-                  })
-              else:
-                  matched_group["items"].append(article)
-
-          CATEGORIES = [
-              "AUSTRIAN WATCH",
-              "TOP STORIES",
-              "SPIELBERICHTE",
-              "WEITERE NFL-MELDUNGEN"
-          ]
-
-          for category in CATEGORIES:
-              selected = [
-                  group for group in groups
-                  if group["category"] == category
-              ]
-
-              print(
-                  f"\n===== {category}: "
-                  f"{len(selected)} THEMEN ====="
-              )
-
-              for group in selected[:25]:
-                  primary = group["items"][0]
-
-                  print("--------------------")
-                  print("Thema:", primary["title"])
+              if players:
                   print(
-                      "Datum:",
-                      primary["date"].strftime(
-                          "%d.%m.%Y %H:%M UTC"
-                      )
+                      "Austrian Watch:",
+                      ", ".join(players)
                   )
-                  print(
-                      "Quellen:",
-                      ", ".join(
-                          sorted(set(
-                              item["source"]
-                              for item in group["items"]
-                          ))
-                      )
-                  )
-                  print(
-                      "Artikel im Themencluster:",
-                      len(group["items"])
-                  )
-                  print(
-                      "Google-News-Link:",
-                      primary["link"]
-                  )
+
+              for item in items[:5]:
+                  print(" -", item["title"])
 
           print(
               "\nGesamtzahl NFL-Kandidaten:",
               len(articles)
           )
-          print("Themencluster:", len(groups))
-          print("\nRedaktionstest abgeschlossen.")
+          print(
+              "Ereigniscluster:",
+              len(groups)
+          )
+          print("\nEreignistest abgeschlossen.")
           PY
