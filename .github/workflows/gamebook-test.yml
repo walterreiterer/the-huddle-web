@@ -32,5 +32,5 @@ jobs:
         with:
           name: huddle-gamebooks-preview
           path: data/gamebooks-preview.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
