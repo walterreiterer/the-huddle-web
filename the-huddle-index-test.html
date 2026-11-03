@@ -142,26 +142,29 @@
       const data = await response.json();
       const events = Array.isArray(data.events) ? data.events : [];
 
-      // Game Books nur bei exakt übereinstimmendem Spieltag verwenden.
+      
+      // Offizielle Game Books aus dem Archiv des jeweiligen Spieltags laden.
       let gamebooks = {};
       try {
-        const booksResponse = await fetch('./data/gamebooks-preview.json', {cache:'no-store'});
+        const booksResponse = await fetch(
+          './data/gamebooks/' + date + '.json',
+          {cache:'no-store'}
+        );
+
         if (booksResponse.ok) {
           const booksData = await booksResponse.json();
-          if (booksData.date === date && booksData.gamebooks &&
-              typeof booksData.gamebooks === 'object' && !Array.isArray(booksData.gamebooks)) {
+
+          if (booksData.date === date &&
+              booksData.gamebooks &&
+              typeof booksData.gamebooks === 'object' &&
+              !Array.isArray(booksData.gamebooks)) {
             gamebooks = booksData.gamebooks;
           }
         }
       } catch (_) {
-        // Der Game Center funktioniert auch ohne die zusätzliche JSON-Datei.
+        // Der Game Center funktioniert auch ohne archivierte Game Books.
       }
 
-      if (!events.length) {
-        status.textContent = 'Keine NFL-Spiele an diesem Spieltag. Quelle: ESPN.';
-        loaded = true;
-        return;
-      }
       const formatter = new Intl.DateTimeFormat('de-AT', {
         timeZone:'Europe/Vienna', weekday:'short', day:'2-digit', month:'2-digit',
         hour:'2-digit', minute:'2-digit', hour12:false
