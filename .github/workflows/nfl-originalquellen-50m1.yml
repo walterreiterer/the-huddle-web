@@ -1,0 +1,168 @@
+name: THE HUDDLE – Sky Originalquellen 50M.1
+on:
+  workflow_dispatch: null
+permissions:
+  contents: read
+jobs:
+  sky_source_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Abhängigkeiten installieren
+      run: python -m pip install requests feedparser
+    - name: Sky-Originalquellen und Google-News-Titel vergleichen
+      shell: bash
+      run: |-
+        python - <<'PY'
+        import calendar
+        import difflib
+        import re
+        from datetime import datetime, timedelta, timezone
+        from html import unescape
+        from urllib.parse import urlencode, urlparse
+
+        import feedparser
+        import requests
+
+        DOMAIN = "skysportaustria.at"
+        FEED = "https://www.skysportaustria.at/feed/"
+        NOW = datetime.now(timezone.utc)
+        CUTOFF = NOW - timedelta(hours=72)
+        SESSION = requests.Session()
+        SESSION.headers.update({"User-Agent": "Mozilla/5.0 (compatible; TheHuddleManualResearch/0.1)"})
+
+        NFL = re.compile(r"\b(nfl|super bowl|american football|quarterback|touchdowns?|raimann|valentin senn|mahomes|chiefs|colts|jaguars|ravens|bills|broncos|patriots|dolphins|packers|steelers|browns|cowboys|eagles|commanders|vikings|lions|49ers|seahawks|buccaneers|bucs|falcons|titans|bengals|raiders|jets|giants|cardinals|chargers|rams|texans|saints|panthers|bears)\b", re.I)
+        OTHER = re.compile(r"\b(nhl|nba|mls|serie a|bundesliga|champions league|eishockey|oilers|fiorentina|sassuolo|öfb|fußball)\b", re.I)
+
+
+        def normalize(s):
+            s = unescape(re.sub(r"<[^>]*>", " ", s or "")).lower()
+            return re.sub(r"\s+", " ", re.sub(r"[^\wäöüß]+", " ", s)).strip()
+
+
+        def clean(s):
+            return re.sub(r"\s+[-|]\s+Sky Sport Austria\s*$", "", unescape(s or ""), flags=re.I).strip()
+
+
+        def is_nfl(s):
+            n = normalize(s)
+            return bool(NFL.search(n)) and not OTHER.search(n)
+
+
+        def publisher_url(url):
+            parsed = urlparse(url or "")
+            host = (parsed.hostname or "").lower()
+            return parsed.scheme in ("https", "http") and (host == DOMAIN or host.endswith("." + DOMAIN))
+
+
+        def fetch(url):
+            try:
+                r = SESSION.get(url, timeout=15, allow_redirects=True)
+                if len(r.content) > 3_000_000:
+                    return None, "Antwort zu groß"
+                return r, None
+            except requests.RequestException as exc:
+                return None, f"{type(exc).__name__}: {str(exc)[:110]}"
+
+
+        def entry_date(entry):
+            raw = entry.get("published_parsed") or entry.get("updated_parsed")
+            return datetime.fromtimestamp(calendar.timegm(raw), timezone.utc) if raw else None
+
+
+        def similarity(a, b):
+            return difflib.SequenceMatcher(None, normalize(clean(a)), normalize(clean(b))).ratio()
+
+
+        print("===== 50M.1: SKY-ORIGINALQUELLEN =====")
+        print("Zeitraum UTC:", CUTOFF.isoformat(), "bis", NOW.isoformat())
+
+        feed_response, error = fetch(FEED)
+        if error or feed_response is None:
+            print("FEED FEHLER:", error)
+            raise SystemExit(1)
+        print("Feed HTTP:", feed_response.status_code, "Ziel:", feed_response.url)
+        if feed_response.status_code != 200 or not publisher_url(feed_response.url):
+            print("FEED NICHT VERWENDBAR")
+            raise SystemExit(1)
+
+        parsed = feedparser.parse(feed_response.content)
+        print("Feed-Einträge insgesamt:", len(parsed.entries))
+        if parsed.bozo:
+            print("Feed-Parser-Warnung:", str(parsed.bozo_exception)[:120])
+
+        articles = []
+        for entry in parsed.entries:
+            title = clean(entry.get("title", ""))
+            date = entry_date(entry)
+            link = entry.get("link", "")
+            if not title or not is_nfl(title):
+                continue
+            if date is None or not (CUTOFF <= date <= NOW + timedelta(minutes=5)):
+                continue
+            if not publisher_url(link):
+                print("VERWORFEN: fremder Artikellink:", link[:150])
+                continue
+            articles.append({"title": title, "date": date, "link": link})
+
+        print("NFL-Artikel im Zeitfenster:", len(articles))
+
+        query = '("NFL" OR "Super Bowl" OR "Bernhard Raimann" OR "Valentin Senn") site:skysportaustria.at when:3d'
+        news_url = "https://news.google.com/rss/search?" + urlencode({"q": query, "hl": "de", "gl": "AT", "ceid": "AT:de"})
+        news_response, news_error = fetch(news_url)
+        hints = []
+        if news_error or news_response is None or news_response.status_code != 200:
+            print("Google-News-Hinweise nicht erreichbar:", news_error or getattr(news_response, "status_code", "?"))
+        else:
+            for entry in feedparser.parse(news_response.content).entries:
+                title = clean(entry.get("title", ""))
+                date = entry_date(entry)
+                if title and is_nfl(title) and date and CUTOFF <= date <= NOW:
+                    hints.append({"title": title, "date": date})
+        print("Google-News-NFL-Hinweise:", len(hints))
+
+        confirmed_links = 0
+        matched = 0
+        for i, article in enumerate(articles[:25], 1):
+            response, err = fetch(article["link"])
+            status = getattr(response, "status_code", "-")
+            final = getattr(response, "url", "")
+            verified_link = bool(response is not None and status == 200 and publisher_url(final))
+            if verified_link:
+                confirmed_links += 1
+            ranked = sorted(((similarity(article["title"], hint["title"]), hint) for hint in hints), key=lambda x: x[0], reverse=True)
+            best = ranked[0] if ranked else None
+            second_score = ranked[1][0] if len(ranked) > 1 else 0
+            # Title similarity is evidence of a matching reference, not of factual truth.
+            is_match = bool(best and best[0] >= 0.80 and best[0] - second_score >= 0.05)
+            if is_match:
+                matched += 1
+            print("\n--- ARTIKEL", i, "---")
+            print("Titel:", article["title"])
+            print("Datum UTC:", article["date"].isoformat())
+            print("RSS-Original:", article["link"])
+            print("HTTP:", status, "| Publisher-URL erreichbar:", "JA" if verified_link else "NEIN")
+            if err:
+                print("HTTP-Fehler:", err)
+            if final:
+                print("HTTP-Endadresse:", final)
+            if best:
+                print("Google-News-Titelähnlichkeit:", f"{best[0]:.2f}")
+                print("Google-News-Zuordnung:", "EINDEUTIGER TITELTREFFER" if is_match else "NICHT EINDEUTIG")
+                if is_match:
+                    print("Google-News-Titel:", best[1]["title"])
+            else:
+                print("Google-News-Zuordnung: KEIN HINWEIS")
+            print("Artikelinhalt redaktionell geprüft: NEIN")
+
+        print("\n===== ZUSAMMENFASSUNG 50M.1 =====")
+        print("Direkte NFL-Artikel:", len(articles))
+        print("Davon HTTP-geprüft:", min(25, len(articles)))
+        print("Erreichbare Publisher-URLs:", confirmed_links)
+        print("Eindeutige Titelzuordnungen:", matched)
+        print("Keine Veröffentlichung, keine OpenAI-API, keine Änderungen am Repository.")
+        PY
