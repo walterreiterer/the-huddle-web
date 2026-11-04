@@ -4,61 +4,61 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-04T23:54+01:00",
+    "date": "2026-11-05T00:24+01:00 Wien",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "brief": [
       {
-        "text": "Die Baltimore Ravens stehen vor einer akuten Quarterback-Krise: Starter Lamar Jackson wurde nach einer Daumenverletzung an der Wurfhand auf Injured Reserve gesetzt und benötigt eine Operation, während Backup Tyler Huntley sich laut ESPN im Spiel gegen die Buffalo Bills eine turf-toe-Verletzung zugezogen hat, die die Saison für ihn beendet.",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/ravens-qb-tyler-huntley-reportedly-suffered-season-ending-turf-toe-injury-after-replacing-lamar-jackson-vs-bills-124704521.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "text": "Quarterback Sam Darnold wird wegen einer Quadrizepsverletzung das Spiel der Seattle Seahawks gegen die Arizona Cardinals in Woche 9 verpassen; Coach Mike Macdonald bezeichnete den Ausfall als „week to week“ und kündigte an, dass Drew Lock, der mit einer Ellenbogenbeschwerde laboriert, voraussichtlich übernehmen wird.",
-        "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
+        "text": "Baltimore soll einem Bericht zufolge einen Trade mit den Arizona Cardinals für Quarterback Jacoby Brissett finalisieren; die Transaktion wird voraussichtlich am Wochenende abgeschlossen, sodass Brissett nicht für das Donnerstagsspiel gegen Jacksonville zur Verfügung steht.",
+        "source_url": "https://www.nfl.com/news/jacoby-brissett-trade-ravens-cardinals",
         "source_name": "nfl.com"
       },
       {
-        "text": "Detroit Lions Linebacker Jack Campbell teilte mit, dass er nach seinem Nackenzusammenstoß wieder volle Bewegung im Unterkörper hat und an der Mobilität seines Oberkörpers arbeite; der Vorfall hatte ihn nach dem Spiel gegen Minnesota auf eine Trage gebracht und ins Krankenhaus gebracht.",
-        "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
-        "source_name": "nfl.com"
-      },
-      {
-        "text": "Die Philadelphia Eagles werden laut ESPN und Adam Schefter Joe Milton in Woche 9 gegen die New York Giants erstmals als Starter einsetzen; Milton ersetzt Tanner McKee, nachdem Jalen Hurts aufgrund von Blutgerinnseln in der Lunge weiter ausfällt.",
+        "text": "Die Philadelphia Eagles werden laut ESPN-Berichten Joe Milton in Week 9 gegen die New York Giants zum ersten Mal als Starter aufbieten; Milton wechselte kürzlich aus Dallas nach Philadelphia und erhält seine erste komplette Partiechance, nachdem Jalen Hurts weiter ausfällt.",
         "source_url": "https://sports.yahoo.com/nfl/article/eagles-will-reportedly-start-qb-joe-milton-in-week-9-vs-giants-190927977.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Berichten zufolge hat Journalistin Dianna Russini begonnen, die Rückkehr in die Branche für die kommende Woche anzukündigen; unklar ist, in welcher Funktion oder bei welchem Arbeitgeber sie arbeiten wird.",
+        "text": "Seattle wird laut NFL.com auf Quarterback Sam Darnold verzichten, der sich eine Quadrizepsverletzung zugezogen hat und somit für das Spiel gegen Arizona ausfällt; Drew Lock ist als Ersatz geplant, obwohl auch dessen Ellenbogenprobleme die Lage verkomplizieren.",
+        "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
+        "source_name": "nfl.com"
+      },
+      {
+        "text": "Detroit-Verteidiger Jack Campbell gab bekannt, dass er seinen Unterkörper wieder vollständig bewegen kann und weiter Fortschritte bei der Mobilität des Oberkörpers macht, nachdem er bei einem Spiel schwer verletzt worden war; Trainer Dan Campbell bezeichnete das als \"gute Nachrichten\", während weitere medizinische Details noch ausstehen.",
+        "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
+        "source_name": "nfl.com"
+      },
+      {
+        "text": "Laut NBC Sports verbreitet Dianna Russini derzeit, dass sie in der kommenden Woche wieder arbeiten werde; unklar ist, für welches Medium und in welcher Rolle sie zurückkehrt, nachdem eine Untersuchung ihrer früheren Arbeit bei The Athletic öffentlich wurde.",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/dianna-russini-gets-out-the-word-that-shes-coming-back-to-work-next-week",
         "source_name": "nbcsports.com"
       }
     ],
     "stories": [
       {
-        "title": "Seahawks ohne Sam Darnold gegen Cardinals in Woche 9",
-        "summary": "Quarterback Sam Darnold wird wegen einer Quadrizepsverletzung das Spiel der Seattle Seahawks gegen die Arizona Cardinals in Woche 9 verpassen; Coach Mike Macdonald bezeichnete den Ausfall als „week to week“ und kündigte an, dass Drew Lock, der mit einer Ellenbogenbeschwerde laboriert, voraussichtlich übernehmen wird. Seattle muss hoffen, dass Lock trotz Beschwerden einsatzfähig ist, um die Offensive stabil zu halten.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
-        "source_name": "nfl.com"
-      },
-      {
-        "title": "Jack Campbell meldet vollständige Bewegung im Unterkörper",
-        "summary": "Detroit Lions Linebacker Jack Campbell teilte mit, dass er nach seinem Nackenzusammenstoß wieder volle Bewegung im Unterkörper hat und an der Mobilität seines Oberkörpers arbeite; der Vorfall hatte ihn nach dem Spiel gegen Minnesota auf eine Trage gebracht und ins Krankenhaus gebracht. Coach Dan Campbell nannte die Entwicklungen „positive Nachrichten“, konkrete medizinische Details oder ein Rückkehrdatum wurden aber nicht genannt.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
-        "source_name": "nfl.com"
-      },
-      {
-        "title": "Eagles geben Joe Milton seine erste NFL-Startchance",
-        "summary": "Die Philadelphia Eagles werden laut ESPN und Adam Schefter Joe Milton in Woche 9 gegen die New York Giants erstmals als Starter einsetzen; Milton ersetzt Tanner McKee, nachdem Jalen Hurts aufgrund von Blutgerinnseln in der Lunge weiter ausfällt. Milton, 26, wechselte im Oktober von der Practice Squad der Cowboys zu den Eagles und erhält nun seine erste Karriere-Startmöglichkeit in einem Team, das dringend Stabilität auf der Quarterback-Position braucht.",
+        "title": "Eagles setzen Joe Milton gegen die Giants als Starter ein",
+        "summary": "Die Philadelphia Eagles werden laut ESPN-Berichten Joe Milton in Week 9 gegen die New York Giants zum ersten Mal als Starter aufbieten; Milton wechselte kürzlich aus Dallas nach Philadelphia und erhält seine erste komplette Partiechance, nachdem Jalen Hurts weiter ausfällt. Die Verpflichtung ist ein Versuch, die angespannte Saison der Eagles zu stabilisieren und Milton Spielpraxis zu ermöglichen.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/article/eagles-will-reportedly-start-qb-joe-milton-in-week-9-vs-giants-190927977.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Dianna Russini plant Rückkehr in die Sportberichterstattung",
-        "summary": "Berichten zufolge hat Journalistin Dianna Russini begonnen, die Rückkehr in die Branche für die kommende Woche anzukündigen; unklar ist, in welcher Funktion oder bei welchem Arbeitgeber sie arbeiten wird. Russinis Abgang von The Athletic folgte einer Untersuchung, die Verstöße gegen die redaktionellen Standards feststellte, weshalb ihre Reputation vor einer dauerhaften Rückkehr wiederhergestellt werden muss.",
+        "title": "Seahawks müssen in Week 9 ohne Sam Darnold antreten",
+        "summary": "Seattle wird laut NFL.com auf Quarterback Sam Darnold verzichten, der sich eine Quadrizepsverletzung zugezogen hat und somit für das Spiel gegen Arizona ausfällt; Drew Lock ist als Ersatz geplant, obwohl auch dessen Ellenbogenprobleme die Lage verkomplizieren. Die Seahawks hoffen, mit Lock trotz gesundheitlicher Bedenken die Offensivproduktion aufrechtzuerhalten.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
+        "source_name": "nfl.com"
+      },
+      {
+        "title": "Lions-Star Jack Campbell berichtet von voller Bewegung in den Beinen nach Nackentrauma",
+        "summary": "Detroit-Verteidiger Jack Campbell gab bekannt, dass er seinen Unterkörper wieder vollständig bewegen kann und weiter Fortschritte bei der Mobilität des Oberkörpers macht, nachdem er bei einem Spiel schwer verletzt worden war; Trainer Dan Campbell bezeichnete das als \"gute Nachrichten\", während weitere medizinische Details noch ausstehen. Die Äußerungen stammen aus einer Team-Mitteilung und geben erste Hoffnung auf Erholung.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
+        "source_name": "nfl.com"
+      },
+      {
+        "title": "Dianna Russini will Medienkarriere offenbar nächste Woche wieder aufnehmen",
+        "summary": "Laut NBC Sports verbreitet Dianna Russini derzeit, dass sie in der kommenden Woche wieder arbeiten werde; unklar ist, für welches Medium und in welcher Rolle sie zurückkehrt, nachdem eine Untersuchung ihrer früheren Arbeit bei The Athletic öffentlich wurde. Beobachter betonen, dass die Wiederherstellung ihrer beruflichen Glaubwürdigkeit maßgeblich für eine erfolgreiche Rückkehr sein wird.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/dianna-russini-gets-out-the-word-that-shes-coming-back-to-work-next-week",
         "source_name": "nbcsports.com"
@@ -71,6 +71,7 @@
     "Alle Aussagen, Zahlen und Originalquellen prüfen.",
     "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
     "Überschriften und Kurzmeldungen redaktionell prüfen.",
-    "Mindestens eine Kurzmeldung ist länger als 250 Zeichen."
+    "Mindestens eine Kurzmeldung ist länger als 250 Zeichen.",
+    "1 Game-Center-Zeilen bewusst nicht als statische Ergebnisse übernommen."
   ]
 }
