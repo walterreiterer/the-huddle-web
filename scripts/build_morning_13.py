@@ -1,6 +1,6 @@
 
 #!/usr/bin/env python3
-"""THE HUDDLE – KI-Entwurf für die unveröffentlichte Testvorschau."""
+"""THE HUDDLE – KI-Entwurf mit strenger Datumsprüfung (Testvorschau)."""
 
 import json
 import os
@@ -19,6 +19,8 @@ OUTPUT = ROOT / "the-huddle-morgenausgabe-13.md"
 AUDIT = ROOT / "redaktionspruefung-13.md"
 
 NOW = datetime.now(ZoneInfo("Europe/Vienna"))
+MAX_ARTICLE_AGE_HOURS = 48
+FUTURE_TOLERANCE_HOURS = 2
 
 BAD = re.compile(
     r"\b(fantasy|dfs|draftkings|fanduel|sportsbook|betting|"
@@ -84,6 +86,8 @@ def load_sources():
         fail("Ungueltige Artikelstruktur.")
 
     filtered = []
+    undated = 0
+    out_of_window = 0
 
     for article in articles:
         title = str(article.get("title", ""))
@@ -94,7 +98,12 @@ def load_sources():
         if BAD.search(title + " " + url):
             continue
 
-        if age is not None and (age < -2 or age > 48):
+        # Ohne belastbares Datum keine Aufnahme in den Morgenbrief.
+        if age is None:
+            undated += 1
+            continue
+        if not (-FUTURE_TOLERANCE_HOURS <= age <= MAX_ARTICLE_AGE_HOURS):
+            out_of_window += 1
             continue
 
         if len(body.split()) < 120:
@@ -105,6 +114,9 @@ def load_sources():
 
         filtered.append(article)
 
+    print(f"Datumsfilter: {undated} ohne gueltiges Datum, "
+          f"{out_of_window} ausserhalb von {MAX_ARTICLE_AGE_HOURS} Stunden; "
+          f"{len(filtered)} Kandidaten verbleiben.")
     filtered.sort(key=priority, reverse=True)
 
     selected = []
@@ -133,7 +145,7 @@ def load_sources():
         fail("Keine geeigneten Nachrichtenquellen.")
 
     games = GAMES.read_text(encoding="utf-8")
-    return articles, selected, games
+    return articles, selected, games, undated, out_of_window
 
 
 def make_material(selected):
@@ -216,6 +228,20 @@ Keine Quellen ohne inhaltliche Uebereinstimmung.
 Unbestaetigte Meldungen als solche kennzeichnen.
 Keine Fantasy-, Wett- oder belanglosen Randmeldungen.
 
+ AKTUALITAET UND ZEITLICHE PLAUSIBILITAET:
+ - Der Zeitpunkt ZEIT WIEN ist der verbindliche Redaktionsstand.
+ - Jeder Artikel hat ein VEROEFFENTLICHT-Datum; dieses ist nicht
+   automatisch der Zeitpunkt des beschriebenen Ereignisses.
+ - Unterscheide konsequent zwischen bereits geschehen, laufend und
+   bevorstehend. Schreibe keine Vorschau auf ein bereits beendetes Spiel.
+ - Die ESPN-Spielinformationen haben bei Spielstatus und Ergebnissen
+   Vorrang vor aelteren Formulierungen in Nachrichtenartikeln.
+ - Wenn der Spielstatus oder Ereigniszeitpunkt unklar ist, verzichte
+   auf zeitbezogene Behauptungen und kennzeichne die Unsicherheit.
+ - Keine alten Zukunftsformulierungen aus Quellen ungeprueft uebernehmen.
+ - Bei Konflikten zwischen Quellen oder unsicherer zeitlicher Lage:
+   Thema weglassen, statt eine vermeintlich aktuelle Meldung zu erfinden.
+
 GAME CENTER:
 Nur Daten aus dem uebergebenen ESPN-Bericht verwenden.
 ENDE bedeutet Endstand.
@@ -254,7 +280,9 @@ def call_openai(selected, games):
         "max_output_tokens": 8000,
         "instructions": INSTRUCTIONS,
         "input": (
-            f"ZEIT WIEN: {NOW.isoformat(timespec='minutes')}\n\n"
+            f"ZEIT WIEN (verbindlicher Redaktionsstand): {NOW.isoformat(timespec='minutes')}\n"
+            f"ARTIKELFENSTER: maximal {MAX_ARTICLE_AGE_HOURS} Stunden; "
+            "Ereigniszeitpunkte gesondert pruefen.\n\n"
             f"ESPN GAME CENTER:\n{games[:14000]}\n\n"
             f"ERLAUBTE QUELLEN:\n{allowed}\n\n"
             f"ARTIKELMATERIAL:\n{make_material(selected)}"
@@ -312,7 +340,7 @@ def call_openai(selected, games):
 
 
 def main():
-    articles, selected, games = load_sources()
+    articles, selected, games, undated, out_of_window = load_sources()
     content = call_openai(selected, games)
 
     ROOT.mkdir(parents=True, exist_ok=True)
@@ -366,6 +394,8 @@ def main():
         "",
         f"- Verfügbare Artikel: {len(articles)}",
         f"- Ausgewählte Artikel: {len(selected)}",
+        f"- Artikel ohne gueltiges Datum verworfen: {undated}",
+        f"- Artikel ausserhalb des Zeitfensters verworfen: {out_of_window}",
         "",
         "## Automatische Prüfflaggen",
         "",
@@ -393,6 +423,7 @@ def main():
         "## Vor Veröffentlichung manuell prüfen",
         "",
         "- Alle Aussagen mit Originalquellen abgleichen.",
+        "- Zeitbezug jeder Meldung gegen Spielstatus und Ereignisdatum pruefen.",
         "- Verletzungen, Zahlen und Spielstände prüfen.",
         "- Überschriften und Nachrichtenwert prüfen.",
         "- Keine Veröffentlichung ohne Freigabe.",
