@@ -12,7 +12,7 @@
 <a href="https://football-austria.com/quenton-nelson-trade-seahawks-bernhard-raimann/">Raimann verliert Nebenmann Nelson</a></p>
 <hr/>
 </div></div></section><section class="section sources" id="sources"><h2>Quellen &amp; Methodik</h2><p class="sub">Diese Testausgabe wurde aus einem gespeicherten Recherche-Snapshot erstellt. Quellen sind in den jeweiligen Beiträgen direkt verlinkt. Es handelt sich nicht um einen Live-Newsfeed.</p><p><a href="https://www.nfl.com/scores/" rel="noopener noreferrer" target="_blank">NFL.com Scores</a> · <a href="https://www.espn.com/nfl/scoreboard" rel="noopener noreferrer" target="_blank">ESPN Scoreboard</a> · <a href="https://apnews.com/hub/nfl" rel="noopener noreferrer" target="_blank">Associated Press NFL</a> · <a href="https://www.nbcsports.com/nfl" rel="noopener noreferrer" target="_blank">NBC Sports NFL</a></p><p class="mini">Automatisch erstellter Entwurf. Redaktionelle Prüfung und Freigabe ausständig.</p></section></main><footer><div class="wrap">THE HUDDLE · Redaktionelle Testausgabe · Nicht mit der NFL verbunden</div></footer><script>const b=document.getElementById('spoiler'),s=document.getElementById('scores');b.addEventListener('click',()=>{s.hidden=!s.hidden;b.textContent=s.hidden?'Ergebnisse anzeigen':'Ergebnisse verbergen';b.setAttribute('aria-pressed',String(!s.hidden))});</script><script>
-// Bewahrt die 13 redaktionellen Snapshot-Ergebnisse und ergänzt archivierte NFL Game Books.
+// Bewahrt die 13 redaktionellen Snapshot-Ergebnisse und ergänzt Viertelstände sowie archivierte NFL Game Books.
 // Die Zuordnung erfolgt ausschließlich über ESPN Event-ID und die beiden Teamnamen.
 (async function restoreGameBooks() {
   const cards = [...document.querySelectorAll('#scorelist .score')];
@@ -23,6 +23,7 @@
   document.getElementById('scorelist').after(status);
   const dates = ['20261101', '20261102'];
   let count = 0;
+  let quarterCount = 0;
   let archiveFound = false;
   const normalize = name => String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const cardMap = new Map();
@@ -47,8 +48,60 @@
         if (competitors.length !== 2) continue;
         const key = competitors.map(x => normalize(x.team?.displayName)).sort().join('|');
         const card = cardMap.get(key);
+        if (!card) continue;
+        // Viertelstände nur für exakt passende Teams und Endergebnisse anzeigen.
+        if (!card.querySelector('.quarter-scores')) {
+          const shownNames = [...card.querySelectorAll('.team')].map(x => normalize(x.textContent));
+          const shownScores = (card.querySelector('.middle strong')?.textContent || '').match(/^(\d+)\s*:\s*(\d+)$/);
+          const ordered = shownNames.map(name => competitors.find(c => normalize(c.team?.displayName) === name));
+          const periods = ordered.map(c => c?.linescores);
+          const totals = ordered.map(c => Number(c?.score));
+          const validPeriods = periods.every(a => Array.isArray(a) && a.length >= 4 && a.every(x => Number.isFinite(Number(x?.value)) && Number(x.value) >= 0));
+          const scoreMatch = shownScores && totals[0] === Number(shownScores[1]) && totals[1] === Number(shownScores[2]);
+          const sumsMatch = validPeriods && periods.every((a, i) => a.reduce((sum, x) => sum + Number(x.value), 0) === totals[i]);
+          if (scoreMatch && sumsMatch && periods[0].length === periods[1].length) {
+            const quarters = periods[0].length;
+            const quarterBox = document.createElement('div');
+            quarterBox.className = 'quarter-scores';
+            quarterBox.style.cssText = 'grid-column:1/-1;overflow-x:auto;border-top:1px solid #35435b;padding-top:11px';
+            const table = document.createElement('table');
+            table.setAttribute('aria-label', 'Viertelergebnisse');
+            table.style.cssText = 'width:100%;border-collapse:collapse;text-align:center;font-size:12px;color:#d0dbea;white-space:nowrap';
+            const header = document.createElement('tr');
+            const corner = document.createElement('th');
+            corner.textContent = 'Viertel';
+            corner.style.cssText = 'text-align:left;padding:5px 7px';
+            header.append(corner);
+            for (let i = 0; i < quarters; i++) {
+              const th = document.createElement('th');
+              th.textContent = i < 4 ? 'Q' + (i + 1) : i === 4 ? 'OT' : 'OT' + (i - 3);
+              th.style.cssText = 'padding:5px 7px';
+              header.append(th);
+            }
+            table.append(header);
+            ordered.forEach((c, teamIndex) => {
+              const tr = document.createElement('tr');
+              const name = document.createElement('th');
+              name.textContent = c.team?.abbreviation || (teamIndex === 0 ? 'Team 1' : 'Team 2');
+              name.style.cssText = 'text-align:left;padding:5px 7px;color:#eef3f9';
+              tr.append(name);
+              periods[teamIndex].forEach(period => {
+                const td = document.createElement('td');
+                td.textContent = String(Number(period.value));
+                td.style.cssText = 'padding:5px 7px';
+                tr.append(td);
+              });
+              table.append(tr);
+            });
+            quarterBox.append(table);
+            const bookRow = card.querySelector('.gamebook-link')?.parentElement;
+            if (bookRow) card.insertBefore(quarterBox, bookRow);
+            else card.append(quarterBox);
+            quarterCount++;
+          }
+        }
         const pdfUrl = booksData.gamebooks[String(event.id)];
-        if (!card || typeof pdfUrl !== 'string' || card.querySelector('.gamebook-link')) continue;
+        if (typeof pdfUrl !== 'string' || card.querySelector('.gamebook-link')) continue;
         let url;
         try { url = new URL(pdfUrl); } catch (_) { continue; }
         if (url.protocol !== 'https:' || url.hostname !== 'static.www.nfl.com' || !url.pathname.toLowerCase().includes('/gamecenter/') || !url.pathname.toLowerCase().endsWith('.pdf')) continue;
@@ -67,10 +120,10 @@
       }
     } catch (_) { /* Ergebnisdarstellung funktioniert auch ohne Archiv oder ESPN */ }
   }
-  status.textContent = count
+  status.textContent = (quarterCount ? quarterCount + ' Spiele mit Viertelergebnissen · ' : '') + (count
     ? count + ' offizielle NFL Game Books verlinkt (Archiv).'
     : archiveFound
       ? 'Für diese Ergebnisse konnten keine Game Books eindeutig zugeordnet werden.'
-      : 'Game-Book-Archiv derzeit nicht erreichbar. Die Ergebnisse bleiben sichtbar.';
+      : 'Game-Book-Archiv derzeit nicht erreichbar. Die Ergebnisse bleiben sichtbar.');
 })();
 </script></body></html>
