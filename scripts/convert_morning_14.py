@@ -243,7 +243,8 @@ def main():
     if not around:
         fail("AROUND THE LEAGUE enthält keine lesbare Nachricht.")
 
-    # Kurzmeldungen: Lead und weitere unterschiedliche Themen.
+
+    # Kurzmeldungen: nur Nachrichten mit expliziter Originalquelle.
     candidates = lead[:1] + around
 
     brief = []
@@ -255,27 +256,46 @@ def main():
         if key in seen:
             continue
 
-        seen.add(key)
-
         item = entry(news["body"])
+
+        if not item.get("source_url"):
+            print("Ohne Quelle übersprungen (Brief):", news["title"])
+            continue
+
         item["text"] = brief_text(news["body"])
 
         brief.append(item)
+        seen.add(key)
 
         if len(brief) >= 5:
             break
 
-    # Top Stories übernehmen die eigens erzeugten Überschriften.
+    # Top Stories: nur Meldungen mit Originalquellenlink.
     stories = []
 
-    for news in around[:6]:
-        stories.append(
-            entry(
-                news["body"],
-                title=news["title"],
-                category="AROUND THE LEAGUE"
-            )
+    for news in around:
+        item = entry(
+            news["body"],
+            title=news["title"],
+            category="AROUND THE LEAGUE"
         )
+
+        if not item.get("source_url"):
+            print("Ohne Quelle übersprungen (Story):", news["title"])
+            continue
+
+        stories.append(item)
+
+        if len(stories) >= 6:
+            break
+
+    if len(brief) < 3:
+        fail("Zu wenige belegte Kurzmeldungen für die Vorschau.")
+
+    if len(stories) < 2:
+        fail("Zu wenige belegte Top Stories für die Vorschau.")
+
+
 
     austrian_raw = paragraphs(
         sections.get("AUSTRIAN WATCH", "")
