@@ -4,61 +4,61 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-05T01:25+01:00",
+    "date": "2026-11-05T01:39+01:00 Wien",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "brief": [
       {
-        "text": "Die Baltimore Ravens arbeiten Berichten zufolge an einem Trade für Quarterback Jacoby Brissett, um die durch die Verletzungen von Lamar Jackson und Tyler Huntley entstandene Lücke zu schließen; der Deal soll bis zum kommenden Wochenende stehen, Brissett wird aber nicht schon im Donnerstagsspiel gegen Jacksonville verfügbar sein.",
+        "text": "Die Baltimore Ravens finalisieren Berichten zufolge einen Trade für Quarterback Jacoby Brissett, nachdem Starter Lamar Jackson und Backup Tyler Huntley verletzt ausfallen; die Übereinkunft soll innerhalb des Wochenendes abgeschlossen werden, sodass Brissett nicht für das anstehende Thursday-Night-Spiel gegen die Jacksonville Jaguars zur Verfügung steht.",
         "source_url": "https://www.nfl.com/news/jacoby-brissett-trade-ravens-cardinals",
         "source_name": "nfl.com"
       },
       {
-        "text": "Sam Darnold wird wegen einer Quadrizepsverletzung nicht im Week‑9-Spiel der Seattle Seahawks gegen die Arizona Cardinals antreten, Coach Mike Macdonald bestätigte, dass Drew Lock den Start übernehmen soll.",
+        "text": "Quarterback Sam Darnold wird in Week 9 wegen einer Quadrizepsverletzung nicht gegen die Arizona Cardinals spielen, teilte Seahawks-Coach Mike Macdonald mit.",
         "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
         "source_name": "nfl.com"
       },
       {
-        "text": "Detroit Linebacker Jack Campbell teilte mit, er habe wieder volle Beweglichkeit im Unterkörper und mache Fortschritte an der Beweglichkeit des Oberkörpers, nachdem er nach einer Nackenverletzung ins Krankenhaus gebracht worden war.",
+        "text": "Jack Campbell gab aus dem Krankenhaus bekannt, dass er seinen Unterkörper wieder vollständig bewegen kann und bei der Beweglichkeit des Oberkörpers Fortschritte macht, nachdem er bei einem Zusammenstoß regungslos liegen geblieben war; Trainer Dan Campbell nannte die Meldung „positive Nachrichten“, konkrete medizinische Diagnosen oder ein Rückkehrzeitpunkt wurden bislang nicht kommuniziert.",
         "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
         "source_name": "nfl.com"
       },
       {
-        "text": "Cam Skattebo verpasste laut Teamangaben die Bonus-Trainingseinheit und wurde offiziell als nicht im Training aufgeführt, nachdem er gegen Houston ein Ziehen in der Oberschenkelmuskulatur gespürt hatte.",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/cam-skattebo-misses-practice-due-to-a-hamstring-injury",
+        "text": "In der Mittwochseinheit wurden Wide Receiver George Pickens (Hamstring) und Left Guard Tyler Smith (Knöchel) nur eingeschränkt eingesetzt; mehrere weitere Spieler nahmen gar nicht teil, während andere wie Jonathan Bullard und Kenny Clark volle Trainingseinheiten absolvierten.",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/wr-george-pickens-og-tyler-smith-were-limited-in-wednesdays-practice",
         "source_name": "nbcsports.com"
       },
       {
-        "text": "Micah Parsons absolvierte seine erste Trainingseinheit seit dem Kreuzbandriss in individueller Form und wird schrittweise hochgefahren; Trainer Matt LaFleur betonte, man gehe „Tag für Tag“ vor.",
+        "text": "Micah Parsons nahm erstmals seit seinem letzten Kreuzbandriss an individuellen Übungseinheiten teil und soll beim Aufbautraining schrittweise gesteigert werden; Coach Matt LaFleur betonte, das Team gehe „Tag für Tag“ vor, und Parsons vermeidet ein konkretes Comeback-Datum, hofft aber auf Spielpraxis in den kommenden Wochen, sofern die Belastung zügig gesteigert werden kann.",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/micah-parsons-wont-pinpoint-a-day-ill-be-back-in-the-lineup",
         "source_name": "nbcsports.com"
       }
     ],
     "stories": [
       {
-        "title": "Seahawks-Quarterback Sam Darnold fehlt in Woche 9 wegen Oberschenkelverletzung",
-        "summary": "Sam Darnold wird wegen einer Quadrizepsverletzung nicht im Week‑9-Spiel der Seattle Seahawks gegen die Arizona Cardinals antreten, Coach Mike Macdonald bestätigte, dass Drew Lock den Start übernehmen soll. Darnold erlitt die Verletzung gegen die Chicago Bears und bleibt laut Teamangaben wöchentlich überprüfbar, ohne Pläne zur Platzierung auf Injured Reserve.",
+        "title": "Seahawks ohne Sam Darnold in Week 9 gegen Cardinals",
+        "summary": "Quarterback Sam Darnold wird in Week 9 wegen einer Quadrizepsverletzung nicht gegen die Arizona Cardinals spielen, teilte Seahawks-Coach Mike Macdonald mit. Drew Lock soll trotz vorhandener Ellbogenbeschwerden starten, während Adrian Martinez für das Practice Squad verpflichtet wurde; Darnold wird wöchentlich neu bewertet und soll nicht auf Injured Reserve gesetzt werden.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/seahawks-qb-sam-darnold-out-week-9-cardinals-quad-injury",
         "source_name": "nfl.com"
       },
       {
-        "title": "Lions-Profi Jack Campbell meldet vollständige Bewegung im Unterkörper nach Nackenverletzung",
-        "summary": "Detroit Linebacker Jack Campbell teilte mit, er habe wieder volle Beweglichkeit im Unterkörper und mache Fortschritte an der Beweglichkeit des Oberkörpers, nachdem er nach einer Nackenverletzung ins Krankenhaus gebracht worden war. Trainer Dan Campbell bezeichnete die Nachricht als „gute, positive Nachrichten“, konkrete medizinische Details nannte das Team jedoch nicht.",
+        "title": "Lions-Linebacker Jack Campbell meldet volle Beinbewegung nach Nackenverletzung",
+        "summary": "Jack Campbell gab aus dem Krankenhaus bekannt, dass er seinen Unterkörper wieder vollständig bewegen kann und bei der Beweglichkeit des Oberkörpers Fortschritte macht, nachdem er bei einem Zusammenstoß regungslos liegen geblieben war; Trainer Dan Campbell nannte die Meldung „positive Nachrichten“, konkrete medizinische Diagnosen oder ein Rückkehrzeitpunkt wurden bislang nicht kommuniziert.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/lions-linebacker-jack-campbell-full-movement-lower-body-neck-injury",
         "source_name": "nfl.com"
       },
       {
-        "title": "Giants-Runningback Cam Skattebo fehlt wegen Oberschenkelproblemen im Training",
-        "summary": "Cam Skattebo verpasste laut Teamangaben die Bonus-Trainingseinheit und wurde offiziell als nicht im Training aufgeführt, nachdem er gegen Houston ein Ziehen in der Oberschenkelmuskulatur gespürt hatte. Head Coach John Harbaugh sagte, man werde sehen, ob seine Verfügbarkeit für das Sonntagsspiel gegen die Philadelphia Eagles beeinträchtigt ist.",
+        "title": "George Pickens und Tyler Smith waren am Mittwoch im Training limitiert",
+        "summary": "In der Mittwochseinheit wurden Wide Receiver George Pickens (Hamstring) und Left Guard Tyler Smith (Knöchel) nur eingeschränkt eingesetzt; mehrere weitere Spieler nahmen gar nicht teil, während andere wie Jonathan Bullard und Kenny Clark volle Trainingseinheiten absolvierten. Das Team wird die Verletzungssituation weiter beobachten, bevor Entscheidungen für das nächste Spiel getroffen werden.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/cam-skattebo-misses-practice-due-to-a-hamstring-injury",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/wr-george-pickens-og-tyler-smith-were-limited-in-wednesdays-practice",
         "source_name": "nbcsports.com"
       },
       {
-        "title": "Micah Parsons steigt schrittweise ins Teamtraining zurück und nennt kein konkretes Rückkehrdatum",
-        "summary": "Micah Parsons absolvierte seine erste Trainingseinheit seit dem Kreuzbandriss in individueller Form und wird schrittweise hochgefahren; Trainer Matt LaFleur betonte, man gehe „Tag für Tag“ vor. Parsons vermeidet das Festlegen eines Rückkehrdatums, auch wenn Berichte ein Ziel rund um Woche 12 andeuten, und spricht lieber von einem stufenweisen Aufbau.",
+        "title": "Micah Parsons kehrt mit individuellem Training Schritt für Schritt zurück",
+        "summary": "Micah Parsons nahm erstmals seit seinem letzten Kreuzbandriss an individuellen Übungseinheiten teil und soll beim Aufbautraining schrittweise gesteigert werden; Coach Matt LaFleur betonte, das Team gehe „Tag für Tag“ vor, und Parsons vermeidet ein konkretes Comeback-Datum, hofft aber auf Spielpraxis in den kommenden Wochen, sofern die Belastung zügig gesteigert werden kann.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/micah-parsons-wont-pinpoint-a-day-ill-be-back-in-the-lineup",
         "source_name": "nbcsports.com"
