@@ -14,18 +14,18 @@ SRC = Path('drafts/quellen-10.json')
 OUT = Path('drafts/themenvergleich-18.md')
 NOW = datetime.now(ZoneInfo('Europe/Vienna'))
 BAD = re.compile(r'\b(fantasy|dfs|draftkings|fanduel|sportsbook|betting|odds|parlay|prop bets?|mock draft|waiver wire|how to watch|streaming|start.?sit|tv schedule)\b', re.I)
-SPORT = [
-    (r'\b(final score|defeats?|beats?|wins?|victory|overtime|touchdown|game[- ]winning|shutout|upset)\b', 9, 'Spielergebnis'),
-    (r'\b(ruled out|out for season|season[- ]ending|injury report|injured reserve|torn acl|concussion|will miss|sidelined)\b', 8, 'Ausfall/Verletzung'),
-    (r'\b(traded?|trade agreement|signs?|signed|released|waived|acquired|contract extension|fired|hired|head coach|general manager)\b', 7, 'Kader/Personal'),
-    (r'\b(playoff|division lead|clinches?|record[- ]breaking|nfl record|suspension|suspended)\b', 6, 'Wettbewerb/Regel'),
-    (r'\b(starting quarterback|starter|bench(?:ed|ing)?|depth chart|questionable|doubtful)\b', 4, 'Spielrelevanz'),
-]
-LOW = [
-    (r'\b(mock draft|draft rankings?|big board|power rankings?|top prospects?|draft grades?)\b', -14, 'Draft-Ranking'),
-    (r'\b(opinion|column|mailbag|podcast|recap show|analysis|predictions?|grades?)\b', -8, 'Kommentar/Meinung'),
-    (r'\b(owner|ownership|billionaire|celebrity|fashion|merchandise|tv host|broadcaster|media personality)\b', -9, 'Randthema'),
-    (r'\b(how to watch|streaming|fantasy|betting|odds|parlay)\b', -15, 'Service/Wetten'),
+# Reihenfolge ist entscheidend: erst redaktionelle Gattung, dann Relevanz.
+CATEGORIES = [
+    ('Prognose/Service', r'\b(picks?|predictions?|betting|odds|fantasy|how to watch|fact or fiction|mock draft|big board|draft rankings?|power rankings?)\b', -20),
+    ('Porträt/Rückblick', r'\b(how .* transformed|best .* ever|hall of fame induction|retrospective|look back|history of)\b', -13),
+    ('Randthema', r'\b(owner|ownership|kraft|celebrity|fashion|media personality|back surgery)\b', -12),
+    ('Vorwürfe/Untersuchung', r'\b(allegations?|accused|investigation|abuse|lawsuit)\b', -5),
+    ('Spielvorschau', r'\b(preview|matchup|ahead of|to start|will start|set to face)\b', 3),
+    ('Spielergebnis', r'\b(final score|defeated|defeats|beat the|beats the|won against|wins over|overtime win|game-winning touchdown)\b', 12),
+    ('Verletzung/Ausfall', r'\b(ruled out|out for season|season-ending|injured reserve|torn acl|concussion|will miss|sidelined)\b', 10),
+    ('Kader/Personal', r'\b(traded|trade|signed|signs with|released|waived|acquired|contract extension|fired|hired|head coach)\b', 9),
+    ('Wettbewerb/Regel', r'\b(clinched|clinches|playoff berth|nfl record|suspended|suspension announced)\b', 7),
+    ('Spielrelevanz', r'\b(starting quarterback|named starter|benched|questionable|doubtful|injury report)\b', 6),
 ]
 
 def age_hours(value):
@@ -42,16 +42,17 @@ def age_hours(value):
 def score(a):
     title = str(a.get('title') or '')
     age = age_hours(a.get('published'))
-    points = 0
-    reasons = []
-    for pattern, value, reason in SPORT + LOW:
-        if re.search(pattern, title, re.I):
-            points += value
-            reasons.append(f'{reason} {value:+d}')
-    if age is not None:
-        freshness = 9 if age <= 12 else 7 if age <= 24 else 3 if age <= 36 else 0
-        points += freshness
-        reasons.append(f'Aktualität +{freshness}')
+    category, pattern, base = next(
+        ((name, regex, points) for name, regex, points in CATEGORIES
+         if re.search(regex, title, re.I)),
+        ('Sonstige Nachricht', '', 0)
+    )
+    # Die Einstufung ist exklusiv: 'cheap shot' ist kein Sieg,
+    # 'score predictions' kein Spielergebnis, 'suspension' in Vorwürfen
+    # keine bereits verhängte Strafe.
+    freshness = (9 if age <= 12 else 7 if age <= 24 else 3 if age <= 36 else 0) if age is not None else 0
+    points = base + freshness
+    reasons = [f'{category} {base:+d}', f'Aktualität +{freshness}']
     return points, reasons
 
 def main():
@@ -96,14 +97,14 @@ def main():
         return out
     old = pick(sorted(eligible, key=old_score, reverse=True))
     new = pick(sorted(eligible, key=lambda a: score(a)[0], reverse=True))
-    lines = ['# THE HUDDLE – Themenvergleich 1.8', '',
+    lines = ['# THE HUDDLE – Themenvergleich 1.8.1', '',
              f'Prüfzeit Wien: {NOW.isoformat(timespec="minutes")}',
              'Nur Simulation, keine KI, keine Veröffentlichung.', '',
              f'Geeignete Quellen: {len(eligible)}', '',
              '## Bisherige Gewichtung (Simulation)', '']
     for i,a in enumerate(old,1):
         lines.append(f'{i}. {a.get("title", "")} — {old_score(a)} Punkte — {a.get("url", "")}')
-    lines += ['', '## Neue Gewichtung 1.8 (Simulation)', '']
+    lines += ['', '## Neue Gewichtung 1.8.1 (Simulation)', '']
     for i,a in enumerate(new,1):
         pts, why = score(a)
         lines.append(f'{i}. {a.get("title", "")} — {pts} Punkte ({", ".join(why) or "neutral"}) — {a.get("url", "")}')
@@ -116,7 +117,7 @@ def main():
     lines += ['', 'Hinweis: Titel-Schlüsselwörter ersetzen keine journalistische Einzelfallprüfung.', '']
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text('\n'.join(lines), encoding='utf-8')
-    print(f'THE HUDDLE 1.8: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
+    print(f'THE HUDDLE 1.8.1: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
 
 if __name__ == '__main__':
     main()
