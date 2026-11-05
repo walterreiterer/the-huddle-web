@@ -1,0 +1,33 @@
+name: THE HUDDLE – Themenvergleich 1.8
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhängigkeiten installieren
+        run: pip install requests feedparser trafilatura googlenewsdecoder
+      - name: Quellen sammeln
+        run: python scripts/collect_sources_10.py
+      - name: Themengewichtung vergleichen
+        run: python scripts/compare_topics_18.py
+      - name: Vergleichsbericht sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-themenvergleich-18
+          path: drafts/themenvergleich-18.md
+          if-no-files-found: warn
+          retention-days: 7
