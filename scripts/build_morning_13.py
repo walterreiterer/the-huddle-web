@@ -389,6 +389,14 @@ def main():
         str(article["url"]) for article in selected
     }
 
+    # ESPN-Spiel-URLs sind eigenständige, strukturierte Quellen.
+    # Nur Links zulassen, die im tatsächlich geladenen Spielbericht stehen.
+    game_urls = {
+        url.rstrip(".,;])")
+        for url in re.findall(r"https?://[^\s<>]+", games)
+    }
+    allowed_urls.update(game_urls)
+
     source_links = re.findall(
         r"\(Quelle:\s*(https://[^)\s]+)\)",
         content,
