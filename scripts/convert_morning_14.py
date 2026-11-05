@@ -387,10 +387,16 @@ def main():
         ),
         "edition": {
             "date": (
-                date_match.group(1)
-                if date_match
-                else "Datum prüfen"
-            ),
+    re.sub(
+        r"\s+Wien\s*$",
+        "",
+        date_match.group(1)
+    ) + ":00" if False else (
+        re.sub(r"\s+Wien\s*$", "", date_match.group(1))
+        if date_match
+        else "Datum prüfen"
+    )
+),
             "headline": (
                 "THE HUDDLE – Redaktionelle Testvorschau"
             ),
