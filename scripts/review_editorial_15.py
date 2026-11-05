@@ -31,14 +31,14 @@ def source_context():
     if not isinstance(articles, list):
         raise ValueError('articles muss eine Liste sein')
     selected = []
-    for article in articles[:26]:
+    for article in articles[:12]:
         if not isinstance(article, dict):
             continue
         selected.append({
             'title': str(article.get('title', ''))[:230],
             'url': str(article.get('url', ''))[:500],
             'published': str(article.get('published', ''))[:100],
-            'text_excerpt': str(article.get('text', ''))[:1700],
+            'text_excerpt': str(article.get('text', ''))[:1100],
         })
     return json.dumps(selected, ensure_ascii=False, indent=2)
 
@@ -76,12 +76,12 @@ def request_review(draft, sources, now):
         '"Status: manuelle Freigabe weiterhin erforderlich."'
     )
     body = ('Prüfzeit Wien: ' + now + '\n\nENTWURF:\n' + draft[:26000] +
-            '\n\nQUELLENAUSZÜGE (nicht garantiert vollständig):\n' + sources[:65000])
+            '\n\nQUELLENAUSZÜGE (nicht garantiert vollständig):\n' + sources[:26000])
     payload = {
         'model': MODEL,
         'instructions': instructions,
         'input': body,
-        'max_output_tokens': 4000,
+        'max_output_tokens': 12000,
         'store': False,
     }
     req = urllib.request.Request(
@@ -96,7 +96,7 @@ def request_review(draft, sources, now):
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f'OpenAI HTTP {exc.code}: {exc.read(500).decode("utf-8", "replace")}') from exc
     if response.get('status') != 'completed':
-        raise RuntimeError('KI-Antwort nicht vollständig: ' + str(response.get('status')))
+        raise RuntimeError('KI-Antwort nicht vollständig: ' + str(response.get('status')) + '; Details: ' + json.dumps(response.get('incomplete_details'), ensure_ascii=False))
     chunks = []
     for item in response.get('output', []):
         if item.get('type') == 'message':
