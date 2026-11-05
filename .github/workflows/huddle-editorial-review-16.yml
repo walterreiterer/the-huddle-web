@@ -1,0 +1,48 @@
+name: THE HUDDLE – Redaktionstest 1.6
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editorial-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Pakete installieren
+        run: pip install requests feedparser trafilatura googlenewsdecoder
+
+      - name: Scores abrufen
+        run: python scripts/fetch_scores.py
+
+      - name: Quellen sammeln
+        run: python scripts/collect_sources_10.py
+
+      - name: Ausgabe erstellen
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/build_morning_13.py
+
+      - name: Redaktionelle KI-Gegenprüfung 1.6
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/review_editorial_16.py --ai
+
+      - name: Diagnose sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-redaktionstest-16
+          path: drafts/
+          if-no-files-found: warn
+          retention-days: 7
