@@ -33,8 +33,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/build_morning_13.py
 
-      - name: Redaktionelle Gegenprüfung 1.5 (ohne zusätzlichen KI-Aufruf)
-        run: python scripts/review_editorial_15.py
+      - name: Redaktionelle KI-Gegenprüfung 1.5
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/review_editorial_15.py --ai
 
       - name: Diagnose herunterladen ermöglichen
         if: always()
