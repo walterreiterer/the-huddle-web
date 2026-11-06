@@ -53,7 +53,7 @@ def same_story(a, b):
     # Konservativ: mindestens zwei aussagekräftige gemeinsame Wörter.
     return len(common) >= 2 and len(common) / max(1, min(len(ta), len(tb))) >= .60
 
-# 1.8.3: Erkenne Ereignisse vor der generischen Wortlisten-Wertung.
+# 1.8.4: Erkenne Ereignisse vor der generischen Wortlisten-Wertung.
 RESULT = re.compile(r"\b(?:\d{1,2}\s*[-–:]\s*\d{1,2}\s*(?:win|victory)|(?:win|victory|defeat|beat|beats|overwhelm|rout|crush)(?:s|ed)?\b|final score|final:|game recap)\b", re.I)
 SPECULATION = re.compile(r"\b(?:predict(?:s|ed|ions?)?|predictions?|rumou?rs?|trade targets?|landing spots?|could|might|should|will .*\?|prospects? questions?|mock draft|big board|picks?)\b", re.I)
 ANALYSIS = re.compile(r"\b(?:what we learned|takeaways?|analysis|best season|rankings?|biggest hits|busts)\b", re.I)
@@ -71,6 +71,21 @@ def event_key(a):
     if re.search(r'nfl.star meldet sich nach', title):
         return 'nfl-star-meldet-sich'
     return None
+
+# Priorität bei gleichwertigen Meldungen über dasselbe Ereignis.
+# Quelle ist ein Tie-Breaker, nicht Ersatz für Nachrichtenwert oder Belegprüfung.
+def source_priority(a):
+    from urllib.parse import urlparse
+    host = (urlparse(str(a.get('url') or '')).hostname or '').lower()
+    if host == 'nfl.com' or host.endswith('.nfl.com'):
+        return 3
+    if host == 'espn.com' or host.endswith('.espn.com'):
+        return 2
+    if host in ('foxsports.com', 'www.foxsports.com'):
+        return 1
+    return 0
+
+MIN_SCORE = 1  # Keine künstliche Auffüllung mit negativ bewerteten Themen.
 
 def score(a):
     title = str(a.get('title') or '')
@@ -134,10 +149,17 @@ def main():
         return out
     old = pick(sorted(eligible, key=old_score, reverse=True))
     new_candidates = [a for a in eligible if not EUROPE.search(str(a.get('title') or '') + ' ' + str(a.get('url') or ''))]
+    # Erst nach Ereignis gruppieren und innerhalb des Clusters die stärkste
+    # Meldung bestimmen. So verdrängt ein zuerst gelisteter FOX-Artikel nicht
+    # automatisch einen gleichwertigen NFL.com-Spielbericht.
+    ranked = sorted(new_candidates, key=lambda a: (score(a)[0], source_priority(a)), reverse=True)
     new = []
     publishers_new = {}
     seen_events = set()
-    for a in sorted(new_candidates, key=lambda a: score(a)[0], reverse=True):
+    for a in ranked:
+        pts, _ = score(a)
+        if pts < MIN_SCORE:
+            continue
         pub = str(a.get('source') or 'Unbekannt')
         event = event_key(a)
         if publishers_new.get(pub, 0) >= 4 or (event and event in seen_events) or any(same_story(a, b) for b in new):
@@ -148,14 +170,14 @@ def main():
         publishers_new[pub] = publishers_new.get(pub, 0) + 1
         if len(new) == 12:
             break
-    lines = ['# THE HUDDLE – Themenvergleich 1.8.3', '',
+    lines = ['# THE HUDDLE – Themenvergleich 1.8.4', '',
              f'Prüfzeit Wien: {NOW.isoformat(timespec="minutes")}',
-             'Nur Simulation, keine KI, keine Veröffentlichung.', 'Themengruppierung heuristisch: unklare Überschriften können weiterhin Dubletten ergeben.', '',
-             f'Geeignete Quellen: {len(eligible)}', '',
+             'Nur Simulation, keine KI, keine Veröffentlichung.', f'Mindestpunktzahl: {MIN_SCORE}; Quellenpriorität nur bei gleicher Punktzahl.', 'Themengruppierung heuristisch: unklare Überschriften können weiterhin Dubletten ergeben.', '',
+             f'Geeignete Quellen: {len(eligible)}', f'Neue Auswahl: {len(new)} von maximal 12 Themen', '',
              '## Bisherige Gewichtung (Simulation)', '']
     for i,a in enumerate(old,1):
         lines.append(f'{i}. {a.get("title", "")} — {old_score(a)} Punkte — {a.get("url", "")}')
-    lines += ['', '## Neue Gewichtung 1.8.3 (Simulation)', '']
+    lines += ['', '## Neue Gewichtung 1.8.4 (Simulation)', '']
     for i,a in enumerate(new,1):
         pts, why = score(a)
         lines.append(f'{i}. {a.get("title", "")} — {pts} Punkte ({", ".join(why) or "neutral"}) — {a.get("url", "")}')
@@ -168,7 +190,7 @@ def main():
     lines += ['', 'Hinweis: Titel-Schlüsselwörter ersetzen keine journalistische Einzelfallprüfung.', '']
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text('\n'.join(lines), encoding='utf-8')
-    print(f'THE HUDDLE 1.8.3: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
+    print(f'THE HUDDLE 1.8.4: {OUT}; {len(eligible)} Kandidaten; {len(new)} ausgewählt; keine Veröffentlichung')
 
 if __name__ == '__main__':
     main()
