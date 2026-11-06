@@ -53,17 +53,40 @@ def same_story(a, b):
     # Konservativ: mindestens zwei aussagekräftige gemeinsame Wörter.
     return len(common) >= 2 and len(common) / max(1, min(len(ta), len(tb))) >= .60
 
+# 1.8.3: Erkenne Ereignisse vor der generischen Wortlisten-Wertung.
+RESULT = re.compile(r"\b(?:\d{1,2}\s*[-–:]\s*\d{1,2}\s*(?:win|victory)|(?:win|victory|defeat|beat|beats|overwhelm|rout|crush)(?:s|ed)?\b|final score|final:|game recap)\b", re.I)
+SPECULATION = re.compile(r"\b(?:predict(?:s|ed|ions?)?|predictions?|rumou?rs?|trade targets?|landing spots?|could|might|should|will .*\?|prospects? questions?|mock draft|big board|picks?)\b", re.I)
+ANALYSIS = re.compile(r"\b(?:what we learned|takeaways?|analysis|best season|rankings?|biggest hits|busts)\b", re.I)
+
+def event_key(a):
+    title = str(a.get('title') or '').lower()
+    url = str(a.get('url') or '').lower()
+    both = title + ' ' + url
+    # Nur starke gemeinsame Anker: nicht alle Berichte eines Teams zusammenlegen.
+    if 'aiyuk' in both and ('return' in both or 'reinstat' in both):
+        return 'aiyuk-return'
+    if ('jaguars' in both and 'ravens' in both) or ('jacksonville' in both and 'baltimore' in both):
+        if RESULT.search(title) or '33-10' in both:
+            return 'jaguars-ravens-game'
+    if re.search(r'nfl.star meldet sich nach', title):
+        return 'nfl-star-meldet-sich'
+    return None
+
 def score(a):
     title = str(a.get('title') or '')
     age = age_hours(a.get('published'))
-    category, pattern, base = next(
-        ((name, regex, points) for name, regex, points in CATEGORIES
-         if re.search(regex, title, re.I)),
-        ('Sonstige Nachricht', '', 0)
-    )
-    # Die Einstufung ist exklusiv: 'cheap shot' ist kein Sieg,
-    # 'score predictions' kein Spielergebnis, 'suspension' in Vorwürfen
-    # keine bereits verhängte Strafe.
+    if RESULT.search(title) and not re.search(r'\b(?:predict|prediction|picks?|odds)\b', title, re.I):
+        category, base = 'Spielergebnis', 22
+    elif SPECULATION.search(title):
+        category, base = 'Prognose/Spekulation', -19
+    elif ANALYSIS.search(title):
+        category, base = 'Analyse/Kommentar', -7
+    else:
+        category, pattern, base = next(
+            ((name, regex, points) for name, regex, points in CATEGORIES
+             if re.search(regex, title, re.I)),
+            ('Sonstige Nachricht', '', 0)
+        )
     freshness = (9 if age <= 12 else 7 if age <= 24 else 3 if age <= 36 else 0) if age is not None else 0
     points = base + freshness
     reasons = [f'{category} {base:+d}', f'Aktualität +{freshness}']
@@ -113,22 +136,26 @@ def main():
     new_candidates = [a for a in eligible if not EUROPE.search(str(a.get('title') or '') + ' ' + str(a.get('url') or ''))]
     new = []
     publishers_new = {}
+    seen_events = set()
     for a in sorted(new_candidates, key=lambda a: score(a)[0], reverse=True):
         pub = str(a.get('source') or 'Unbekannt')
-        if publishers_new.get(pub, 0) >= 4 or any(same_story(a, b) for b in new):
+        event = event_key(a)
+        if publishers_new.get(pub, 0) >= 4 or (event and event in seen_events) or any(same_story(a, b) for b in new):
             continue
         new.append(a)
+        if event:
+            seen_events.add(event)
         publishers_new[pub] = publishers_new.get(pub, 0) + 1
         if len(new) == 12:
             break
-    lines = ['# THE HUDDLE – Themenvergleich 1.8.2', '',
+    lines = ['# THE HUDDLE – Themenvergleich 1.8.3', '',
              f'Prüfzeit Wien: {NOW.isoformat(timespec="minutes")}',
              'Nur Simulation, keine KI, keine Veröffentlichung.', 'Themengruppierung heuristisch: unklare Überschriften können weiterhin Dubletten ergeben.', '',
              f'Geeignete Quellen: {len(eligible)}', '',
              '## Bisherige Gewichtung (Simulation)', '']
     for i,a in enumerate(old,1):
         lines.append(f'{i}. {a.get("title", "")} — {old_score(a)} Punkte — {a.get("url", "")}')
-    lines += ['', '## Neue Gewichtung 1.8.2 (Simulation)', '']
+    lines += ['', '## Neue Gewichtung 1.8.3 (Simulation)', '']
     for i,a in enumerate(new,1):
         pts, why = score(a)
         lines.append(f'{i}. {a.get("title", "")} — {pts} Punkte ({", ".join(why) or "neutral"}) — {a.get("url", "")}')
@@ -141,7 +168,7 @@ def main():
     lines += ['', 'Hinweis: Titel-Schlüsselwörter ersetzen keine journalistische Einzelfallprüfung.', '']
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text('\n'.join(lines), encoding='utf-8')
-    print(f'THE HUDDLE 1.8.2: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
+    print(f'THE HUDDLE 1.8.3: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
 
 if __name__ == '__main__':
     main()
