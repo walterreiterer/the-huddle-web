@@ -16,6 +16,7 @@ NOW = datetime.now(ZoneInfo('Europe/Vienna'))
 BAD = re.compile(r'\b(fantasy|dfs|draftkings|fanduel|sportsbook|betting|odds|parlay|prop bets?|mock draft|waiver wire|how to watch|streaming|start.?sit|tv schedule)\b', re.I)
 # Reihenfolge ist entscheidend: erst redaktionelle Gattung, dann Relevanz.
 CATEGORIES = [
+    ('Meinung/Kolumne', r'\b(qb notebook|notebook:|opinion|column|hot takes?|mailbag|has erased all doubts|should trade for|what we learned)\b', -17),
     ('Prognose/Service', r'\b(picks?|predictions?|betting|odds|fantasy|how to watch|fact or fiction|mock draft|big board|draft rankings?|power rankings?)\b', -20),
     ('Porträt/Rückblick', r'\b(how .* transformed|best .* ever|hall of fame induction|retrospective|look back|history of)\b', -13),
     ('Randthema', r'\b(owner|ownership|kraft|celebrity|fashion|media personality|back surgery)\b', -12),
@@ -38,6 +39,19 @@ def age_hours(value):
         return (NOW - d.astimezone(ZoneInfo('Europe/Vienna'))).total_seconds()/3600
     except (TypeError, ValueError, OverflowError):
         return None
+
+EUROPE = re.compile(r'\b(afle|elf|efa|the league europe|firenze red lions|european league of football)\b', re.I)
+STOP = {'the','a','an','and','or','of','to','for','with','after','from','in','on','at','as','is','are','has','have','nfl','star','qb','player','latest','news','football','says','report','update','updates','new','nach','bei','von','der','die','das','und','mit','sich','erstes','schwer','verletztem','verletzung','profi','meldet'}
+
+def topic_tokens(a):
+    title = str(a.get('title') or '').lower()
+    return {t for t in re.findall(r'[a-zA-Zäöüß]{4,}', title) if t not in STOP}
+
+def same_story(a, b):
+    ta, tb = topic_tokens(a), topic_tokens(b)
+    common = ta & tb
+    # Konservativ: mindestens zwei aussagekräftige gemeinsame Wörter.
+    return len(common) >= 2 and len(common) / max(1, min(len(ta), len(tb))) >= .60
 
 def score(a):
     title = str(a.get('title') or '')
@@ -72,7 +86,7 @@ def main():
         if len(body.split()) < 120 or not url.startswith('https://'):
             continue
         eligible.append(a)
-    # Gleicher Basisfilter für beide Listen; Vergleich isoliert ausschließlich die Gewichtung.
+    # Basisfilter bleibt für beide Listen gleich; nur neue Auswahl hat Themenfilter und Cluster.
     def old_score(a):
         title = str(a.get('title') or '')
         pts = 5 if re.search(r'\b(injury|injured|trade|traded|fired|hired|suspended|playoff|quarterback|record|coach|season-ending|extension|contract|released|waived|signed|signing|ruled out|out for season|head coach|general manager)\b', title, re.I) else 0
@@ -96,15 +110,25 @@ def main():
                 break
         return out
     old = pick(sorted(eligible, key=old_score, reverse=True))
-    new = pick(sorted(eligible, key=lambda a: score(a)[0], reverse=True))
-    lines = ['# THE HUDDLE – Themenvergleich 1.8.1', '',
+    new_candidates = [a for a in eligible if not EUROPE.search(str(a.get('title') or '') + ' ' + str(a.get('url') or ''))]
+    new = []
+    publishers_new = {}
+    for a in sorted(new_candidates, key=lambda a: score(a)[0], reverse=True):
+        pub = str(a.get('source') or 'Unbekannt')
+        if publishers_new.get(pub, 0) >= 4 or any(same_story(a, b) for b in new):
+            continue
+        new.append(a)
+        publishers_new[pub] = publishers_new.get(pub, 0) + 1
+        if len(new) == 12:
+            break
+    lines = ['# THE HUDDLE – Themenvergleich 1.8.2', '',
              f'Prüfzeit Wien: {NOW.isoformat(timespec="minutes")}',
-             'Nur Simulation, keine KI, keine Veröffentlichung.', '',
+             'Nur Simulation, keine KI, keine Veröffentlichung.', 'Themengruppierung heuristisch: unklare Überschriften können weiterhin Dubletten ergeben.', '',
              f'Geeignete Quellen: {len(eligible)}', '',
              '## Bisherige Gewichtung (Simulation)', '']
     for i,a in enumerate(old,1):
         lines.append(f'{i}. {a.get("title", "")} — {old_score(a)} Punkte — {a.get("url", "")}')
-    lines += ['', '## Neue Gewichtung 1.8.1 (Simulation)', '']
+    lines += ['', '## Neue Gewichtung 1.8.2 (Simulation)', '']
     for i,a in enumerate(new,1):
         pts, why = score(a)
         lines.append(f'{i}. {a.get("title", "")} — {pts} Punkte ({", ".join(why) or "neutral"}) — {a.get("url", "")}')
@@ -117,7 +141,7 @@ def main():
     lines += ['', 'Hinweis: Titel-Schlüsselwörter ersetzen keine journalistische Einzelfallprüfung.', '']
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text('\n'.join(lines), encoding='utf-8')
-    print(f'THE HUDDLE 1.8.1: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
+    print(f'THE HUDDLE 1.8.2: {OUT}; {len(eligible)} Kandidaten; keine Veröffentlichung')
 
 if __name__ == '__main__':
     main()
