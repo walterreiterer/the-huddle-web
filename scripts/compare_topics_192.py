@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""THE HUDDLE 1.9.2 – kostenfreier, isolierter Themenauswahl-Test.
-Nur drafts/quellen-10.json lesen, drafts/themenvergleich-192.md schreiben.
-Keine API, keine Veröffentlichung, keine Änderung bestehender Skripte.
-"""
+"""THE HUDDLE 1.9.2 – Themenvergleich, Revision B. Kein KI-Aufruf, keine Veröffentlichung."""
 import importlib.util
 import json
 import re
@@ -12,17 +9,40 @@ BASE = Path('scripts/compare_topics_18.py')
 SRC = Path('drafts/quellen-10.json')
 OUT = Path('drafts/themenvergleich-192.md')
 OLD = Path('drafts/themenauswahl-191.md')
-
-# Ausschlüsse nur bei eindeutiger Überschriften-Evidenz, keine Body-Keyword-Sperre.
 LIFESTYLE = re.compile(r'\b(?:bartenders?|bar owners?|museums?|normal person|cocktails?|restaurants?|fashion|outfits?|vacations?|tourists?|sightseeing|celebrity gossip|dating|nightlife)\b', re.I)
 OPINION = re.compile(r'\b(?:power rankings?|mock drafts?|fantasy|betting|odds|predictions?|picks for|what we learned|hot takes?|mailbag|asking price|trade targets?|insider reveals|potential trade|could be traded)\b', re.I)
-NEWS = re.compile(r'\b(?:nfl|super bowl|playoffs?|teams?|quarterbacks?|coach(?:es)?|trades?|traded|signed|signing|released|fired|hired|injur(?:y|ies|ed)|surgery|return(?:s|ing)?|suspended|suspension|contract|record|touchdown|game|win(?:s|ning)?|beat(?:s|en)?|defeat(?:s|ed)?|victory|loss|loses|ruled out|practice|roster|starter|starting|draft pick|reinstat(?:ed|ement))\b', re.I)
+NEWS = re.compile(r'\b(?:nfl|super bowl|playoffs?|teams?|quarterbacks?|\bqb\b|coach(?:es)?|trades?|traded|signed|signing|released|fired|hired|injur(?:y|ies|ed)|surgery|return(?:s|ing)?|suspended|suspension|contract|record|touchdown|game|win(?:s|ning)?|beat(?:s|en)?|defeat(?:s|ed)?|victory|loss|loses|ruled out|practice|roster|starter|starting|start|draft pick|reinstat(?:ed|ement)|concussion|sieg(?:t|e)?|besiegt|schlägt|gewinnt|niederlagen?|verliert|unterliegt|verletz(?:t|ung)|ausfall|rückkehr)\b', re.I)
+
 
 def load_topics():
     spec = importlib.util.spec_from_file_location('huddle_topics_18', BASE)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def event_key(article, topics):
+    """Only merge known event types; do not collapse distinct Aiyuk developments."""
+    title = str(article.get('title') or '').lower()
+    if 'aiyuk' in title:
+        if re.search(r'\b(?:owe|owes|bonus|bonuses|million|\$13)\b', title):
+            return 'aiyuk-bonus-dispute'
+        if re.search(r'\b(?:not yet reinstated|reinstat(?:ed|ement)|reserve/left)\b', title):
+            return 'aiyuk-roster-status'
+        if re.search(r'\b(?:meeting|to be continued)\b', title):
+            return 'aiyuk-meeting'
+        return None
+    return topics.event_key(article)
+
+
+def same_event(a, b, topics):
+    ak, bk = event_key(a, topics), event_key(b, topics)
+    if ak and bk:
+        return ak == bk
+    # Compare only when neither has a known event type; prevents unrelated
+    # developments about the same player from being suppressed.
+    return not ak and not bk and topics.same_story(a, b)
+
 
 def main():
     topics = load_topics()
@@ -49,32 +69,36 @@ def main():
             reason = 'Lifestyle/Prominenz (Titel)'
         elif OPINION.search(title):
             reason = 'Meinung/Prognose (Titel)'
-        elif not NEWS.search(title):
+        elif not (NEWS.search(title) or ('aiyuk' in title.lower() and re.search(r'\bmeeting\b', title, re.I))):
             reason = 'Kein klarer NFL-Nachrichtenanker im Titel – manuell prüfen'
         if reason:
             excluded.append((a, reason))
         else:
             eligible.append(a)
     ranked = sorted(eligible, key=lambda a: (topics.score(a)[0], topics.source_priority(a)), reverse=True)
-    selected, events, publishers = [], set(), {}
+    selected, publishers = [], {}
     for a in ranked:
         points, _ = topics.score(a)
         if points < max(3, topics.MIN_SCORE):
             excluded.append((a, f'Punktzahl zu niedrig ({points})'))
             continue
+        duplicate = next((b for b in selected if same_event(a, b, topics)), None)
+        if duplicate:
+            excluded.append((a, 'Dublette zu: ' + str(duplicate.get('title', ''))))
+            continue
         pub = str(a.get('source') or 'Unbekannt')
-        event = topics.event_key(a)
-        if publishers.get(pub, 0) >= 4 or (event and event in events) or any(topics.same_story(a, b) for b in selected):
-            excluded.append((a, 'Dubletten-/Quellenlimit'))
+        if publishers.get(pub, 0) >= 4:
+            excluded.append((a, 'Quellenlimit (maximal 4 je Verlag)'))
+            continue
+        if len(selected) >= 12:
+            excluded.append((a, 'Auswahlgrenze (maximal 12)'))
             continue
         selected.append(a)
-        if event:
-            events.add(event)
         publishers[pub] = publishers.get(pub, 0) + 1
-        if len(selected) == 12:
-            break
-    lines = ['# THE HUDDLE – Themenvergleich 1.9.2', '', 'Nur Themenauswahl, kein KI-Aufruf, keine Veröffentlichung.', '',
-             f'Quellen insgesamt: {len(articles)}', f'Nach Basis- und Nachrichtenwertfilter: {len(eligible)}',
+    lines = ['# THE HUDDLE – Themenvergleich 1.9.2 (Revision B)', '',
+             'Nur Themenauswahl, kein KI-Aufruf, keine Veröffentlichung.', '',
+             f'Quellen insgesamt: {len(articles)}',
+             f'Nach Basis- und Nachrichtenwertfilter: {len(eligible)}',
              f'Neue Auswahl: {len(selected)}', '', '## Auswahl 1.9.2', '']
     lines += [f'{i}. {a.get("title", "")} — {topics.score(a)[0]} Punkte — {a.get("url", "")}' for i, a in enumerate(selected, 1)]
     lines += ['', '## Ausgeschlossene / zurückgestellte Artikel', '']
@@ -83,10 +107,11 @@ def main():
         lines += ['', '## Bisherige Themenauswahl 1.9.1 (Referenz)', '', OLD.read_text(encoding='utf-8')]
     else:
         lines += ['', 'Hinweis: themenauswahl-191.md nicht vorhanden; direkter Vergleich entfällt.']
-    lines += ['', 'Hinweis: Schlüsselwortfilter sind heuristisch. Ausgeschlossene Themen manuell prüfen; wichtige NFL-Meldungen können fälschlich zurückgestellt werden.', '']
+    lines += ['', 'Hinweis: Heuristische Vorauswahl. Keine Faktenprüfung und keine Freigabe. Zeitfenster-Ausschlüsse bleiben bestehen.', '']
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text('\n'.join(lines), encoding='utf-8')
-    print(f'THE HUDDLE 1.9.2: {len(selected)} ausgewählt; {len(excluded)} zurückgestellt; {OUT}')
+    print(f'THE HUDDLE 1.9.2 Revision B: {len(selected)} ausgewählt; {len(excluded)} zurückgestellt; {OUT}')
+
 
 if __name__ == '__main__':
     main()
