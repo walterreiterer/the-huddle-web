@@ -104,13 +104,26 @@ oder schwerwiegenden ungestützten Aussagen, MANUELL_PRUEFEN bei offenen Fragen.
                'hinweis': 'Nur diese Texte liegen vor; keine Web-Recherche, keine Freigabe.'}
     payload = {'model': MODEL, 'instructions': instructions,
                'input': json.dumps(context, ensure_ascii=False),
-               'max_output_tokens': 6500, 'store': False}
-    try:
-        result = call_api(payload)
-        response_text = extract_response_text(result)
-        review = json.loads(response_text)
-    except (urllib.error.URLError, TimeoutError, ValueError, KeyError) as exc:
-        save_error(f'Gegenprüfung fehlgeschlagen: {type(exc).__name__}: {exc}')
+               'max_output_tokens': 10000, 'store': False,
+               'text': {'format': {'type': 'json_object'}}}
+    review = None
+    for attempt in range(1, 3):
+        try:
+            result = call_api(payload)
+            response_text = extract_response_text(result)
+            if result.get('status') == 'incomplete':
+                reason = result.get('incomplete_details', {}).get('reason', 'unbekannt')
+                raise ValueError(f'Antwort unvollständig ({reason})')
+            if not response_text:
+                raise ValueError('Leere KI-Antwort')
+            review = json.loads(response_text)
+            break
+        except (urllib.error.URLError, TimeoutError, ValueError, KeyError, json.JSONDecodeError) as exc:
+            print(f'Gegenprüfung Versuch {attempt}/2 fehlgeschlagen: {type(exc).__name__}: {exc}', file=sys.stderr)
+            if attempt == 2:
+                save_error(f'Gegenprüfung nach zwei Versuchen fehlgeschlagen: {type(exc).__name__}: {exc}. Keine Freigabe.')
+            # Beim Wiederholungsversuch Antwort kürzer anfordern, um JSON-Abbruch zu vermeiden.
+            payload['instructions'] = instructions + "\nWICHTIG: Halte das JSON knapp. Pro Nachricht höchstens 4 zentrale Behauptungen, je Beleg höchstens 12 Wörter, kurze Hinweise. Vollständiges gültiges JSON abschließen."
     if not isinstance(review, dict) or not isinstance(review.get('meldungen'), list) or not review['meldungen']:
         save_error('Unvollständige KI-Antwort: keine auswertbaren Meldungen.')
     statuses = {'SPERREN', 'MANUELL_PRUEFEN', 'UNAUFFAELLIG'}
