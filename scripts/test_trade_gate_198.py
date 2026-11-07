@@ -60,7 +60,7 @@ def run_case(script, cutoff, expected_status, expected_blocked):
 
 
 def main():
-    script = Path(__file__).resolve().parent / 'scripts' / 'trade_deadline_gate_197.py'
+    script = Path(__file__).resolve().parent / 'trade_deadline_gate_197.py'
     if not script.is_file():
         raise SystemExit(f'Benötigtes Originalskript fehlt: {script}')
     now = datetime.now(timezone.utc)
