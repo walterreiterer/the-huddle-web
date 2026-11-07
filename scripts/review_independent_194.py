@@ -101,7 +101,7 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt mit:
 'UNAUFFAELLIG' ist keine Veröffentlichungsfreigabe. Verwende SPERREN bei Widersprüchen
 oder schwerwiegenden ungestützten Aussagen, MANUELL_PRUEFEN bei offenen Fragen.'''
     context = {'entwurf': draft, 'quellen': evidence, 'espn_rohdaten': games,
-               'hinweis': 'Nur diese Texte liegen vor; keine Web-Recherche, keine Freigabe.'}
+               'hinweis': 'Antworte ausschließlich mit einem gültigen JSON-Objekt. Nur diese Texte liegen vor; keine Web-Recherche, keine Freigabe.'}
     payload = {'model': MODEL, 'instructions': instructions,
                'input': json.dumps(context, ensure_ascii=False),
                'max_output_tokens': 10000, 'store': False,
