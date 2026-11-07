@@ -1,0 +1,29 @@
+name: THE HUDDLE – Härtetest 1.9.8
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trade-gate-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Isolierten Härtetest ausführen
+        run: python test_trade_gate_198.py
+      - name: Testbericht sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-haertetest-198
+          path: drafts/haertetest-198.md
+          if-no-files-found: warn
+          retention-days: 7
