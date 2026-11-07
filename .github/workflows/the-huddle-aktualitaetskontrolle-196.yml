@@ -1,0 +1,56 @@
+name: THE HUDDLE – Aktualitätskontrolle 1.9.6
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freshness-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhängigkeiten installieren
+        run: pip install requests feedparser trafilatura googlenewsdecoder
+      - name: ESPN-Spielstände sammeln
+        run: python scripts/fetch_scores.py
+      - name: Nachrichtenquellen sammeln
+        run: python scripts/collect_sources_10.py
+      - name: Unveröffentlichten Redaktionstest 1.9.3 erstellen
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/build_morning_193.py
+      - name: Unabhängige Gegenprüfung 1.9.4
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/review_independent_194.py
+      - name: Qualitätskontrolle 1.9.5
+        run: python scripts/quality_check_195.py
+      - name: Aktualitätskontrolle 1.9.6
+        run: python scripts/temporal_check_196.py
+      - name: Testdateien sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-aktualitaetskontrolle-196
+          path: |
+            drafts/the-huddle-probeausgabe-193.md
+            drafts/redaktionspruefung-193.md
+            drafts/themenauswahl-193.md
+            drafts/gegenpruefung-194.md
+            drafts/gegenpruefung-194.json
+            drafts/qualitaetskontrolle-195.md
+            drafts/qualitaetskontrolle-195.json
+            drafts/aktualitaetskontrolle-196.md
+            drafts/aktualitaetskontrolle-196.json
+            drafts/nfl-spiele-08.md
+            drafts/quellen-10.json
+          if-no-files-found: warn
+          retention-days: 7
