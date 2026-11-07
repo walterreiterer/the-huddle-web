@@ -39,7 +39,7 @@ jobs:
         env:
           # Nur nach Bestätigung der Frist durch die Redaktion eintragen.
           # Beispiel ISO 8601: 2026-11-03T21:00:00Z
-          NFL_TRADE_DEADLINE_UTC: ''
+          NFL_TRADE_DEADLINE_UTC: '2026-11-10T21:00:00Z'
         run: python scripts/trade_deadline_gate_197.py
       - name: Testdateien sichern
         if: always()
