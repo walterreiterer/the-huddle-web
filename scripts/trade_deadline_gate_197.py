@@ -69,7 +69,7 @@ def main():
     if MARKER not in draft:
         raise SystemExit('Sicherheitsabbruch: Testentwurf-Kennzeichnung fehlt')
     # Require an explicit season-specific, verified cutoff; never silently guess a date.
-    cutoff_raw = os.getenv('NFL_TRADE_DEADLINE_UTC: '2026-11-10T21:00:00Z')
+    cutoff_raw = os.getenv('NFL_TRADE_DEADLINE_UTC', '')
     cutoff = utc_time(cutoff_raw)
     now = datetime.now(timezone.utc)
     if not cutoff:
