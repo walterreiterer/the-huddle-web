@@ -1,0 +1,42 @@
+name: THE HUDDLE – Redaktionstest 1.9.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editorial-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Abhängigkeiten installieren
+        run: pip install requests feedparser trafilatura googlenewsdecoder
+      - name: ESPN-Spielstände sammeln
+        run: python scripts/fetch_scores.py
+      - name: Nachrichtenquellen sammeln
+        run: python scripts/collect_sources_10.py
+      - name: Probeausgabe 1.9.1 erstellen
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/build_morning_191.py
+      - name: Testdateien sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: huddle-redaktionstest-191
+          path: |
+            drafts/the-huddle-probeausgabe-191.md
+            drafts/redaktionspruefung-191.md
+            drafts/themenauswahl-191.md
+            drafts/nfl-spiele-08.md
+            drafts/quellen-10.json
+          if-no-files-found: warn
+          retention-days: 7
