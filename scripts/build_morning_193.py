@@ -124,6 +124,65 @@ THE HUDDLE 1.9.3 – VERBINDLICHE ENDKONTROLLE:
     def test_sources():
         return articles, selected, games, undated, out_of_window
     morning.load_sources = test_sources
+    # Version 1.9.3: enforce the unpublished-draft banner deterministically.
+    # Keep the underlying 1.3 script and its other validation rules unchanged.
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError, URLError
+    import os
+
+    def call_openai_193(chosen, game_text):
+        key = os.environ.get('OPENAI_API_KEY', '').strip()
+        if not key:
+            morning.fail('OPENAI_API_KEY fehlt.')
+        allowed = '\n'.join('- ' + str(a['url']) for a in chosen)
+        payload = {
+            'model': 'gpt-5-mini',
+            'store': False,
+            'max_output_tokens': 8000,
+            'instructions': morning.INSTRUCTIONS,
+            'input': (
+                f"ZEIT WIEN (verbindlicher Redaktionsstand): {morning.NOW.isoformat(timespec='minutes')}\n"
+                f"ARTIKELFENSTER: maximal {morning.MAX_ARTICLE_AGE_HOURS} Stunden; "
+                "Ereigniszeitpunkte gesondert pruefen.\n\n"
+                f"ESPN GAME CENTER:\n{game_text[:14000]}\n\n"
+                f"ERLAUBTE QUELLEN:\n{allowed}\n\n"
+                f"ARTIKELMATERIAL:\n{morning.make_material(chosen)}"
+            ),
+        }
+        request = Request(
+            'https://api.openai.com/v1/responses',
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'},
+            method='POST',
+        )
+        try:
+            with urlopen(request, timeout=180) as response:
+                result = json.load(response)
+        except HTTPError as exc:
+            morning.fail(f'OpenAI HTTP-Fehler {exc.code}')
+        except (URLError, TimeoutError) as exc:
+            morning.fail(f'OpenAI-Verbindungsfehler: {type(exc).__name__}')
+        status = result.get('status', 'unbekannt')
+        reason = (result.get('incomplete_details') or {}).get('reason')
+        print(f'OpenAI-Status: {status}; Grund: {reason}')
+        content = '\n'.join(
+            part.get('text', '')
+            for item in result.get('output', [])
+            if item.get('type') == 'message'
+            for part in item.get('content', [])
+            if part.get('type') == 'output_text'
+        ).strip()
+        if status != 'completed' or len(content) < 300:
+            morning.fail(f'KI-Entwurf unvollstaendig: {status}, {reason}, {len(content)} Zeichen')
+        marker = 'TESTENTWURF – AUTOMATISCH ERSTELLT, NICHT VERÖFFENTLICHEN'
+        if not content.startswith(marker):
+            # The draft is still explicitly marked unpublished, even when the
+            # language model forgets the required first line.
+            content = marker + '\n\n' + content
+            print('Hinweis: Fehlende Testentwurf-Kennzeichnung automatisch vorangestellt.')
+        return content
+
+    morning.call_openai = call_openai_193
     morning.main()
     # Automatische Hinweise sind nur Prüfaufträge, keine Faktenbestätigung.
     import re
