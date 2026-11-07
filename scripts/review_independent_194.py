@@ -94,3 +94,60 @@ Für jede eigenständige Nachricht einschließlich Lead und Game Center:
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt mit:
 {"gesamtstatus":"SPERREN|MANUELL_PRUEFEN|UNAUFFAELLIG",
+ "meldungen":[{"titel":"...","status":"SPERREN|MANUELL_PRUEFEN|UNAUFFAELLIG",
+ "behauptungen":[{"aussage":"...","bewertung":"belegt|teilweise belegt|nicht belegt|widersprochen",
+ "quelle":"URL oder ESPN","beleg":"kurze wörtliche Stelle oder leer","hinweis":"..."}],
+ "korrekturen":["..."]}],"uebergreifend":["..."],"grenzen":["..."]}.
+'UNAUFFAELLIG' ist keine Veröffentlichungsfreigabe. Verwende SPERREN bei Widersprüchen
+oder schwerwiegenden ungestützten Aussagen, MANUELL_PRUEFEN bei offenen Fragen.'''
+    context = {'entwurf': draft, 'quellen': evidence, 'espn_rohdaten': games,
+               'hinweis': 'Nur diese Texte liegen vor; keine Web-Recherche, keine Freigabe.'}
+    payload = {'model': MODEL, 'instructions': instructions,
+               'input': json.dumps(context, ensure_ascii=False),
+               'max_output_tokens': 6500, 'store': False}
+    try:
+        result = call_api(payload)
+        response_text = extract_response_text(result)
+        review = json.loads(response_text)
+    except (urllib.error.URLError, TimeoutError, ValueError, KeyError) as exc:
+        save_error(f'Gegenprüfung fehlgeschlagen: {type(exc).__name__}: {exc}')
+    if not isinstance(review, dict) or not isinstance(review.get('meldungen'), list) or not review['meldungen']:
+        save_error('Unvollständige KI-Antwort: keine auswertbaren Meldungen.')
+    statuses = {'SPERREN', 'MANUELL_PRUEFEN', 'UNAUFFAELLIG'}
+    if review.get('gesamtstatus') not in statuses:
+        save_error('Ungültiger Gesamtstatus im Prüfbericht.')
+    review['metadaten'] = {'version': '1.9.4', 'modell': MODEL,
+                            'zeit_utc': datetime.now(timezone.utc).isoformat(),
+                            'quellen_abgeglichen': len(evidence),
+                            'freigabe': False}
+    JSON_OUT.write_text(json.dumps(review, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    lines = ['# THE HUDDLE – Unabhängige Gegenprüfung 1.9.4', '',
+             '**KEINE VERÖFFENTLICHUNGSFREIGABE – menschliche Redaktion entscheidet.**', '',
+             f'**Gesamtstatus:** {review["gesamtstatus"]}',
+             f'**Geprüfte verlinkte Quellentexte:** {len(evidence)}',
+             f'**Prüfmodell:** {MODEL}', '',
+             '## Einzelprüfung', '']
+    for i, item in enumerate(review['meldungen'], 1):
+        lines += [f'### {i}. {item.get("titel", "Ohne Titel")}', '',
+                  f'**Status:** {item.get("status", "MANUELL_PRUEFEN")}', '']
+        for claim in item.get('behauptungen', []):
+            lines += [f'- **{claim.get("bewertung", "nicht belegt")}** – {claim.get("aussage", "")}',
+                      f'  - Quelle: {claim.get("quelle", "")}',
+                      f'  - Beleg: {claim.get("beleg", "") or "Keine eindeutige Belegstelle"}',
+                      f'  - Hinweis: {claim.get("hinweis", "")}', '']
+        if item.get('korrekturen'):
+            lines += ['**Empfohlene Korrekturen:**']
+            lines += ['- ' + str(x) for x in item['korrekturen']]
+            lines.append('')
+    for heading, key in [('Übergreifende Auffälligkeiten', 'uebergreifend'),
+                         ('Grenzen der Gegenprüfung', 'grenzen')]:
+        lines += ['## ' + heading, '']
+        lines += ['- ' + str(x) for x in review.get(key, [])]
+        lines.append('')
+    lines += ['---', 'Dieser Bericht prüft Aussagen gegen zugelieferte Quellentexte, nicht deren externe Wahrheit.',
+              'Eine unauffällige Prüfung ist keine automatische Freigabe.']
+    OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    print(f'Gegenprüfung erstellt: {OUT} ({review["gesamtstatus"]}); NICHT veröffentlicht')
+
+if __name__ == '__main__':
+    main()
