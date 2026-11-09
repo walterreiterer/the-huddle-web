@@ -56,6 +56,7 @@ GENERIC_TITLE = re.compile(
 )
 PLAYER = re.compile(r"\b(?:Bernhard Raimann|Valentin Senn)\b", re.I)
 
+
 def relevant_title(title, german):
     # For German-language media, an explicit football clue in the headline
     # prevents general category pages and unrelated sports from entering.
@@ -65,6 +66,7 @@ def relevant_title(title, german):
     if german and (PROPERTY.search(headline) or not NFL_CONTEXT.search(headline)):
         return False
     return True
+
 
 def relevant_article(title, article, german):
     if not relevant_title(title, german):
@@ -78,6 +80,7 @@ def relevant_article(title, article, german):
         if not NFL_CONTEXT.search(lead):
             return False
     return True
+
 
 MAX_PER_SOURCE = 4
 MAX_PER_AUSTRIAN_QUERY = 5
@@ -174,7 +177,7 @@ def main():
                 seen_urls.add(key)
                 seen_titles.add(normalized)
                 good += 1
-                        except Exception as exc:
+            except Exception as exc:
                 audit.append(
                     f'- Abruffehler / {source} / {title[:80]}: '
                     f'{type(exc).__name__}: {str(exc)[:150]}'
@@ -184,7 +187,7 @@ def main():
 
     for source, domain in SOURCES.items():
         german = source not in ('Yahoo Sports', 'NBC Sports', 'FOX Sports', 'NFL.com')
-        query = (f'site:{domain} (NFL OR \"American Football\" OR Raimann OR \"Valentin Senn\") when:3d'
+        query = (f'site:{domain} (NFL OR "American Football" OR Raimann OR "Valentin Senn") when:3d'
                  if german else f'site:{domain} NFL when:3d')
         try:
             entries = get_feed(query, german=german)
