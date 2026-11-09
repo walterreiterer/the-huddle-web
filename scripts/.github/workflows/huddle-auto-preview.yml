@@ -60,12 +60,28 @@ jobs:
         run: |
           mkdir -p data
           cp drafts/morning-preview.json data/morning-preview.json
+
           git config user.name 'the-huddle-bot'
           git config user.email 'the-huddle-bot@users.noreply.github.com'
+
+          # Die Vorschau vorübergehend sichern
+          cp data/morning-preview.json /tmp/huddle-preview.json
+
+          # Aktuellen Stand von main holen
+          git fetch origin main
+          git checkout -B main origin/main
+
+          # Nur unsere neue Vorschaudatei übernehmen
+          mkdir -p data
+          cp /tmp/huddle-preview.json data/morning-preview.json
+
           git add data/morning-preview.json
+
           if ! git diff --cached --quiet; then
             git commit -m 'THE HUDDLE: automatische Testvorschau'
-            git push
+            git push origin HEAD:main
+          else
+            echo 'Keine Änderungen an der Vorschau.'
           fi
       - name: Diagnose sichern
         if: always()
