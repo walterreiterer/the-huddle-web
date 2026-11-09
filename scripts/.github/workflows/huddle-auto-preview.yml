@@ -55,34 +55,44 @@ jobs:
       - name: Test-JSON prüfen
         if: steps.time.outputs.run == 'true'
         run: python scripts/check_preview.py
+      
       - name: Vorschau ins Repository schreiben
         if: steps.time.outputs.run == 'true'
         run: |
-          mkdir -p data
-          cp drafts/morning-preview.json data/morning-preview.json
+          set -e
+          cp drafts/morning-preview.json /tmp/huddle-preview.json
 
           git config user.name 'the-huddle-bot'
           git config user.email 'the-huddle-bot@users.noreply.github.com'
 
-          # Die Vorschau vorübergehend sichern
-          cp data/morning-preview.json /tmp/huddle-preview.json
+          for attempt in 1 2 3; do
+            echo "Push-Versuch $attempt von 3"
 
-          # Aktuellen Stand von main holen
-          git fetch origin main
-          git checkout -B main origin/main
+            git fetch origin main
+            git checkout -B main origin/main
 
-          # Nur unsere neue Vorschaudatei übernehmen
-          mkdir -p data
-          cp /tmp/huddle-preview.json data/morning-preview.json
+            mkdir -p data
+            cp /tmp/huddle-preview.json data/morning-preview.json
+            git add data/morning-preview.json
 
-          git add data/morning-preview.json
+            if git diff --cached --quiet; then
+              echo "Vorschau bereits aktuell."
+              exit 0
+            fi
 
-          if ! git diff --cached --quiet; then
             git commit -m 'THE HUDDLE: automatische Testvorschau'
-            git push origin HEAD:main
-          else
-            echo 'Keine Änderungen an der Vorschau.'
-          fi
+
+            if git push origin HEAD:main; then
+              echo "Testvorschau erfolgreich gespeichert."
+              exit 0
+            fi
+
+            echo "Push-Konflikt, aktueller Stand wird erneut geladen."
+          done
+
+          echo "FEHLER: Push nach drei Versuchen nicht möglich."
+          exit 1
+
       - name: Diagnose sichern
         if: always()
         uses: actions/upload-artifact@v4
