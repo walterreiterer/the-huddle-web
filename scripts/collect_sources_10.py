@@ -174,7 +174,11 @@ def main():
                 seen_urls.add(key)
                 seen_titles.add(normalized)
                 good += 1
-            except Exception:
+                        except Exception as exc:
+                audit.append(
+                    f'- Abruffehler / {source} / {title[:80]}: '
+                    f'{type(exc).__name__}: {str(exc)[:150]}'
+                )
                 continue
         audit.append(f'- {label}: {good} Artikel extrahiert ({attempted} abgerufen, {rejected} wegen fehlendem NFL-Bezug verworfen)')
 
