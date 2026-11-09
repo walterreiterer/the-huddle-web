@@ -277,6 +277,15 @@ Verwende diese Abschnittsueberschriften in dieser Reihenfolge:
 ## AROUND THE LEAGUE
 Optional am Schluss: ## AUSTRIAN WATCH
 
+REDAKTIONELLE GRUNDREGEL: Trenne in jedem Beitrag sauber zwischen
+(1) belegten Tatsachen, (2) nachvollziehbarer journalistischer Einordnung
+und (3) Geruechten oder offenen Fragen. Eigene Analyse ist erwuenscht,
+wenn die zugrunde liegenden Fakten im Material stehen und die Folgerung
+als Einschaetzung erkennbar ist (z. B. "das erhoeht den Druck",
+"ein Wechsel erscheint moeglich"). Keine Einschaetzung als bestaetigte
+Entscheidung oder als Aussage einer Quelle ausgeben. Keine erfundenen
+Motive, Trainerzitate, Kaderentscheidungen oder angeblichen Gewissheiten.
+
 THE LEAD: Waehle das journalistisch wichtigste, nachweislich belegte Thema.
 Wichtig sind Auswirkungen auf die Liga, sportliche Bedeutung, Besonderheit
 und Interesse fuer ein europaeisches NFL-Publikum. Bevorzuge nicht einfach
@@ -299,6 +308,19 @@ Unterscheide Ereignisse statt nur Artikelueberschriften: Zwei Quellen
 ueber dasselbe Ereignis ergeben nur EIN Thema. Waehle bei aehnlichem
 Nachrichtenwert unterschiedliche Teams, Themen und Ereignisse.
 Nutze das uebergebene Material breit, ohne Informationen zu erfinden.
+PRIORISIERUNG: Wichtige Spieler- und Trainerentscheidungen, Verletzungen,
+Rekorde, sportliche Folgen und relevante Ergebnisse gehen belanglosen
+Randthemen vor. Unklare private Vorfaelle nicht durch Spekulationen
+aufblaehen; ohne gesicherte, relevante Details lieber weglassen.
+Eine Kicker-Verpflichtung waehrend sportlicher Probleme des bisherigen
+Starters darf als Druck auf den Stammspieler eingeordnet werden, aber
+nicht als bestaetigte Abloese. Eine offene Quarterback-Frage darf
+analysiert werden, ohne einen Starter zu behaupten. MVP-Einschaetzungen
+nur mit belastbarer Grundlage, keine voreiligen Kandidaten-Titel.
+Spielansetzungen und TV-Zeitverschiebungen sind gegebenenfalls kurze
+Servicemeldungen statt langer Hauptgeschichten: aus Sicht der Fans in
+Oesterreich lokale Anstosszeit und Datum nur nennen, wenn belegbar,
+und US-Zeitzone sowie Sommer-/Winterzeit korrekt beruecksichtigen.
 
 AUSTRIAN WATCH: Pruefe das uebergebene Artikelmaterial ausdruecklich
 auf aktuelle, belegte und journalistisch relevante Entwicklungen zu
@@ -307,11 +329,20 @@ LAOLA1 oder andere uebergebene Originalquellen sind dabei zu beachten.
 Wenn eine aktuelle, belegte Entwicklung Nachrichtenwert hat, schreibe
 ## AUSTRIAN WATCH mit fett gesetzter Ueberschrift und einem kurzen,
 eigenstaendigen Beitrag (ca. 80–150 Woerter, soweit die Quellen tragen).
+Bei einer belegten Niederlagenserie der Colts darf eine passende,
+sachliche Ueberschrift lauten: "Raimann und Colts weiter in der Krise:
+Fuenfte Niederlage in Folge" – aber nur, wenn die Serie tatsaechlich
+belegt und aktuell ist. Keine Ueberschrift aus alten Ausgaben uebernehmen.
 Eine aktuelle Colts-Partie kann relevant sein, aber Raimanns persoenliche
 Beteiligung darf nur behauptet werden, wenn sie belegt ist.
 Keine alten Meldungen als neu darstellen, keine unbelegten Behauptungen,
 keine Dopplung von THE LEAD oder AROUND THE LEAGUE. Jede Geschichte endet
 mit (Quelle: https://...). Ohne relevante belegte Entwicklung weglassen.
+
+REDAKTIONELLE LAENGE: Fuer jedes Thema nur so viel Platz verwenden,
+wie Nachrichtenwert und Beleglage rechtfertigen. Sechs starke Meldungen
+sind besser als acht, die durch Fuellmaterial erreicht werden. Kurze
+Service-Updates duerfen deutlich kuerzer als die Richtwerte sein.
 
 QUELLEN: Jede Geschichte endet mit (Quelle: https://...). Nur exakt
 uebergebene Original-URLs verwenden, keine erfundenen Fakten oder Links.
