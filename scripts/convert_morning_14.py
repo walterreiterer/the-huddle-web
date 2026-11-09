@@ -176,6 +176,9 @@ def main():
     if not date_match:
         fail('Ausgabedatum fehlt.')
     date = re.sub(r'\s+Wien\s*$', '', date_match.group(1)).strip()
+    # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
+    if date.startswith('[') and date.endswith(']'):
+        date = date[1:-1].strip()
     try:
         datetime.fromisoformat(date.replace('Z', '+00:00'))
     except ValueError:
