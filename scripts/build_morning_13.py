@@ -209,7 +209,7 @@ def load_sources():
         seen.add(norm)
         per_source[publisher] = per_source.get(publisher, 0) + 1
 
-        if len(selected) >= 12:
+        if len(selected) >= 18:
             break
 
     # Austrian Watch: Mindestens eine geeignete, aktuelle Spielerquelle
@@ -228,7 +228,7 @@ def load_sources():
         if not any(str(article.get("url", "")) == candidate_url for article in selected):
             # Bei vollem Quellenbudget die letzte Quelle ersetzen.
             # Nur die Vorauswahl ändert sich, nicht die Quellenprüfung.
-            if len(selected) >= 12:
+            if len(selected) >= 18:
                 selected[-1] = candidate
             else:
                 selected.append(candidate)
@@ -258,7 +258,7 @@ def make_material(selected):
             str(article.get("text", ""))[:4400]
         )
 
-    return "\n\n---\n\n".join(blocks)[:35000]
+    return "\n\n---\n\n".join(blocks)[:60000]
 
 
 INSTRUCTIONS = """
@@ -289,11 +289,16 @@ in der naechsten Zeile [GAME_CENTER_WIRD_AUS_ESPN_EINGEFUEGT].
 KEINE Spiele oder Ergebnisse selbst ausgeben. Die Software setzt ALLE
 im ESPN-Bericht vorhandenen Spiele unveraendert ein.
 
-AROUND THE LEAGUE: Drei bis fuenf verschiedene relevante Geschichten,
-sofern ausreichend belegtes Material vorliegt. Jede Geschichte mit einer
+AROUND THE LEAGUE: Strebe sechs bis acht VERSCHIEDENE relevante Geschichten an,
+sofern ausreichend belegtes Material vorliegt. Weniger sind ausdruecklich erlaubt,
+wenn nicht genug unterschiedliche, belastbare Themen vorhanden sind. Jede Geschichte mit einer
 fett gesetzten, aussagekraeftigen Ueberschrift und 1–3 informativen
 Absaetzen (ca. 90–160 Woerter, wenn belegbar). Keine Dopplung des Leads,
 keine kuenstlichen Fuellthemen, keine Wiederholung derselben Geschichte.
+Unterscheide Ereignisse statt nur Artikelueberschriften: Zwei Quellen
+ueber dasselbe Ereignis ergeben nur EIN Thema. Waehle bei aehnlichem
+Nachrichtenwert unterschiedliche Teams, Themen und Ereignisse.
+Nutze das uebergebene Material breit, ohne Informationen zu erfinden.
 
 AUSTRIAN WATCH: Pruefe das uebergebene Artikelmaterial ausdruecklich
 auf aktuelle, belegte und journalistisch relevante Entwicklungen zu
@@ -343,7 +348,7 @@ def call_openai(selected, games):
     payload = {
         "model": "gpt-5-mini",
         "store": False,
-        "max_output_tokens": 8000,
+        "max_output_tokens": 10000,
         "instructions": INSTRUCTIONS,
         "input": (
             f"ZEIT WIEN (verbindlicher Redaktionsstand): {NOW.isoformat(timespec='minutes')}\n"
