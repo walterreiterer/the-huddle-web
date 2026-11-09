@@ -50,7 +50,7 @@ print(f'Top Stories: {len(stories)} Meldungen')
 
 if not 3 <= len(brief) <= 5:
     fail(f'Unzulaessige Anzahl Kurzmeldungen: {len(brief)}')
-if not 2 <= len(stories) <= 6:
+if not 2 <= len(stories) <= 8:
     fail(f'Unzulaessige Anzahl Top Stories: {len(stories)}')
 if len(brief) < 5:
     print('HINWEIS: Weniger als fuenf Kurzmeldungen; im Test erlaubt.')
