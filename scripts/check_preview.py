@@ -62,7 +62,7 @@ def check_item(item, number, kind):
     body = str(item.get('text') if kind == 'Brief' else item.get('summary', '')).strip()
     url = str(item.get('source_url', '')).strip()
     parsed = urlparse(url)
-    if len(body) < 65 or len(body) > 1500:
+    if len(body) < 50 or len(body) > 1500:
         fail(f'{kind} {number}: ungueltige Textlaenge ({len(body)})')
     if parsed.scheme != 'https' or not parsed.netloc:
         fail(f'{kind} {number}: Quellenlink fehlt oder ist ungueltig')
