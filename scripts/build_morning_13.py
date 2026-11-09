@@ -212,6 +212,31 @@ def load_sources():
         if len(selected) >= 12:
             break
 
+    # Austrian Watch: Mindestens eine geeignete, aktuelle Spielerquelle
+    # an die Redaktion weitergeben, ohne den journalistischen Entscheid
+    # über die tatsächliche Veröffentlichung vorwegzunehmen.
+    player_pattern = re.compile(r"\b(?:Bernhard Raimann|Raimann|Valentin Senn)\b", re.I)
+    austrian_candidates = [
+        article for article in filtered
+        if player_pattern.search(
+            str(article.get("title", "")) + " " + str(article.get("text", ""))[:1600]
+        )
+    ]
+    if austrian_candidates:
+        candidate = austrian_candidates[0]
+        candidate_url = str(candidate.get("url", ""))
+        if not any(str(article.get("url", "")) == candidate_url for article in selected):
+            # Bei vollem Quellenbudget die letzte Quelle ersetzen.
+            # Nur die Vorauswahl ändert sich, nicht die Quellenprüfung.
+            if len(selected) >= 12:
+                selected[-1] = candidate
+            else:
+                selected.append(candidate)
+        print(f"Austrian Watch: {len(austrian_candidates)} geeignete Spielerquellen; "
+              "mindestens eine in der Redaktionsauswahl.")
+    else:
+        print("Austrian Watch: Keine geeignete aktuelle Spielerquelle im Quellenfenster.")
+
     if not selected:
         fail("Keine geeigneten Nachrichtenquellen.")
 
@@ -270,8 +295,18 @@ fett gesetzten, aussagekraeftigen Ueberschrift und 1–3 informativen
 Absaetzen (ca. 90–160 Woerter, wenn belegbar). Keine Dopplung des Leads,
 keine kuenstlichen Fuellthemen, keine Wiederholung derselben Geschichte.
 
-AUSTRIAN WATCH: Nur bei tatsaechlich aktuellen und belegten relevanten
-Entwicklungen zu Bernhard Raimann oder Valentin Senn. Sonst weglassen.
+AUSTRIAN WATCH: Pruefe das uebergebene Artikelmaterial ausdruecklich
+auf aktuelle, belegte und journalistisch relevante Entwicklungen zu
+Bernhard Raimann und Valentin Senn. Oesterreichische Quellen wie ORF Sport,
+LAOLA1 oder andere uebergebene Originalquellen sind dabei zu beachten.
+Wenn eine aktuelle, belegte Entwicklung Nachrichtenwert hat, schreibe
+## AUSTRIAN WATCH mit fett gesetzter Ueberschrift und einem kurzen,
+eigenstaendigen Beitrag (ca. 80–150 Woerter, soweit die Quellen tragen).
+Eine aktuelle Colts-Partie kann relevant sein, aber Raimanns persoenliche
+Beteiligung darf nur behauptet werden, wenn sie belegt ist.
+Keine alten Meldungen als neu darstellen, keine unbelegten Behauptungen,
+keine Dopplung von THE LEAD oder AROUND THE LEAGUE. Jede Geschichte endet
+mit (Quelle: https://...). Ohne relevante belegte Entwicklung weglassen.
 
 QUELLEN: Jede Geschichte endet mit (Quelle: https://...). Nur exakt
 uebergebene Original-URLs verwenden, keine erfundenen Fakten oder Links.
