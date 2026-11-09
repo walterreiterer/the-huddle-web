@@ -145,41 +145,7 @@ def main():
     if not lead or not around:
         fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
-    brief, seen = [], set()
-    for news in lead[:1] + around:
-        key = topic_key(news['body'])
-        if key in seen:
-            continue
-
-        item = entry(news['body'])
-        if not item.get('source_url'):
-            print('Ohne Quelle übersprungen (Brief):', news['title'])
-            continue
-
-        # Morning Brief: kurzer Nachrichtenüberblick statt Volltext.
-        body = item['text'].strip()
-        sentences = re.split(r'(?<=[.!?])\s+(?=[A-ZÄÖÜ])', body)
-        short = ''
-
-        for sentence in sentences:
-            candidate = (short + ' ' + sentence).strip()
-            if len(candidate) > 280 and len(short) >= 65:
-                break
-            short = candidate
-            if len(short) >= 120:
-                break
-
-        if not 65 <= len(short) <= 1500 or not re.search(r'''[.!?]["”']?$''', short):
-            print('Ungeeigneter Brief übersprungen:', news['title'], len(short))
-            continue
-
-        item['text'] = short
-        brief.append(item)
-        seen.add(key)
-
-        if len(brief) >= 5:
-            break
-
+    # Eigenständige Geschichten vollständig erhalten; nicht mehr bei sechs abschneiden.
     stories = []
     for news in around:
         item = entry(news['body'], title=news['title'], category='AROUND THE LEAGUE')
@@ -187,18 +153,75 @@ def main():
             stories.append(item)
         else:
             print('Ohne Quelle übersprungen (Story):', news['title'])
-        if len(stories) >= 6:
+        if len(stories) >= 8:
             break
-
-    if len(brief) < 3:
-        fail('Zu wenige vollständige, belegte Kurzmeldungen.')
     if len(stories) < 2:
         fail('Zu wenige belegte Top Stories.')
 
     austrian = None
     austrian_raw = paragraphs(sections.get('AUSTRIAN WATCH', ''))
     if austrian_raw and (parsed := parse_news(austrian_raw[0])):
-        austrian = entry(parsed['body'])
+        candidate = entry(parsed['body'])
+        if candidate.get('source_url'):
+            austrian = candidate
+
+    games = game_center_from_espn()
+
+    def short_brief(body):
+        """Nur vollständige Original-Sätze übernehmen, nichts dazuerfinden."""
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-ZÄÖÜ])', body.strip())
+        short = ''
+        for sentence in sentences:
+            candidate = (short + ' ' + sentence).strip()
+            if len(candidate) > 280 and len(short) >= 65:
+                break
+            short = candidate
+            if len(short) >= 120:
+                break
+        if not 65 <= len(short) <= 1500 or not re.search(r"[.!?]$", short):
+            return None
+        return short
+
+    brief, seen = [], set()
+
+    def add_brief(body, title=None):
+        key = topic_key(title or body)
+        if key in seen:
+            return False
+        item = entry(body)
+        if not item.get('source_url'):
+            return False
+        short = short_brief(item['text'])
+        if not short:
+            return False
+        item['text'] = short
+        if title:
+            item['title'] = title
+        brief.append(item)
+        seen.add(key)
+        return True
+
+    # Der Brief ist ein Querschnitt der Ausgabe: Lead, Nachrichten,
+    # Austrian Watch und ein tatsächlich beendetes Spiel.
+    add_brief(lead_item['summary'] + ' (Quelle: ' + lead_item['source_url'] + ')', lead_item['title'])
+    for news in around[:2]:
+        add_brief(news['body'], news['title'])
+    if austrian:
+        add_brief(austrian['text'] + ' (Quelle: ' + austrian['source_url'] + ')', 'Austrian Watch')
+    finished = next((game for game in games if game['status'] == 'ENDE'), None)
+    if finished and len(brief) < 5:
+        brief.append({
+            'title': 'Ergebnis der NFL-Nacht',
+            'text': 'Endstand laut ESPN: ' + finished['matchup'] + '.',
+            'source_url': finished['source_url'],
+            'source_name': 'espn.com',
+        })
+    for news in around[2:]:
+        if len(brief) >= 5:
+            break
+        add_brief(news['body'], news['title'])
+    if len(brief) < 3:
+        fail('Zu wenige vollständige, belegte Kurzmeldungen.')
 
     date_match = re.search(r'^# THE HUDDLE – (.+)$', md, re.M)
     if not date_match:
@@ -213,7 +236,6 @@ def main():
     except ValueError:
         fail('Ausgabedatum nicht im ISO-Format: ' + date)
 
-    games = game_center_from_espn()
     warnings = [
         'Nicht veröffentlichen: Keine redaktionelle Freigabe.',
         'Alle Aussagen, Zahlen und Originalquellen prüfen.',
