@@ -175,10 +175,16 @@ def main():
     date_match = re.search(r'^# THE HUDDLE – (.+)$', md, re.M)
     if not date_match:
         fail('Ausgabedatum fehlt.')
-    date = re.sub(r'\s+Wien\s*$', '', date_match.group(1)).strip()
-    # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
+
+    date = date_match.group(1).strip()
+
+    # Optionale Markdown-Klammern entfernen
     if date.startswith('[') and date.endswith(']'):
         date = date[1:-1].strip()
+
+    # Optionalen Ortszusatz entfernen
+    date = re.sub(r'\s+Wien\s*$', '', date).strip()
+
     try:
         datetime.fromisoformat(date.replace('Z', '+00:00'))
     except ValueError:
