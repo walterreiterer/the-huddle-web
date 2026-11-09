@@ -4,195 +4,105 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-09T23:14+01:00",
+    "date": "2026-11-10T00:10+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "lead": {
-      "title": "Bo Nix als Spielentscheidender: Wie ein Quarterback die AFC-Spitzengruppe aufmischt",
-      "summary": "Fakten: Denver-Quarterback Bo Nix führte die Broncos am Sonntag in Carolina in zwei vierten Vierteln hintereinander zu Touchdown-Drives und sicherte damit den Sieg. NBC Sports dokumentiert, dass Nix damit in dieser Saison sechs sogenannte game-winning drives (offensiver Scoring-Drive im 4. Viertel oder OT, der endgültig in Führung bringt) auf dem Konto hat – Ligahöchstwert – und insgesamt 16 solche Drives in seinen ersten drei NFL-Saisons, was ebenfalls ein Rekord für jene Phase ist. Denver steht aktuell bei 7-2 und führt die AFC West an. Einschätzung: Die nackte Statistik macht Nix zu einem der wirkungsvollsten Clutch-Quarterbacks der Liga; seine Fähigkeit, Spiele in der Schlussphase zu drehen, verändert die Risikokalkulation in der AFC-Playoff-Prognose. Teams, die gegen Denver antreten, können sich weniger auf eine konservative Spielverwaltung im Schlussviertel verlassen — das erhöht den Druck auf Defense-Coordinatoren und Spielmacher, früh entscheidende Antworten zu finden. Offene Fragen: Wie nachhaltig ist diese Clutch-Performance statistisch gesehen (Variance vs. nachhaltige Qualitätssteigerung)? Und welche Anpassungen werden Divisionskonkurrenten vornehmen, um späte Drives gezielter zu unterbinden?",
+      "title": "Jaguars setzen alles auf die Defensive: Jordan Davis wird Teil eines Deadline‑Blitzes",
+      "summary": "Fakten: Die Jacksonville Jaguars haben kurz vor Ablauf der NFL‑Trade‑Deadline Defensive Tackle Jordan Davis von den Philadelphia Eagles verpflichtet und dafür einen 2027er First‑Round‑Pick sowie eine 2029er Second‑Round‑Auswahl an Philadelphia abgegeben. Die Transaktion ist Teil eines Tages, an dem Jacksonville bereits Safety Jessie Bates III (von Atlanta) und DT Davon Godchaux (von New Orleans) geholt hatte. Jacksonville steht nach Week 9 bei 6‑2; die Defense der Jaguars lässt nur 15,1 Punkte pro Spiel zu (Zweitbestwert in der Liga). Philadelphia ist 2‑7, hat sieben Niederlagen in Serie und sich mit Verletzungsproblemen um QB Jalen Hurts konfrontiert gesehen. Einschätzung: Die drei Transfers zusammen sind klar als Aggressiv‑Schlag zu lesen: Jacksonville opfert erhebliches Draftkapital, um sofort defensive Tiefe und Run‑Stärke zu gewinnen. Kurzfristig dürfte das Run‑Defensive‑Matchup der Jags stabilisiert werden, insbesondere gegen physische Gegner in der AFC‑Playoff‑Zone (Chiefs, Bills, Steelers). Strategisch signalisiert das Management einen echten „Jetzt‑oder‑nie“‑Ansatz, der die Hoffnung auf eine tiefe Playoff‑Run untermauert — gleichzeitig verringert er aber die Flexibilität in den nächsten Draftjahren. Offene Fragen / Gerüchte: Unklar bleibt, wie nahtlos Davis in das Front‑Seven‑Konzept von DC Anthony Campanile passt und ob seine bislang überschaubare Produktion in 2026 (bei begrenzter Snap‑Rate) wieder anzieht. Weiterhin ist die langfristige Cap‑Planung der Jaguars nach diesen Moves zu beobachten.",
       "category": "THE LEAD",
-      "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
-      "source_name": "nbcsports.com"
+      "source_url": "https://www.nfl.com/news/jordan-davis-trade-jaguars-eagles",
+      "source_name": "nfl.com"
     },
     "brief": [
       {
-        "text": "Fakten: Denver-Quarterback Bo Nix führte die Broncos am Sonntag in Carolina in zwei vierten Vierteln hintereinander zu Touchdown-Drives und sicherte damit den Sieg.",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
-        "source_name": "nbcsports.com",
-        "title": "Bo Nix als Spielentscheidender: Wie ein Quarterback die AFC-Spitzengruppe aufmischt"
-      },
-      {
-        "text": "Fakten: Die Jacksonville Jaguars haben Pro-Bowl-Safety Jessie Bates III von den Atlanta Falcons für einen 2027-Second- und einen 2028-Fifth-Round-Pick verpflichtet; Atlanta übernimmt laut Bericht einen Großteil seines Gehalts.",
-        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
+        "text": "Fakten: Die Jacksonville Jaguars haben kurz vor Ablauf der NFL‑Trade‑Deadline Defensive Tackle Jordan Davis von den Philadelphia Eagles verpflichtet und dafür einen 2027er First‑Round‑Pick sowie eine 2029er Second‑Round‑Auswahl an Philadelphia abgegeben.",
+        "source_url": "https://www.nfl.com/news/jordan-davis-trade-jaguars-eagles",
         "source_name": "nfl.com",
-        "title": "Jaguars rüsten Secondary auf: Jessie Bates III nach Jacksonville"
+        "title": "Jaguars setzen alles auf die Defensive: Jordan Davis wird Teil eines Deadline‑Blitzes"
       },
       {
-        "text": "Fakten: Nach einem Hit auf seinen Wurfarm im Spiel gegen die New York Jets ließ Patrick Mahomes eine Nachuntersuchung (MRI) machen, die keine größeren Befunde ergab; Mahomes spielte weiter und führte die Chiefs zum Sieg.",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
+        "text": "Fakten: Seattle vermeldete, dass Sam Darnold wegen anhaltender Probleme an Quadrizeps und Rippen für Week 10 ausfällt; Drew Lock wird voraussichtlich zum zweiten Mal in Folge starten, Rookie Jalen Milroe ist Backup.",
+        "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
+        "source_name": "nfl.com",
+        "title": "Seahawks fehlen erneut QB Sam Darnold — Drew Lock übernimmt"
+      },
+      {
+        "text": "Fakten: Arizona gab bekannt, dass Wide Receiver Michael Wilson aufgrund einer „Fraktur im Halsbereich“ die Saison beenden muss.",
+        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/cardinals-wr-michael-wilson-out-for-the-season-due-to-fracture-in-his-neck-area-215131041.html",
         "source_name": "sports.yahoo.com",
-        "title": "Patrick Mahomes offenbar ohne strukturelle Schädigung nach Ellbogencheck"
+        "title": "Cardinals verlieren WR Michael Wilson für die Saison nach Hals‑Fraktur"
       },
       {
-        "text": "Fakten: Die Indianapolis Colts verloren zuhause gegen die Dallas Cowboys mit 23:27; damit ist es die fünfte Niederlage in Serie und die siebte Niederlage in neun Spielen für die Colts.",
+        "text": "Fakten: Die Indianapolis Colts verloren am Sonntag 23:27 gegen die Dallas Cowboys und kassieren damit die fünfte Niederlage in Serie (siebte Pleite in neun Spielen).",
         "source_url": "https://sport.orf.at/stories/3164692/",
         "source_name": "sport.orf.at",
         "title": "Austrian Watch"
       },
       {
         "title": "Ergebnis der NFL-Nacht",
-        "text": "Endstand laut ESPN: Cincinnati Bengals 34 – 17 Atlanta Falcons.",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873038",
+        "text": "Endstand laut ESPN: Tampa Bay Buccaneers 24 – 27 Chicago Bears.",
+        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873050",
         "source_name": "espn.com"
       }
     ],
     "stories": [
       {
-        "title": "Jaguars rüsten Secondary auf: Jessie Bates III nach Jacksonville",
-        "summary": "Fakten: Die Jacksonville Jaguars haben Pro-Bowl-Safety Jessie Bates III von den Atlanta Falcons für einen 2027-Second- und einen 2028-Fifth-Round-Pick verpflichtet; Atlanta übernimmt laut Bericht einen Großteil seines Gehalts. Zudem holten die Jaguars DT Davon Godchaux von den Saints. Beide Trades wurden offiziell bestätigt. Einschätzung: Jacksonville adressiert damit gezielt eine Schwäche gegen den Pass und ersetzt verletzungs- oder formbedingte Lücken auf der Innenverteidiger-Position. Bates bringt Erfahrung und Ballspiele, was das unmittelbare Playoff-Profil der Jags stärkt. Sollte Bates langfristig bleiben, wäre eine Vertragsverlängerung denkbar — aber das ist derzeit spekulativ. Offene Fragen: Wie schnell lässt sich Bates in das Scheme integrieren, und welche Auswirkungen haben beide Zugänge auf Snap-Verteilungen der bestehenden Verteidiger?",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
-        "source_name": "nfl.com"
-      },
-      {
-        "title": "Patrick Mahomes offenbar ohne strukturelle Schädigung nach Ellbogencheck",
-        "summary": "Fakten: Nach einem Hit auf seinen Wurfarm im Spiel gegen die New York Jets ließ Patrick Mahomes eine Nachuntersuchung (MRI) machen, die keine größeren Befunde ergab; Mahomes spielte weiter und führte die Chiefs zum Sieg. Einschätzung: Für Kansas City ist dies kurzfristig beruhigend — Mahomes bleibt das Herzstück der Offense und die medialen wie sportlichen Spekulationen über eine schwerwiegende Verletzung werden gedämpft. Langfristige Belastungsfragen bleiben zwar, sind aber nach dem sauberen MRI weniger akut. Offene Fragen: Wie reagiert das medizinische Team auf mögliche wiederkehrende Belastungsanzeichen, und ob sich Reid/Staff in Spielplanung oder Snap-Management zurückhaltender verhalten werden, bleibt zu beobachten.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "title": "Seattle: Sam Darnold fällt aus – Drew Lock soll erneut starten",
-        "summary": "Fakten: Seahawks-Headcoach Mike Macdonald sagte, Sam Darnold wird für das Week-10-Spiel gegen die Raiders wegen Quadriceps- und Rippenproblemen ausfallen. Drew Lock, der zuletzt wegen Ellbogen- und Obliqueschmerzen ein \"gutes Ergebnis\" bei der Untersuchung hatte, wird voraussichtlich starten; Rookie Jalen Milroe ist Backup. Einschätzung: Seattle bleibt in einer Quarterback-rotation, die Planbarkeit der Offense belastet; Lock hat seine Sache in jüngster Vergangenheit solide gemacht, aber anhaltende Kleingefährdungen am Wurfarm sind ein Management-Faktor für die kommenden Wochen. Offene Fragen: Welche Offensivstarter kehren zurück (Shaheed, Leonard Williams, Uchenna Nwosu waren fraglich) und wie sehr beeinflusst das die Erfolgsaussichten bei Auswärtsspielen in Las Vegas?",
+        "title": "Seahawks fehlen erneut QB Sam Darnold — Drew Lock übernimmt",
+        "summary": "Fakten: Seattle vermeldete, dass Sam Darnold wegen anhaltender Probleme an Quadrizeps und Rippen für Week 10 ausfällt; Drew Lock wird voraussichtlich zum zweiten Mal in Folge starten, Rookie Jalen Milroe ist Backup. Lock hat in seinen drei Einsätzen 71,1% Completion, 597 Yards, 5 TDs und 0 INTs. Einschätzung: Die Seahawks steuern in eine short‑term‑Planung mit Lock als spielbarem Starter; seine gute Trefferquote hilft, aber das Team muss die Verletzungsentwicklung von Darnold genau beobachten, um Plan B‑Optionen und künftige Kaderentscheidungen zu bewerten. Offene Fragen: Wie lange bleibt Darnold out, und ob Lock die Offensiv‑Kontinuität bringt, entscheidet über Seahawks‑Erwartungen nach der Bye‑Week.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
         "source_name": "nfl.com"
       },
       {
-        "title": "Cleveland: Ungesicherte Quarterback-Entscheidung vor Week 10",
-        "summary": "Fakten: Nach der Overtime-Niederlage gegen New Orleans weigerte sich Browns-Headcoach Todd Monken, verbindlich einen Starter für Week 10 zu benennen. Deshaun Watson hatte eine durchlaufenes Concussion-Protokoll und wurde zuvor gemeldet; Shedeur Sanders startete in Week 9 und war nah an einem Sieg. Einschätzung: Cleveland signalisiert Wettbewerbsorientierung und Spielmanagement-Taktik; die Entscheidung könnte sowohl medizinische als auch sportliche Motive haben. Die Situation bleibt auch vor dem Hintergrund von Watsons Vertragslage und Sanders' Perspektive sportlich relevant. Offene Fragen: Ob Watson tatsächlich wieder übernimmt, bleibt offen; Monkens Zurückhaltung kann als taktisches Element verstanden werden.",
+        "title": "Cardinals verlieren WR Michael Wilson für die Saison nach Hals‑Fraktur",
+        "summary": "Fakten: Arizona gab bekannt, dass Wide Receiver Michael Wilson aufgrund einer „Fraktur im Halsbereich“ die Saison beenden muss. Wilson hatte 51 Catches für 546 Yards und 2 TDs in dieser Saison und spielte trotz gebrochener Rippen zuletzt weiter. QB Gardner Minshew wird zudem nach einem Schlag am Arm untersucht. Einschätzung: Wilsons Ausfall schwächt Arizonas Receivertiefe erheblich — das Team hat zuvor bereits Marvin Harrison Jr. getradet. Kurzfristig dürften Spieler wie Reggie Virgil und Simi Fehoko mehr Snaps erhalten; langfristig wird sich die Kaderplanung vor der Trade‑Deadline/Free‑Agent‑Phase bemerkbar machen. Offene Fragen: Wie stabil ist Minshews Gesundheitsstatus, und ob Arizona kurzfristig extern nach WR‑Unterstützung sucht, ist noch offen.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/article/browns-decline-to-name-starting-qb-for-week-10-after-report-deshaun-watson-would-return-195801994.html",
+        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/cardinals-wr-michael-wilson-out-for-the-season-due-to-fracture-in-his-neck-area-215131041.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Calvin Ridley: Titans melden unbestimmten Vorfall am Flughafen",
-        "summary": "Fakten: Die Tennessee Titans bestätigten, von einem \"Vorfall\" mit WR Calvin Ridley am Flughafen Nashville Kenntnis zu haben; Trainer Robert Saleh bezeichnete es als \"unglücklich\" und sprach von einer \"sehr kleinen Misskommunikation\". In Medienberichten wird genannt, dass Strafverfolgungsbehörden involviert seien; Details wurden seitens des Teams nicht genannt. Einschätzung: Ohne verlässliche Details bleibt die Story in der Kategorie \"laufendes Projekt\" — sportlich relevant insofern, als Ridley in Trade-Diskussionen stand und sein Status bei den Titans bereits prekär erschien. Ein disziplinarisches oder rechtliches Nachspiel könnte unmittelbare Auswirkungen auf Spielverfügbarkeit und Trade-Perspektiven haben. Offene Fragen: Konkrete Vorwürfe, mögliche Sanktionen oder Auswirkungen auf Ridleys Rolle im Team sind derzeit nicht bestätigt; diese Punkte müssen weiter geprüft werden.",
+        "title": "Brandon Aiyuk wurde vom Reserve/Left‑Squad‑List reinstated — 49ers haben zwei Wochen Fenster",
+        "summary": "Fakten: Die NFL setzte Brandon Aiyuk von der Reserve/Left‑Squad‑Liste zurück; die 49ers erhielten eine zweiwöchige Roster‑Exemption, müssen bis Dienstag, 16:00 ET, entscheiden, ob Aiyuk aktiv bleibt (dann Spielgehalt fällig). Laut Regelwerk würde ein Trade den neuen Verein Aiyuk zum niedrigen Restjahresgehalt übernehmen. Einschätzung: Die Maßnahme verschafft San Francisco Handlungsspielraum: Kader behalten, trade‑Markt sondieren oder bei Beibehaltung kurzfristig Gehaltsfolgen begrenzen. Für andere Teams ist Aiyuk kurzfristig eine günstige Trade‑Option unter beschränktem Gehaltsrisiko. Offene Fragen: Ob Aiyuk Geld zurückgezahlt hat, um die Reinstatement‑Bedingungen zu ändern, und ob die 49ers ihn vor dem nächsten Transfertag aktivieren oder bewegen, ist noch nicht bestätigt.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/article/titans-aware-of-airport-incident-involving-wideout-calvin-ridley-175811987.html",
-        "source_name": "sports.yahoo.com"
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/nfl-reinstates-wr-brandon-aiyuk-from-reserve-left-squad-list",
+        "source_name": "nbcsports.com"
       },
       {
-        "title": "NFL verlegt Anstoßzeiten: Jaguars–Giants in Week 11 wird national ausgestrahlt",
-        "summary": "Fakten: Die NFL hat die Anstoßzeit für Jaguars vs. Giants in Week 11 von 13:00 ET auf 16:25 ET verlegt; damit wird das Spiel in der späteren CBS-Nationalwindow gezeigt. Die Eagles-Steelers-Partie nimmt die 13:00-ET-Slot ein. Weitere Änderungen betreffen unter anderem Raiders–Broncos. Einschätzung: Solche Änderungen reflektieren TV-Strategien und Anlagen zur Maximierung nationaler Einschaltquoten — hier belohnt die Liga Teams mit Divisionsführung (Jax, NYG) mit einem prominenteren Zeitfenster. Für europäische Zuschauer wichtig: Zeitverschiebung in CET muss bei Reise- und Viewing-Planung berücksichtigt. Offene Fragen: Wie wirken sich solche Umstellungen auf die Wochenplanung der Teams (Reise, Essen, Erholung) aus und ob die NFL weitere flexible Änderungen einplant, bleibt zu beobachten.",
+        "title": "NFL verschiebt Jaguars‑Giants auf Nachmittagsspiel (Week 11)",
+        "summary": "Fakten: Die NFL hat das ursprünglich für 13:00 ET angesetzte Spiel Jaguars at Giants am 22. November auf einen 16:25 ET‑Kickoff verschoben; der Steelers‑Eagles‑Slot tauscht sich entsprechend. Die Änderung soll die nationalen TV‑Interessen besser abbilden. Einschätzung: Die Anpassung reflektiert den gesteigerten Marktwert von Jacksonville nach dessen Deadline‑Aktivitäten und dürfte die nationale Aufmerksamkeit auf das Spiel legen — mit Auswirkungen auf Reiseplanung, Erholung und TV‑Reichweite beider Teams. Offene Fragen: Ob die Zeitverschiebung die Mannschafts‑Vorbereitung merklich beeinflusst, ist vorerst unklar; Ticket‑/Logistikfragen bleiben lokal zu klären.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/nfl-moves-jaguars-giants-game-in-week-11-to-a-4-25-p-m-et-kickoff",
         "source_name": "nbcsports.com"
       },
       {
-        "title": "Jordan Love: MVP-Diskurs nach Statement-Spiel gegen Patriots",
-        "summary": "Fakten: In Green Bays 45:27-Sieg über New England lieferte Jordan Love eine Saisonbestleistung (23/29, 372 Yds, 3 TD laut Spielberichten) und erhielt laut Fox Sports postgame MVP-Rufe der Fans; Analysten diskutieren Love zunehmend als legitimen MVP-Kandidaten. Einschätzung: Love’s Leistung verschiebt die Wahrnehmung in der MVP-Debatte und stärkt Green Bays Offensiv-Profil. Für die NFC-Contender kann diese Performance Momentum liefern; für Gegnermannschaften bedeutet es, dass defensive Gameplans gegen Green Bay noch dringlicher sind. Offene Fragen: Ob Love diese hohen Leistungswerte konstanthält und wie er sich in kommenden Direkttests gegen starke Defenses (Bills, Vikings, Rams) präsentiert, ist für die Bewertung entscheidend.",
+        "title": "Jordan Love meldet sich als MVP‑Diskutant zurück nach Gala‑Auftritt",
+        "summary": "Fakten: Green‑Bay‑QB Jordan Love warf 23/29 für 372 Yards und 3 TDs in der Auswärtspartie gegen New England; die Packers gewannen 45‑27. Beobachter und Medien erläutern, Love führe zunehmend MVP‑Diskussionen an. Einschätzung: Solche Einzelvorstellungen stärken Loves individuelles Standing und die Wahrnehmung von Green Bay als NFC‑Kraft; für die Packers ist jetzt Konstanz gegen stärkere Gegner in den kommenden Wochen entscheidend, um diese Argumentation zu untermauern. Offene Fragen: Ob Love dieses Level halten kann und wie Green Bay mit schwierigerer Run‑Offense sowie kommenden Gegnern umgeht, bleibt zu beobachten.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
         "source_name": "foxsports.com"
+      },
+      {
+        "title": "Myles Garrett kehrt zurück — Rams‑Passrush bekommt neuen Impuls",
+        "summary": "Fakten: Myles Garrett kehrte nach IR zurück und verbuchte in seiner ersten Partie drei Sacks; das Rams‑Duo Garrett/Aaron Donald spielte gemeinsam und verbesserten deutlich die Druckrate auf den QB. Sean McVay kommentierte, dass Garretts Rückkehr einen „Confidence Booster“ darstelle. Einschätzung: Garretts Verfügbarkeit verändert die defensive Dynamik der Rams spürbar; eine wiedererstarkte Pass‑Rush kann offensive Ausfälle (z. B. verletzungsbedingte WR‑Probleme) kompensieren und L.A. wieder ins Playoff‑Gespräch bringen. Offene Fragen: Ob Garrett langfristig voll belastbar ist und wie Sean McVay den Verletzungsstatus von Puka Nacua (Berichte über Knieverletzung) managt, bleibt entscheidend für den weiteren Verlauf der Saison.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/nfl-week-9-sunday-aftermath-myles-garrett-s-return-buoys-rams-jordan-love-joe-burrow-shine-again",
+        "source_name": "nfl.com"
       }
     ],
     "austria": {
-      "text": "Fakten: Die Indianapolis Colts verloren zuhause gegen die Dallas Cowboys mit 23:27; damit ist es die fünfte Niederlage in Serie und die siebte Niederlage in neun Spielen für die Colts. Österreicher Bernhard Raimann stand in der Offensive Line, wurde in Berichten mit Strafen und Schwierigkeiten erwähnt. Medien (ORF, LAOLA1, Kronen Zeitung) berichten außerdem über mögliche Abgänge weiterer Stars wie Daniel Jones und Jonathan Taylor.",
+      "text": "Fakten: Die Indianapolis Colts verloren am Sonntag 23:27 gegen die Dallas Cowboys und kassieren damit die fünfte Niederlage in Serie (siebte Pleite in neun Spielen). Berichte aus österreichischen Medien notieren, dass Bernhard Raimann Strafen kassierte und das Team erneut in wichtigen Momenten den Ball verlor — Running Back Jonathan Taylor unterlief ein folgenschwerer Fumble. Es gibt Berichte über mögliche Abgänge wichtiger Spieler, nachdem bereits Quenton Nelson und DeForest Buckner getradet wurden.",
       "source_url": "https://sport.orf.at/stories/3164692/",
       "source_name": "sport.orf.at"
     },
     "game_center": [
       {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Cincinnati Bengals 34 – 17 Atlanta Falcons",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873038",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Dallas Cowboys 27 – 23 Indianapolis Colts",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873040",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "New York Jets 12 – 35 Kansas City Chiefs",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873045",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Detroit Lions 19 – 9 Miami Dolphins",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873042",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Cleveland Browns 22 – 23 New Orleans Saints",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873039",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "New York Giants 19 – 11 Philadelphia Eagles",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873044",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Los Angeles Rams 20 – 13 Washington Commanders",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873043",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Denver Broncos 26 – 21 Carolina Panthers",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873041",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Houston Texans 44 – 22 Los Angeles Chargers",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873046",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Green Bay Packers 45 – 27 New England Patriots",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873049",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Las Vegas Raiders 17 – 38 San Francisco 49ers",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873047",
-        "source_name": "espn.com"
-      },
-      {
-        "date_label": "08.11.2026 (Wien)",
-        "status": "ENDE",
-        "matchup": "Arizona Cardinals 3 – 17 Seattle Seahawks",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873048",
-        "source_name": "espn.com"
-      },
-      {
         "date_label": "09.11.2026 (Wien)",
         "status": "ENDE",
         "matchup": "Tampa Bay Buccaneers 24 – 27 Chicago Bears",
         "source_url": "https://www.espn.com/nfl/game/_/gameId/401873050",
-        "source_name": "espn.com"
+        "source_name": "espn.com",
+        "gamebook_url": "https://static.www.nfl.com/image/upload/v1794224924/gamecenter/ab582247-4feb-11f1-abca-2c54536568a9.pdf"
       }
     ]
   },
@@ -201,6 +111,6 @@
     "Alle Aussagen, Zahlen und Originalquellen prüfen.",
     "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
     "Überschriften und Kurzmeldungen redaktionell prüfen.",
-    "13 ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen."
+    "1 ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen."
   ]
 }
