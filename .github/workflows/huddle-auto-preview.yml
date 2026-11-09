@@ -58,12 +58,19 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/build_morning_13.py
+      
       - name: Test-JSON erzeugen
         if: steps.time.outputs.run == 'true'
         run: python scripts/convert_morning_14.py
+
+      - name: Gamebooks aus Archiv ergänzen
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/add_gamebooks_preview.py
+
       - name: Test-JSON prüfen
         if: steps.time.outputs.run == 'true'
         run: python scripts/check_preview.py
+
       - name: Vorschau ins Repository schreiben
         if: steps.time.outputs.run == 'true'
         run: |
