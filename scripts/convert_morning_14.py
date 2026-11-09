@@ -145,7 +145,6 @@ def main():
     if not lead or not around:
         fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
-    
     brief, seen = [], set()
     for news in lead[:1] + around:
         key = topic_key(news['body'])
@@ -170,7 +169,6 @@ def main():
             if len(short) >= 120:
                 break
 
-        # Nur vollständige, ausreichend lange Kurzmeldungen zulassen.
         if not 65 <= len(short) <= 1500 or not re.search(r'''[.!?]["”']?$''', short):
             print('Ungeeigneter Brief übersprungen:', news['title'], len(short))
             continue
@@ -181,7 +179,6 @@ def main():
 
         if len(brief) >= 5:
             break
-
 
     stories = []
     for news in around:
@@ -210,7 +207,7 @@ def main():
     # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
     if date.startswith('[') and date.endswith(']'):
         date = date[1:-1].strip()
-    date = re.sub(r'\s+Wien\s*$', '', date).strip()
+    date = re.sub(r'\s*\(?Wien\)?\s*$', '', date, flags=re.I).strip()
     try:
         datetime.fromisoformat(date.replace('Z', '+00:00'))
     except ValueError:
