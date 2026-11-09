@@ -4,89 +4,108 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-09T22:24+01:00",
+    "date": "2026-11-09T22:44+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "lead": {
-      "title": "Bo Nix bleibt der Mann der späten Momente – Broncos festigen AFC‑West‑Spitze durch Clutch‑Performance",
-      "summary": "Bo Nix hat sich in den letzten Wochen als der vielleicht entschlossenste Clutch‑Quarterback der Liga etabliert. Mit zwei direkten Touchdown‑Drives im vierten Viertel gegen Carolina sicherte er den Broncos nicht nur den Sieg, sondern baute seine Saison‑Bilanz auf sechs sogenannte Game‑Winning‑Drives aus – ligaweit die meisten. Über seine ersten drei Profijahre kommt Nix damit auf 16 GW‑Drives, ein Rekord für Quarterbacks in ihren ersten drei Saisons. Diese Statistik ist mehr als nur ein Kuriosum: Sie zeigt Nix’ Fähigkeit, Spiele zu entscheiden und gibt Denver in einem engen AFC‑West‑Duell ein klares Wettbewerbsvorteil. Sportlich bedeutet das für die Broncos eine klare Signalwirkung. In einer Division, in der die Chiefs und andere Anwärter ständig Druck machen, kann die Verlässlichkeit in engen Situationen über Playoff‑Heimrecht und Seeding entscheiden. Für die Gegner verändert sich die Spielplanung: Time‑Management, Defensive‑Dzeichen in späten Drives und die Belastbarkeit des Kaders werden stärker gewichtet. Auf Vereinsseite stärkt es Coach‑Entscheidungen und Front‑Office‑Planungen — ob man etwa die Offense um Nix noch aggressiver ausbaut oder in der Defense gezielt für Endspiel‑Szenarien nachrüstet. Kurz: Denver hat einen Quarterback, auf den man in engen Momenten bauen kann — und das verschiebt die Balance in der AFC spürbar.",
+      "title": "Bo Nix als „Closer“: Broncos setzen auf Seuchen‑Statistik — und das verändert die AFC‑West‑Dynamik",
+      "summary": "Bo Nix hat sich in Denver nicht nur als Starter, sondern als Serie‑Entscheider profiliert: Mit sechs Game‑Winning‑Drives in dieser Saison führt er die Liga an und kommt in seinen ersten drei NFL‑Saisons auf rekordverdächtige 16 dieser späten Führungswechsel — mehr als jeder andere QB in seinen ersten drei Jahren. In Carolina lieferte Nix zwei vierte‑Viertel‑Touchdown‑Serien in Folge (eine 14‑Play‑80‑Yard und eine 6‑Play‑61‑Yard‑Drive) und sicherte den Broncos damit einen knappen Sieg; solche Comebacks haben Denver in die aktuelle 7‑2‑Bilanz und an die Tabellenspitze der AFC West gebracht. Sportlich bedeutet das mehr als nur ein Highlight‑Reel: Ein Quarterback, der wiederholt Spiele in den Schlussphasen entscheidet, verändert die Teamplanung, Play‑Calling‑Philosophie und die Ressourcenallokation für Defense vs. Offense. Für die Liga ist Nix’ Häufung von Game‑Winning‑Drives ein ungewöhnlicher Messwert für Clutch‑Performances und eine Diskussion darüber wert, wie viel Aussagekraft solche situativen Statistiken langfristig haben. Für Europa ist die Story auch deshalb relevant, weil sie eine sich formierende AFC‑Konkurrenz beschreibt, in der Denver als ernsthafter Kandidat um die Top‑Seed‑Position auftritt — mit einem jungen QB, der Spiele alleine drehen kann.",
       "category": "THE LEAD",
       "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
       "source_name": "nbcsports.com"
     },
     "brief": [
       {
-        "text": "Jacksonville hat sich defensiv massiv verstärkt und Jessie Bates III von den Falcons verpflichtet; zudem kommt Davon Godchaux aus New Orleans.",
+        "text": "Bo Nix hat sich in Denver nicht nur als Starter, sondern als Serie‑Entscheider profiliert: Mit sechs Game‑Winning‑Drives in dieser Saison führt er die Liga an und kommt in seinen ersten drei NFL‑Saisons auf rekordverdächtige 16 dieser späten Führungswechsel — mehr als jeder andere QB in seinen ersten drei Jahren.",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
+        "source_name": "nbcsports.com",
+        "title": "Bo Nix als „Closer“: Broncos setzen auf Seuchen‑Statistik — und das verändert die AFC‑West‑Dynamik"
+      },
+      {
+        "text": "Die Jaguars haben mit dem Erwerb von Safety Jessie Bates III einen klaren Fokus auf kurzfristige Titelambitionen gelegt.",
         "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
-        "source_name": "nfl.com"
+        "source_name": "nfl.com",
+        "title": "Jacksonville macht Sekundär‑Upgrade: Jessie Bates III zu den Jaguars"
       },
       {
-        "text": "Nach dem harten Hit gegen die Jets, bei dem Mahomes kurzzeitig ausgewechselt wurde, zeigen Nachtests offenbar Entwarnung: Eine post‑game MRI habe keine gravierenden Befunde ergeben, berichtet Yahoo Sports.",
+        "text": "Patrick Mahomes verließ das Spiel gegen die Jets nach einem sackbedingten, unglücklichen Umknicken seines Wurfarms, konnte aber zurückkehren und führte Kansas City zum Sieg.",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
-        "source_name": "sports.yahoo.com"
+        "source_name": "sports.yahoo.com",
+        "title": "Mahomes‑Alarm gebannt: Sauberes MRT nach Ellbogen‑Schreck"
       },
       {
-        "text": "Jordan Love lieferte in Foxborough eine der besten Leistungen seiner Karriere und katapultierte die Packers mit einer 372‑Yard‑Vorstellung in die Diskussion um die Liga‑Spitze.",
-        "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
-        "source_name": "foxsports.com"
+        "text": "Die Indianapolis Colts verloren zuhause gegen Dallas 23:27 und kassierten damit die fünfte Niederlage in Folge — ein Rückschlag im Kampf um Playoff‑Chancen.",
+        "source_url": "https://sport.orf.at/stories/3164692/",
+        "source_name": "sport.orf.at",
+        "title": "Austrian Watch"
       },
       {
-        "text": "Seattle wird nächste Woche ohne Sam Darnold auskommen müssen; Coach Mike Macdonald gab bekannt, dass Darnold wegen Quad‑ und Rippenproblemen ausfällt.",
-        "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
-        "source_name": "nfl.com"
-      },
-      {
-        "text": "Cleveland nennt nach der knappen Niederlage gegen New Orleans noch keinen klaren Starter für die nächste Partie. Deshaun Watson hat offenbar das Protokoll durchlaufen, doch Coach Todd Monken wollte Watsons Start nicht bestätigen — obwohl ein Bericht seine Rückkehr nahelegte.",
-        "source_url": "https://sports.yahoo.com/nfl/article/browns-decline-to-name-starting-qb-for-week-10-after-report-deshaun-watson-would-return-195801994.html",
-        "source_name": "sports.yahoo.com"
+        "title": "Ergebnis der NFL-Nacht",
+        "text": "Endstand laut ESPN: Cincinnati Bengals 34 – 17 Atlanta Falcons.",
+        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873038",
+        "source_name": "espn.com"
       }
     ],
     "stories": [
       {
-        "title": "Jaguars schlagen zu: Jessie Bates III und Davon Godchaux kommen",
-        "summary": "Jacksonville hat sich defensiv massiv verstärkt und Jessie Bates III von den Falcons verpflichtet; zudem kommt Davon Godchaux aus New Orleans. Bates, ein erfahrener Balljäger mit hoher Playmaker‑Bilanz, soll die Jaguars‑Secondary sofort stabilisieren und gibt Coordinator Anthony Campanile mehr Flexibilität in Deckungs‑ und Blitzschemata. Godchaux verstärkt die Innenlinie nach Verletzungsverlusten. Für die Jaguars ist das ein klares Zeichen: Die Franchise schielt auf die Short‑Term‑Contender‑Rolle und will in der laufenden Saison noch einen Playoff‑Push starten.",
+        "title": "Jacksonville macht Sekundär‑Upgrade: Jessie Bates III zu den Jaguars",
+        "summary": "Die Jaguars haben mit dem Erwerb von Safety Jessie Bates III einen klaren Fokus auf kurzfristige Titelambitionen gelegt. Jacksonville tauschte einen zweiten‑ und einen späteren Pick für den 29‑jährigen Playmaker; Atlanta zahlt den Großteil seines Gehalts, um den Deal zu ermöglichen. Zusätzlich holten die Jags DT Davon Godchaux, um Defensive‑Line‑Verletzungen zu ersetzen. Die Verpflichtungen adressieren akute Lücken in einer Defense, die gegen den Pass verletzlich war, und signalisieren, dass Jacksonville die Kader‑Konsolidierung für eine Playoff‑Push‑Phase ernst nimmt.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
         "source_name": "nfl.com"
       },
       {
-        "title": "Patrick Mahomes nach Ellbogen‑Scare wohl ohne strukturellen Schaden",
-        "summary": "Nach dem harten Hit gegen die Jets, bei dem Mahomes kurzzeitig ausgewechselt wurde, zeigen Nachtests offenbar Entwarnung: Eine post‑game MRI habe keine gravierenden Befunde ergeben, berichtet Yahoo Sports. Mahomes kehrte ins Spiel zurück und führte die Chiefs ohne erkennbare Einschränkung zum Erfolg, was für Kansas City in der heißen Phase der Saison enorm wichtig ist. Kurzfristig entlastet das das QB‑Monitoring der Chiefs, mittelfristig bleibt Belastungsmanagement ein Thema, da Mahomes trotz sauberer Bildgebung von Schmerzen berichtet hatte.",
+        "title": "Mahomes‑Alarm gebannt: Sauberes MRT nach Ellbogen‑Schreck",
+        "summary": "Patrick Mahomes verließ das Spiel gegen die Jets nach einem sackbedingten, unglücklichen Umknicken seines Wurfarms, konnte aber zurückkehren und führte Kansas City zum Sieg. Ein post‑game MRT zeigte laut Berichten keine strukturelle Schädigung — für die Chiefs ein Erleichterungsschritt kurz vor wichtigen Wochen im AFC‑West‑Duell mit Denver. Sportlich mindert das Ergebnis kurzfristig Mahomes‑Ausfall‑Sorgen, langfristig bleibt die Belastungssteuerung aber ein Thema für Kadermanagement und Play‑Design.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Jordan Love liefert Statement – Packers setzen sich im NFC‑Ranking in Szene",
-        "summary": "Jordan Love lieferte in Foxborough eine der besten Leistungen seiner Karriere und katapultierte die Packers mit einer 372‑Yard‑Vorstellung in die Diskussion um die Liga‑Spitze. Green Bay dominiert inzwischen nicht nur einzelne Spiele, sondern stellt sich als ernsthafter NFC‑Konkurrent dar; Love zeigte Präzision auf tiefen Würfen und ein hohes Effizienzlevel. Die Leistung stärkt die Packers nicht nur in der Division, sondern hebt Love langfristig in der MVP‑Debatte und zwingt Gegner, seine Downfield‑Gefahr intensiver zu verteidigen.",
+        "title": "Kicker‑Probleme in Kansas City: Andy Reid zögert bei Butker‑Entscheidung",
+        "summary": "Harrison Butker verpasst weiterhin Feldtore (u. a. ein klares Fehlschuss‑Problem über die letzten zwei Saisons). Coach Andy Reid sagte, er habe noch keine Entscheidung getroffen und wolle alles evaluieren — obwohl Justin Tucker auf dem Practice Squad als naheliegender Ersatz wartet. Die Debatte um Kicking‑Stabilität berührt nicht nur Spielausgänge, sondern auch Personalentscheidungen und die Nutzung von Scouts/Practice‑Squad‑Ressourcen in einem Team mit Titelerwartungen.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/andy-reid-on-harrison-butker-i-havent-made-any-decisions-yet",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "title": "Jordan Love liefert MVP‑Argument: Packers dominieren in Foxborough",
+        "summary": "Jordan Love lieferte laut Spielberichten eine herausragende Performance gegen die Patriots und rückte erneut in die MVP‑Diskussion. Green Bay zeigte eine explosive Offense, die tiefe Würfe konsequent abschloss; die Partie wurde als Statement‑Win gewertet. Sportlich stärkt das die Packers‑Aussichten in der NFC und zwingt Konkurrenz sowie Analysten, Love wiederholt als Elite‑Quarterback einzupreisen — mit Folgen für Rankings, Spielplan‑Bewertungen und mediale Narrative bis zur Trade‑Deadline.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
         "source_name": "foxsports.com"
       },
       {
-        "title": "Seahawks ohne Sam Darnold – Drew Lock soll erneut starten",
-        "summary": "Seattle wird nächste Woche ohne Sam Darnold auskommen müssen; Coach Mike Macdonald gab bekannt, dass Darnold wegen Quad‑ und Rippenproblemen ausfällt. Drew Lock, der zuletzt solide agierte, soll erneut die Starts übernehmen, obwohl er selbst mit Ellbogen‑ und Obliquenbeschwerden betreut wird. Rookie Jalen Milroe ist als Backup vorgesehen. Die Entscheidung ist relevant für Seattles kurze Saisonziele: Lock hat in beschränktem Umfang gezeigt, dass er das Team stabilisieren kann, doch langfristig bleibt die Quarterback‑Besetzung ein Unsicherheitsfaktor.",
+        "title": "Seahawks‑Quarterbackfrage: Sam Darnold fällt aus, Drew Lock startet",
+        "summary": "Seattle wird ohne Sam Darnold in Woche 10 antreten; Coach Mike Macdonald nannte Quad‑ und Rippenverletzungen als Grund. Drew Lock, der bereits in Week 9 startete und mit soliden Zahlen glänzte, soll erneut übernehmen. Die Seahawks navigieren so weiter eine Staffelung, in der Verletzungen und Depth‑Chart‑Management die Saison formen — relevant für die kurzfristige Play‑Planung und für Gegnermannschaften, die ihre Vorbereitungen auf Lock statt Darnold ausrichten müssen.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
         "source_name": "nfl.com"
       },
       {
-        "title": "Browns: Weiteres Fragezeichen auf der QB‑Position",
-        "summary": "Cleveland nennt nach der knappen Niederlage gegen New Orleans noch keinen klaren Starter für die nächste Partie. Deshaun Watson hat offenbar das Protokoll durchlaufen, doch Coach Todd Monken wollte Watsons Start nicht bestätigen — obwohl ein Bericht seine Rückkehr nahelegte. Shedeur Sanders lieferte in Watsons Abwesenheit eine starke Partie ab, weshalb die Browns offenbar taktisch abwägen, wen sie für die kommenden Spiele einsetzen. Die Entscheidung hat Folgen für Kaderplanung und Contract‑Überlegungen, besonders mit Blick auf Watsons auslaufenden Vertrag.",
+        "title": "Cleveland unsicher: Wer startet — Deshaun Watson oder Shedeur Sanders?",
+        "summary": "Nach der knappen OT‑Niederlage gegen New Orleans hat Browns‑Coach Todd Monken keinen Starter für Woche 10 benannt, obwohl Deshaun Watson das Concussion‑Protokoll durchlaufen hat. Shedeur Sanders lieferte in Watsons Abwesenheit eine starke Vorstellung und hält damit die Entscheidung offen. Für Cleveland ist das eine sportlich gewichtige Wahl: Spieltempo, Play‑Design und langfristige Quarterback‑Planung hängen an dieser Entscheidung — besonders da Watsons Vertrag nach Saisonende Thema bleiben wird.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/article/browns-decline-to-name-starting-qb-for-week-10-after-report-deshaun-watson-would-return-195801994.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Titans bestätigen „Bewusstsein“ für Vorfall mit Calvin Ridley am Flughafen",
-        "summary": "Tennessee hat ein Ereignis mit WR Calvin Ridley am Nashville‑Flughafen bestätigt und spricht von einer „unfortunate“ Situation; rechtliche Stellen seien eingebunden, Details gibt das Team aber nicht preis. Der Vorfall kommt in die Nähe der Trade‑Deadline und könnte Ridleys Verfügbarkeit sowie seinen Status im Team beeinflussen. Ridley, der in dieser Saison kaum involviert war, galt ohnehin als möglicher Kandidat für einen Wechsel; organisatorisch und sportlich stellt das eine zusätzliche Unwägbarkeit dar.",
+        "title": "Titans und Calvin Ridley: Zwischen „Vorfall“ am Flughafen und Trade‑Gerüchten",
+        "summary": "Tennessee bestätigte einen „Vorfall“ mit WR Calvin Ridley am Nashville‑Flughafen; Details wurden nicht veröffentlicht, offenbar sei auch die Polizei involviert. Coach Robert Saleh nannte die Situation „unglücklich“ und sprach von einer „sehr kleinen Missverständnis“. Die Meldung fällt zeitlich nahe an die Trade‑Deadline und wirft Fragen zur Verfügbarkeit sowie zum Umgang des Teams mit belastenden Außensituationen eines hochdotierten Receivers auf.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/article/titans-aware-of-airport-incident-involving-wideout-calvin-ridley-175811987.html",
         "source_name": "sports.yahoo.com"
+      },
+      {
+        "title": "NFL verschiebt Kickoff: Jaguars‑Giants wird CBS‑Prime‑Slot",
+        "summary": "Die Liga hat die Anstoßzeit des Week‑11‑Spiels Jaguars gegen Giants auf 16:25 ET verschoben und macht die Partie zur nationalen CBS‑Ansetzung, während das Eagles‑Steelers‑Spiel auf 13:00 ET rutscht. Solche Anpassungen reflektieren TV‑Strategien, die aktuelle Tabellenkonstellationen honorieren, und beeinflussen Teams taktisch wie logistisch — von Reiseplanung bis zur Regeneration vor dem Spiel.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/nfl-moves-jaguars-giants-game-in-week-11-to-a-4-25-p-m-et-kickoff",
+        "source_name": "nbcsports.com"
       }
     ],
     "austria": {
-      "text": "Die Indianapolis Colts kassierten gegen die Dallas Cowboys eine dramatische 23:27‑Heimniederlage und damit die fünfte Pleite in Serie; das Team steht nun bei sieben Niederlagen in neun Spielen. Österreicher Bernhard Raimann wird in Berichten namentlich erwähnt: ORF notiert Schwierigkeiten und mehrere Strafen für den Left Tackle, die im Spielverlauf auffielen. Zusätzlich war ein folgenschwerer Ballverlust von RB Jonathan Taylor ein Spielentscheidender Moment. Die Niederlage vertieft die Krise der Colts, die sich mitten im Austausch von Leistungsträgern befinden — die sportliche Zukunft des Teams sowie Personalfragen bleiben offene Themen.",
+      "text": "Die Indianapolis Colts verloren zuhause gegen Dallas 23:27 und kassierten damit die fünfte Niederlage in Folge — ein Rückschlag im Kampf um Playoff‑Chancen. Der Wiener Left Tackle Bernhard Raimann wird in heimischen Berichten explizit genannt: Er hatte im Spiel Strafen zu verzeichnen und fand nicht zu seiner besten Form. Ein folgenschwerer Ballverlust von Running Back Jonathan Taylor trug entscheidend zum Ergebnis bei. Für Raimann und die Colts erhöht sich der Druck in einer Phase, in der der Klub bereits größere Umbaumaßnahmen eingeleitet hat.",
       "source_url": "https://sport.orf.at/stories/3164692/",
       "source_name": "sport.orf.at"
     },
