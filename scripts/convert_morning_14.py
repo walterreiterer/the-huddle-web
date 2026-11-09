@@ -145,25 +145,43 @@ def main():
     if not lead or not around:
         fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
+    
     brief, seen = [], set()
     for news in lead[:1] + around:
         key = topic_key(news['body'])
         if key in seen:
             continue
+
         item = entry(news['body'])
         if not item.get('source_url'):
             print('Ohne Quelle übersprungen (Brief):', news['title'])
             continue
-        # Kein Satz-Splitting: "Jr." und ähnliche Abkürzungen dürfen
-        # keine vier Zeichen langen Kurzmeldungen erzeugen.
-        body = item['text']
-        if not 65 <= len(body) <= 1500 or not re.search(r'''[.!?]["”']?$''', body):
-            print('Ungeeigneter Brief übersprungen:', news['title'], len(body))
+
+        # Morning Brief: kurzer Nachrichtenüberblick statt Volltext.
+        body = item['text'].strip()
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-ZÄÖÜ])', body)
+        short = ''
+
+        for sentence in sentences:
+            candidate = (short + ' ' + sentence).strip()
+            if len(candidate) > 280 and len(short) >= 65:
+                break
+            short = candidate
+            if len(short) >= 120:
+                break
+
+        # Nur vollständige, ausreichend lange Kurzmeldungen zulassen.
+        if not 65 <= len(short) <= 1500 or not re.search(r'''[.!?]["”']?$''', short):
+            print('Ungeeigneter Brief übersprungen:', news['title'], len(short))
             continue
+
+        item['text'] = short
         brief.append(item)
         seen.add(key)
+
         if len(brief) >= 5:
             break
+
 
     stories = []
     for news in around:
