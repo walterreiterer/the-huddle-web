@@ -1,0 +1,30 @@
+
+name: THE HUDDLE – Gamebook-Vorschau testen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-gamebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Gamebooks zur internen Vorschau hinzufügen
+        run: python scripts/add_gamebooks_preview.py
+
+      - name: Testvorschau bereitstellen
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamebook-testvorschau
+          path: drafts/morning-preview.json
