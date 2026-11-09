@@ -88,6 +88,30 @@ def parse_news(paragraph):
     return {'title': title, 'body': body}
 
 
+def parse_story_blocks(section):
+    """Bindet Folgeabsätze bis zur nächsten fett gesetzten Überschrift ein."""
+    stories = []
+    title = None
+    body_lines = []
+
+    def finish():
+        if title is not None and any(line.strip() for line in body_lines):
+            stories.append({'title': title, 'body': '\n'.join(body_lines).strip()})
+
+    for line in section.splitlines():
+        match = TITLE_LINE.fullmatch(line.strip())
+        if match:
+            finish()
+            title = match.group(1).strip()
+            if not 15 <= len(title) <= 110:
+                title = FALLBACK_TITLE
+            body_lines = []
+        elif title is not None:
+            body_lines.append(line)
+    finish()
+    return stories
+
+
 def topic_key(text):
     return ' '.join(re.findall(r'[a-zäöüß0-9]{4,}', clean(text).lower())[:12])
 
@@ -128,7 +152,7 @@ def main():
 
     sections = sections_of(md)
     lead = [n for p in paragraphs(sections.get('THE LEAD', '')) if (n := parse_news(p))]
-    around = [n for p in paragraphs(sections.get('AROUND THE LEAGUE', '')) if (n := parse_news(p))]
+    around = parse_story_blocks(sections.get('AROUND THE LEAGUE', ''))
     # THE LEAD besteht oft aus einer alleinstehenden Fettschrift-Überschrift
     # und mehreren folgenden Absätzen. Diese als einen Artikel erhalten.
     lead_section = sections.get('THE LEAD', '').strip()
@@ -230,7 +254,11 @@ def main():
     # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
     if date.startswith('[') and date.endswith(']'):
         date = date[1:-1].strip()
-    date = re.sub(r'\s*\(?Wien\)?\s*$', '', date, flags=re.I).strip()
+    # Nur den ISO-Zeitstempel übernehmen; redaktionelle Zusätze wie
+    # '(ZEIT WIEN)' oder '(Stand: ...)' sind keine Datumsbestandteile.
+    iso_match = re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?', date)
+    if iso_match:
+        date = iso_match.group(0)
     try:
         datetime.fromisoformat(date.replace('Z', '+00:00'))
     except ValueError:
