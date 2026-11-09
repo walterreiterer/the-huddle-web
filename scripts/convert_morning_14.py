@@ -129,6 +129,19 @@ def main():
     sections = sections_of(md)
     lead = [n for p in paragraphs(sections.get('THE LEAD', '')) if (n := parse_news(p))]
     around = [n for p in paragraphs(sections.get('AROUND THE LEAGUE', '')) if (n := parse_news(p))]
+    # THE LEAD besteht oft aus einer alleinstehenden Fettschrift-Überschrift
+    # und mehreren folgenden Absätzen. Diese als einen Artikel erhalten.
+    lead_section = sections.get('THE LEAD', '').strip()
+    lead_match = re.match(r'^\*\*(.+?)\*\*\s*\n+([\s\S]+)$', lead_section)
+    lead_item = None
+    if lead_match:
+        lead_title, lead_body = lead_match.group(1).strip(), lead_match.group(2).strip()
+        if 15 <= len(lead_title) <= 150:
+            candidate = entry(lead_body, title=lead_title, category='THE LEAD')
+            if candidate.get('source_url') and len(candidate['summary']) >= 65:
+                lead_item = candidate
+    if lead_item is None:
+        fail('THE LEAD: Überschrift, vollständiger Text oder Quelle fehlt.')
     if not lead or not around:
         fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
@@ -175,16 +188,11 @@ def main():
     date_match = re.search(r'^# THE HUDDLE – (.+)$', md, re.M)
     if not date_match:
         fail('Ausgabedatum fehlt.')
-
     date = date_match.group(1).strip()
-
-    # Optionale Markdown-Klammern entfernen
+    # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
     if date.startswith('[') and date.endswith(']'):
         date = date[1:-1].strip()
-
-    # Optionalen Ortszusatz entfernen
     date = re.sub(r'\s+Wien\s*$', '', date).strip()
-
     try:
         datetime.fromisoformat(date.replace('Z', '+00:00'))
     except ValueError:
@@ -209,7 +217,7 @@ def main():
         'edition': {
             'date': date, 'headline': 'THE HUDDLE – Redaktionelle Testvorschau',
             'intro': 'Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.',
-            'brief': brief, 'stories': stories, 'austria': austrian,
+            'lead': lead_item, 'brief': brief, 'stories': stories, 'austria': austrian,
             'game_center': games,
         },
         'review_required': warnings,
