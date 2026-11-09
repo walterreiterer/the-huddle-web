@@ -1,6 +1,6 @@
 
 #!/usr/bin/env python3
-"""THE HUDDLE – KI-Testvorschau mit Datums- und Redaktionsregeln."""
+"""THE HUDDLE – redaktioneller Testentwurf mit vollständigem ESPN-Game-Center."""
 
 import json
 import os
@@ -66,23 +66,78 @@ def age_hours(value):
 
 
 def priority(article):
+    """Vorauswahl, keine endgültige journalistische Relevanzentscheidung."""
     title = str(article.get("title", ""))
     age = age_hours(article.get("published"))
-    points = 5 if HIGH.search(title) else 0
+    points = 2 if HIGH.search(title) else 0
     if LOW_NEWS_VALUE.search(title):
-        points -= 10
-
+        points -= 8
     if age is not None:
         if 0 <= age <= 18:
-            points += 7
+            points += 3
         elif 0 <= age <= 36:
-            points += 4
+            points += 2
         elif 0 <= age <= 48:
             points += 1
-        else:
-            points -= 5
-
     return points
+
+
+GAME_LINE = re.compile(
+    r"^- (ENDE|LIVE|NOCH NICHT BEENDET):\s*(.+?)\s*\|\s*"
+    r"\[ESPN-Spielseite\]\((https://www\.espn\.com/nfl/game/[^)]+)\)\s*$"
+)
+
+
+def extract_games(games):
+    """Übernimmt alle ESPN-Spielzeilen, ohne Ergebnisse von KI auswählen zu lassen."""
+    entries = []
+    seen = set()
+    day = None
+    for raw in games.splitlines():
+        line = raw.strip()
+        if line.startswith("## Spieltag "):
+            day = line[3:]
+        match = GAME_LINE.fullmatch(line)
+        if match:
+            status, score, url = match.groups()
+            if url in seen:
+                raise ValueError(f"Doppelte ESPN-Spielseite: {url}")
+            seen.add(url)
+            entries.append((day, status, score, url))
+        elif line.startswith("- ENDE:") or line.startswith("- LIVE:") or line.startswith("- NOCH NICHT BEENDET:"):
+            raise ValueError(f"ESPN-Spielzeile nicht erkannt: {line[:140]}")
+    if not entries:
+        raise ValueError("Keine ESPN-Spielzeilen im Spielbericht gefunden")
+    return entries
+
+
+def render_game_center(entries):
+    lines = ["## GAME CENTER", "", "Alle im ESPN-Bericht erfassten Spiele (ungeprüfter Datenstand):", ""]
+    previous_day = None
+    for day, status, score, url in entries:
+        if day != previous_day:
+            if previous_day is not None:
+                lines.append("")
+            if day:
+                lines.append(f"**{day}**")
+                lines.append("")
+            previous_day = day
+        lines.append(f"- {status}: {score} | [ESPN-Spielseite]({url})")
+    lines += ["", "Datenquelle: [ESPN NFL Scoreboard](https://www.espn.com/nfl/scoreboard)"]
+    return "\n".join(lines)
+
+
+def insert_game_center(content, entries):
+    """Entfernt KI-Game-Center und setzt den vollständigen ESPN-Block ein."""
+    section = render_game_center(entries)
+    pattern = r"(?ms)^## GAME CENTER\s*\n.*?(?=^## (?:AROUND THE LEAGUE|AUSTRIAN WATCH)\s*$)"
+    if re.search(pattern, content):
+        return re.sub(pattern, lambda _: section + "\n\n", content, count=1)
+    # Der Prompt fordert GAME CENTER vor AROUND THE LEAGUE.
+    marker = "## AROUND THE LEAGUE"
+    if marker not in content:
+        raise ValueError("Rubrik AROUND THE LEAGUE fehlt; Game Center nicht sicher einfügbar")
+    return content.replace(marker, section + "\n\n" + marker, 1)
 
 
 def load_sources():
@@ -183,7 +238,7 @@ def make_material(selected):
 
 INSTRUCTIONS = """
 Du bist die deutschsprachige NFL-Redaktion von THE HUDDLE.
-Erstelle einen unveroeffentlichten journalistischen Testentwurf.
+Erstelle einen UNVEROEFFENTLICHTEN journalistischen Testentwurf.
 
 Beginne EXAKT mit:
 TESTENTWURF – AUTOMATISCH ERSTELLT, NICHT VERÖFFENTLICHEN
@@ -191,116 +246,53 @@ TESTENTWURF – AUTOMATISCH ERSTELLT, NICHT VERÖFFENTLICHEN
 Danach:
 # THE HUDDLE – [Datum und Uhrzeit Wien]
 
-Verwende diese Abschnittsueberschriften:
+Verwende diese Abschnittsueberschriften in dieser Reihenfolge:
 ## THE LEAD
 ## GAME CENTER
 ## AROUND THE LEAGUE
+Optional am Schluss: ## AUSTRIAN WATCH
 
-Optional:
-## AUSTRIAN WATCH
+THE LEAD: Waehle das journalistisch wichtigste, nachweislich belegte Thema.
+Wichtig sind Auswirkungen auf die Liga, sportliche Bedeutung, Besonderheit
+und Interesse fuer ein europaeisches NFL-Publikum. Bevorzuge nicht einfach
+Trade-/Injury-Schlagwoerter. Schreibe eine eigenstaendige Hauptgeschichte
+mit Kontext und mehreren zusammenhaengenden Absaetzen (ca. 180–300 Woerter,
+nur wenn die Quellen das tragen). Verwende einen praezisen fett gesetzten Titel.
 
-WICHTIG: VERBINDLICHES NACHRICHTENFORMAT
+GAME CENTER: Schreibe ausschliesslich die Ueberschrift ## GAME CENTER und
+in der naechsten Zeile [GAME_CENTER_WIRD_AUS_ESPN_EINGEFUEGT].
+KEINE Spiele oder Ergebnisse selbst ausgeben. Die Software setzt ALLE
+im ESPN-Bericht vorhandenen Spiele unveraendert ein.
 
-Jede Nachricht in THE LEAD und AROUND THE LEAGUE
-besteht aus genau zwei Zeilen:
+AROUND THE LEAGUE: Drei bis fuenf verschiedene relevante Geschichten,
+sofern ausreichend belegtes Material vorliegt. Jede Geschichte mit einer
+fett gesetzten, aussagekraeftigen Ueberschrift und 1–3 informativen
+Absaetzen (ca. 90–160 Woerter, wenn belegbar). Keine Dopplung des Leads,
+keine kuenstlichen Fuellthemen, keine Wiederholung derselben Geschichte.
 
-**Kurze, eigenstaendige und vollstaendige Ueberschrift**
-Ein zusammenhaengender Nachrichtenabsatz mit vollstaendigen
-Saetzen. (Quelle: https://originalquelle.example/artikel)
+AUSTRIAN WATCH: Nur bei tatsaechlich aktuellen und belegten relevanten
+Entwicklungen zu Bernhard Raimann oder Valentin Senn. Sonst weglassen.
 
-Zwischen zwei Nachrichten steht eine Leerzeile.
+QUELLEN: Jede Geschichte endet mit (Quelle: https://...). Nur exakt
+uebergebene Original-URLs verwenden, keine erfundenen Fakten oder Links.
+Unbestaetigte Meldungen deutlich kennzeichnen. Geplante, berichtete
+und vollzogene Transfers strikt unterscheiden. Behauptungen zu Spielstatus
+und Spielausgang muessen mit dem ESPN-Bericht vereinbar sein.
 
-Die URL im Beispiel ist nur ein Platzhalter!
-Verwende ausschliesslich tatsaechliche URLs aus den
-uebergebenen Quellen. Niemals example-URLs ausgeben.
+AKTUALITAET: ZEIT WIEN ist der Redaktionsstand. Publikationsdatum einer
+Quelle ist nicht automatisch das Datum des Ereignisses. Keine Vorschau
+auf ein bereits beendetes Spiel. Bei unklaren Sachverhalten lieber
+weglassen oder Unsicherheit explizit kennzeichnen.
 
-UEBERSCHRIFTEN:
-- Maximal 100 Zeichen, mindestens 15 Zeichen.
-- Eigenstaendige journalistische Aussage.
-- Keine abgebrochenen Saetze oder Satzteile.
-- Keine Ueberschrift aus dem Fliesstext abschneiden.
-- Keine Auslassungspunkte.
-- Kein abschliessendes "an", "nach dem" oder "wegen der".
-- Keine erfundenen Tatsachen.
-- Keine Markdown-Ueberschrift mit # fuer Einzelmeldungen.
-- Verwende genau **Fettschrift** fuer Einzelueberschriften.
-
-THE LEAD:
-Ein relevantes belegtes NFL-Thema, 80 bis 130 Woerter.
-Ein Absatz mit einer Originalquelle.
-
-AROUND THE LEAGUE:
-Idealerweise vier weitere unterschiedliche Nachrichten.
-Mindestens zwei, wenn ausreichend belegte Themen vorliegen.
-Pro Meldung 45 bis 75 Woerter.
-Keine Wiederholung des THE-LEAD-Themas.
-
-QUELLEN:
-Jede Nachricht braucht am Ende ihres Absatzes:
-(Quelle: https://...)
-Verwende nur die vorgegebenen Originalquellenlinks.
-Keine erfundenen Links oder Fakten.
-Keine Quellen ohne inhaltliche Uebereinstimmung.
-Unbestaetigte Meldungen als solche kennzeichnen.
-Keine Fantasy-, Wett- oder belanglosen Randmeldungen.
-
- AKTUALITAET UND ZEITLICHE PLAUSIBILITAET:
- - Der Zeitpunkt ZEIT WIEN ist der verbindliche Redaktionsstand.
- - Jeder Artikel hat ein VEROEFFENTLICHT-Datum; dieses ist nicht
-   automatisch der Zeitpunkt des beschriebenen Ereignisses.
- - Unterscheide konsequent zwischen bereits geschehen, laufend und
-   bevorstehend. Schreibe keine Vorschau auf ein bereits beendetes Spiel.
- - Die ESPN-Spielinformationen haben bei Spielstatus und Ergebnissen
-   Vorrang vor aelteren Formulierungen in Nachrichtenartikeln.
- - Wenn der Spielstatus oder Ereigniszeitpunkt unklar ist, verzichte
-   auf zeitbezogene Behauptungen und kennzeichne die Unsicherheit.
- - Keine alten Zukunftsformulierungen aus Quellen ungeprueft uebernehmen.
- - Bei Konflikten zwischen Quellen oder unsicherer zeitlicher Lage:
-   Thema weglassen, statt eine vermeintlich aktuelle Meldung zu erfinden.
-
-
- REDAKTIONELLE PRIORITAETEN:
- - Bevorzuge bestaetigte sportliche NFL-Entwicklungen: Ergebnisse,
-   Verletzungen mit Auswirkungen auf Einsaetze, Kaderentscheidungen,
-   Trades, Vertragsabschluesse, Trainerwechsel und Ligabeschluesse.
- - Reine Medienpersonalien, TV-/Podcast-Geschichten, Promi-Themen,
-   Meinungsstuecke und Nebensaechlichkeiten sind keine Top Stories.
- - Eine wichtige Nachricht muss im bereitgestellten Artikeltext
-   inhaltlich belegbar sein, nicht bloss in der Ueberschrift stehen.
- - Trenne strikt: angekuendigt, verhandelt, berichtet, bestaetigt,
-   offiziell vollzogen. Ein moeglicher Trade ist kein vollzogener Trade.
- - Wenn eine Quelle nur eine Absicht oder ein Geruecht beschreibt,
-   darf der Text daraus keine bestaetigte Transaktion machen.
- - Pruefe vor jeder Spielvorschau den ESPN-Spielstatus und die
-   Uhrzeit des Redaktionsstands. Steht ein Spiel dort als ENDE,
-   darf es nicht als bevorstehend oder live beschrieben werden.
- - Fehlt das betreffende Spiel im ESPN-Material oder ist der
-   Status nicht eindeutig, vermeide eine zeitliche Spielbehauptung.
- - Widerspricht eine Quelle dem ESPN-Status, verzichte auf die
-   Spielvorschau; erfinde weder Ergebnis noch Spielverlauf.
- - Wenn keine ausreichend relevanten belegten Themen vorliegen,
-   weniger Meldungen liefern statt Randthemen aufzufuellen.
-
-GAME CENTER:
-Nur Daten aus dem uebergebenen ESPN-Bericht verwenden.
-ENDE bedeutet Endstand.
-LIVE bedeutet Zwischenstand.
-NOCH NICHT BEENDET bedeutet kein Ergebnis.
-Maximal vier relevante Spiele.
-Keine Ergebnisse erfinden.
-
-AUSTRIAN WATCH:
-Nur bei einer aktuellen relevanten Nachricht
-zu Bernhard Raimann oder Valentin Senn.
-Falls vorhanden, dieselbe Nachrichtenformatierung
-mit Fettschrift-Ueberschrift und Quellenlink verwenden.
+THEMENWAHL: Bewerte sportliche Tragweite, Aktualitaet, Belegbarkeit,
+Folgen fuer Teams und Liga sowie Nachrichtenwert. Keine Fantasy-,
+Wett-, Medienpromi- oder belanglosen Randthemen. Erfinde keinen
+Spielverlauf und keine Zahlen, die nicht in den Quellen stehen.
 
 Beende den gesamten Entwurf EXAKT mit:
 Vor Veröffentlichung redaktionell prüfen.
 
-Die Ausgabe ist ausschliesslich ein TESTENTWURF.
-Keine Veroeffentlichung oder redaktionelle Freigabe.
-Antworte ausschliesslich in Markdown.
+Antworte ausschliesslich in Markdown. Keine Veroeffentlichung.
 """
 
 
@@ -380,7 +372,15 @@ def call_openai(selected, games):
 
 def main():
     articles, selected, games, undated, out_of_window = load_sources()
+    try:
+        game_entries = extract_games(games)
+    except ValueError as exc:
+        fail(str(exc))
     content = call_openai(selected, games)
+    try:
+        content = insert_game_center(content, game_entries)
+    except ValueError as exc:
+        fail(str(exc))
 
     ROOT.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(content + "\n", encoding="utf-8")
@@ -408,6 +408,18 @@ def main():
     )
 
     flags = []
+    output_game_urls = re.findall(
+        r"\[ESPN-Spielseite\]\((https://www\.espn\.com/nfl/game/[^)]+)\)",
+        content,
+    )
+    expected_game_urls = [entry[3] for entry in game_entries]
+    if output_game_urls != expected_game_urls:
+        flags.append(
+            f"GAME CENTER unvollstaendig: {len(output_game_urls)} "
+            f"von {len(expected_game_urls)} ESPN-Spielen"
+        )
+    if content.count("## GAME CENTER") != 1:
+        flags.append("GAME CENTER muss genau einmal vorkommen")
 
     if unknown:
         flags.append(
@@ -441,6 +453,8 @@ def main():
         "",
         f"- Verfügbare Artikel: {len(articles)}",
         f"- Ausgewählte Artikel: {len(selected)}",
+        f"- ESPN-Spiele im Input: {len(game_entries)}",
+        f"- ESPN-Spiele in der Ausgabe: {len(output_game_urls)}",
         f"- Artikel ohne gueltiges Datum verworfen: {undated}",
         f"- Artikel ausserhalb des Zeitfensters verworfen: {out_of_window}",
         "",
