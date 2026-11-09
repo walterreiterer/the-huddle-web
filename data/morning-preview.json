@@ -4,72 +4,91 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-09T21:56+01:00",
+    "date": "2026-11-09T22:24+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "lead": {
-      "title": "Bo Nix als Schlüsselfigur: Broncos-Quarterback baut seine Reputation als „Clutch“-Spieler weiter aus",
-      "summary": "Bo Nix hat sich in dieser Saison zur entscheidenden Konstante für die Denver Broncos entwickelt. Laut NBC Sports führte Nix am Sonntag gegen Carolina zwei spätere Viertelspielzüge an — eine 14-Play‑, 80‑Yard‑TD‑Serie und kurz darauf eine 6‑Play‑, 61‑Yard‑TD‑Serie — und sicherte Denver damit einen wichtigen Sieg. Mit sechs game‑winning drives in dieser Saison führt Nix die Liga; 16 in seinen ersten drei Regular‑Season‑Saisons sind nach NBC zudem ein neuer NFL‑Rekord für Quarterbacks zu Beginn ihrer Karriere. Diese Fähigkeit, Spiele im Schlussviertel zu drehen, ist sportlich bedeutsam: Denver steht bei 7‑2 an der Spitze der AFC West und präsentiert sich damit als ernsthafter Kandidat für die beste Platzierung in der AFC‑Playoffkonstellation. Die statistische Häufung von späten Führungswechseln stärkt nicht nur Nix’ Marktwert, sie zwingt auch Gegner und Liga, Broncos‑Spielplanung und -Personnel anders zu bewerten — vor allem in Situationen, in denen Risiko‑ und Zeitmanagement entscheiden. Für die Broncos‑Coaching‑Staff bedeutet das mehr Spielraum bei aggressiven Calls; für die Verteidigungen der Liga ist Nix’ Konstanz im vierten Viertel ein taktisches Problem, das sich nicht allein durch Matchups lösen lässt. Sollte Denver dieses Trendbild fortsetzen, könnten sich dadurch direkte Auswirkungen auf Schemata, Free‑Agent‑Ziele und die Wahrnehmung der Franchise in den kommenden Wochen ergeben.",
+      "title": "Bo Nix bleibt der Mann der späten Momente – Broncos festigen AFC‑West‑Spitze durch Clutch‑Performance",
+      "summary": "Bo Nix hat sich in den letzten Wochen als der vielleicht entschlossenste Clutch‑Quarterback der Liga etabliert. Mit zwei direkten Touchdown‑Drives im vierten Viertel gegen Carolina sicherte er den Broncos nicht nur den Sieg, sondern baute seine Saison‑Bilanz auf sechs sogenannte Game‑Winning‑Drives aus – ligaweit die meisten. Über seine ersten drei Profijahre kommt Nix damit auf 16 GW‑Drives, ein Rekord für Quarterbacks in ihren ersten drei Saisons. Diese Statistik ist mehr als nur ein Kuriosum: Sie zeigt Nix’ Fähigkeit, Spiele zu entscheiden und gibt Denver in einem engen AFC‑West‑Duell ein klares Wettbewerbsvorteil. Sportlich bedeutet das für die Broncos eine klare Signalwirkung. In einer Division, in der die Chiefs und andere Anwärter ständig Druck machen, kann die Verlässlichkeit in engen Situationen über Playoff‑Heimrecht und Seeding entscheiden. Für die Gegner verändert sich die Spielplanung: Time‑Management, Defensive‑Dzeichen in späten Drives und die Belastbarkeit des Kaders werden stärker gewichtet. Auf Vereinsseite stärkt es Coach‑Entscheidungen und Front‑Office‑Planungen — ob man etwa die Offense um Nix noch aggressiver ausbaut oder in der Defense gezielt für Endspiel‑Szenarien nachrüstet. Kurz: Denver hat einen Quarterback, auf den man in engen Momenten bauen kann — und das verschiebt die Balance in der AFC spürbar.",
       "category": "THE LEAD",
       "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
       "source_name": "nbcsports.com"
     },
     "brief": [
       {
-        "text": "Patrick Mahomes konnte nach dem schmerzhaften Hit am Ellenbogen im Spiel gegen die Jets offenbar aufatmen: Ein postgame MRT zeigte laut Yahoo Sports keine gravierende Verletzung, Mahomes kehrte in die Partie zurück und agierte weiter ohne offenkundige Einschränkungen.",
+        "text": "Jacksonville hat sich defensiv massiv verstärkt und Jessie Bates III von den Falcons verpflichtet; zudem kommt Davon Godchaux aus New Orleans.",
+        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
+        "source_name": "nfl.com"
+      },
+      {
+        "text": "Nach dem harten Hit gegen die Jets, bei dem Mahomes kurzzeitig ausgewechselt wurde, zeigen Nachtests offenbar Entwarnung: Eine post‑game MRI habe keine gravierenden Befunde ergeben, berichtet Yahoo Sports.",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Die Seattle Seahawks müssen in Week 10 weiterhin auf Sam Darnold verzichten; NFL.com meldet, dass Darnold wegen Oberschenkel‑ und Rippenproblemen nicht spielen wird.",
+        "text": "Jordan Love lieferte in Foxborough eine der besten Leistungen seiner Karriere und katapultierte die Packers mit einer 372‑Yard‑Vorstellung in die Diskussion um die Liga‑Spitze.",
+        "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
+        "source_name": "foxsports.com"
+      },
+      {
+        "text": "Seattle wird nächste Woche ohne Sam Darnold auskommen müssen; Coach Mike Macdonald gab bekannt, dass Darnold wegen Quad‑ und Rippenproblemen ausfällt.",
         "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
         "source_name": "nfl.com"
       },
       {
-        "text": "Detroit hat sich laut NBC Sports verstärkt: Safety Andre Cisco kommt von den Jets im Tausch für einen Sechstrundenpick 2028.",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-agree-to-acquire-s-andre-cisco-from-jets",
-        "source_name": "nbcsports.com"
-      },
-      {
-        "text": "Yahoo Sports diskutiert, ob die NFC North historisch stark ist: Alle vier Teams belegen aktuell Playoff‑Plätze, die Division weist eine kombinierte Bilanz (Stand Week 9) auf, die Vergleiche mit den besten Divisionen der NFL‑Geschichte aufruft.",
-        "source_url": "https://sports.yahoo.com/nfl/article/nfc-north-is-this-the-best-division-in-football-history-163431090.html",
+        "text": "Cleveland nennt nach der knappen Niederlage gegen New Orleans noch keinen klaren Starter für die nächste Partie. Deshaun Watson hat offenbar das Protokoll durchlaufen, doch Coach Todd Monken wollte Watsons Start nicht bestätigen — obwohl ein Bericht seine Rückkehr nahelegte.",
+        "source_url": "https://sports.yahoo.com/nfl/article/browns-decline-to-name-starting-qb-for-week-10-after-report-deshaun-watson-would-return-195801994.html",
         "source_name": "sports.yahoo.com"
       }
     ],
     "stories": [
       {
-        "title": "Mahomes mit „sauberem“ MRT – Chiefs beruhigt nach Ellbogen‑Schreckmoment",
-        "summary": "Patrick Mahomes konnte nach dem schmerzhaften Hit am Ellenbogen im Spiel gegen die Jets offenbar aufatmen: Ein postgame MRT zeigte laut Yahoo Sports keine gravierende Verletzung, Mahomes kehrte in die Partie zurück und agierte weiter ohne offenkundige Einschränkungen. Der Bericht schildert den Vorfall als beängstigenden Moment – ein Sack mit Fumble, bei dem sich der Wurfarm unnatürlich abknickte – doch Mahomes spielte weiter und lieferte eine Leistung ohne Turnover. Für Kansas City bedeutet das kurzfristig Entlastung in der Quarterback‑Planung und minimale Risiko‑Erhöhung für die kommenden Wochen, solange die Untersuchungen weiterhin keinen Befund zeigen.",
+        "title": "Jaguars schlagen zu: Jessie Bates III und Davon Godchaux kommen",
+        "summary": "Jacksonville hat sich defensiv massiv verstärkt und Jessie Bates III von den Falcons verpflichtet; zudem kommt Davon Godchaux aus New Orleans. Bates, ein erfahrener Balljäger mit hoher Playmaker‑Bilanz, soll die Jaguars‑Secondary sofort stabilisieren und gibt Coordinator Anthony Campanile mehr Flexibilität in Deckungs‑ und Blitzschemata. Godchaux verstärkt die Innenlinie nach Verletzungsverlusten. Für die Jaguars ist das ein klares Zeichen: Die Franchise schielt auf die Short‑Term‑Contender‑Rolle und will in der laufenden Saison noch einen Playoff‑Push starten.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
+        "source_name": "nfl.com"
+      },
+      {
+        "title": "Patrick Mahomes nach Ellbogen‑Scare wohl ohne strukturellen Schaden",
+        "summary": "Nach dem harten Hit gegen die Jets, bei dem Mahomes kurzzeitig ausgewechselt wurde, zeigen Nachtests offenbar Entwarnung: Eine post‑game MRI habe keine gravierenden Befunde ergeben, berichtet Yahoo Sports. Mahomes kehrte ins Spiel zurück und führte die Chiefs ohne erkennbare Einschränkung zum Erfolg, was für Kansas City in der heißen Phase der Saison enorm wichtig ist. Kurzfristig entlastet das das QB‑Monitoring der Chiefs, mittelfristig bleibt Belastungsmanagement ein Thema, da Mahomes trotz sauberer Bildgebung von Schmerzen berichtet hatte.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Seahawks: Sam Darnold fehlt – Drew Lock wieder wahrscheinlich Starter",
-        "summary": "Die Seattle Seahawks müssen in Week 10 weiterhin auf Sam Darnold verzichten; NFL.com meldet, dass Darnold wegen Oberschenkel‑ und Rippenproblemen nicht spielen wird. Drew Lock, trotz eigener Ellbogen‑ und Oblique‑Beschwerden, hatte laut Coach Mike Macdonald eine „gute Untersuchung“ und soll erneut starten. Lock hatte in seiner jüngsten Chance 19/28 für 175 Yards und einen TD geliefert; Rookie Jalen Milroe ist als Backup eingeplant. Die Situation zeigt Seattles Verletzungshäufigkeit auf Schlüsselpositionen und macht die kommenden Wochen zu einem Test der Tiefe – vor allem mit Blick auf den nachfolgenen Bye.",
+        "title": "Jordan Love liefert Statement – Packers setzen sich im NFC‑Ranking in Szene",
+        "summary": "Jordan Love lieferte in Foxborough eine der besten Leistungen seiner Karriere und katapultierte die Packers mit einer 372‑Yard‑Vorstellung in die Diskussion um die Liga‑Spitze. Green Bay dominiert inzwischen nicht nur einzelne Spiele, sondern stellt sich als ernsthafter NFC‑Konkurrent dar; Love zeigte Präzision auf tiefen Würfen und ein hohes Effizienzlevel. Die Leistung stärkt die Packers nicht nur in der Division, sondern hebt Love langfristig in der MVP‑Debatte und zwingt Gegner, seine Downfield‑Gefahr intensiver zu verteidigen.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
+        "source_name": "foxsports.com"
+      },
+      {
+        "title": "Seahawks ohne Sam Darnold – Drew Lock soll erneut starten",
+        "summary": "Seattle wird nächste Woche ohne Sam Darnold auskommen müssen; Coach Mike Macdonald gab bekannt, dass Darnold wegen Quad‑ und Rippenproblemen ausfällt. Drew Lock, der zuletzt solide agierte, soll erneut die Starts übernehmen, obwohl er selbst mit Ellbogen‑ und Obliquenbeschwerden betreut wird. Rookie Jalen Milroe ist als Backup vorgesehen. Die Entscheidung ist relevant für Seattles kurze Saisonziele: Lock hat in beschränktem Umfang gezeigt, dass er das Team stabilisieren kann, doch langfristig bleibt die Quarterback‑Besetzung ein Unsicherheitsfaktor.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/sam-darnold-ruled-out-for-seahawks-week-10-game-vs-raiders-drew-lock-expected-to-start-again",
         "source_name": "nfl.com"
       },
       {
-        "title": "Lions holen Safety Andre Cisco – Sekundär‑Upgrade vor der Saisonhälfte",
-        "summary": "Detroit hat sich laut NBC Sports verstärkt: Safety Andre Cisco kommt von den Jets im Tausch für einen Sechstrundenpick 2028. Cisco (26) bringt NFL‑Erfahrung mit — in dieser Saison neun Spiele, vier Starts, 23 Tackles sowie bereits Sacks und eine erzwungene Fumble — und könnte der Lions‑Defense zusätzliche Flexibilität geben. Für Detroit ist das ein kosteneffizientes Depth‑Signing in einer Division, die sich durch starke Passangriffe auszeichnet; für Cisco bedeutet der Wechsel potenziell eine Saison mit 18 Spielen, da die Bye‑Wochen der Teams unterschiedlich liegen. Kurzfristig stärkt das die Rotation im Hinterfeld und bietet Head Coach Dan Campbell mehr Optionen in Sub‑Packages und beim Einsatz gegen gegnerische Tight Ends und Slot‑Routen.",
+        "title": "Browns: Weiteres Fragezeichen auf der QB‑Position",
+        "summary": "Cleveland nennt nach der knappen Niederlage gegen New Orleans noch keinen klaren Starter für die nächste Partie. Deshaun Watson hat offenbar das Protokoll durchlaufen, doch Coach Todd Monken wollte Watsons Start nicht bestätigen — obwohl ein Bericht seine Rückkehr nahelegte. Shedeur Sanders lieferte in Watsons Abwesenheit eine starke Partie ab, weshalb die Browns offenbar taktisch abwägen, wen sie für die kommenden Spiele einsetzen. Die Entscheidung hat Folgen für Kaderplanung und Contract‑Überlegungen, besonders mit Blick auf Watsons auslaufenden Vertrag.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-agree-to-acquire-s-andre-cisco-from-jets",
-        "source_name": "nbcsports.com"
+        "source_url": "https://sports.yahoo.com/nfl/article/browns-decline-to-name-starting-qb-for-week-10-after-report-deshaun-watson-would-return-195801994.html",
+        "source_name": "sports.yahoo.com"
       },
       {
-        "title": "NFC North: Auf dem Papier beste Division – was bedeutet das sportlich?",
-        "summary": "Yahoo Sports diskutiert, ob die NFC North historisch stark ist: Alle vier Teams belegen aktuell Playoff‑Plätze, die Division weist eine kombinierte Bilanz (Stand Week 9) auf, die Vergleiche mit den besten Divisionen der NFL‑Geschichte aufruft. Für Europa ist das interessant, weil eine solch enge, hochwertige Division die Regular Season in Wochen der direkten Duelle enorm aufwertet – und zugleich die Aussagekraft der Statistik für Playoff‑Prognosen relativiert. Historische Beispiele zeigen: dominante Regular‑Season‑Divisionen scheiterten zuletzt teils früh in den Playoffs. Die anhaltende Frage bleibt, ob das many‑faces‑approach der NFC North die Teams für die Playoffs härten oder sie durch ständige internen Abnutzung schwächen wird.",
+        "title": "Titans bestätigen „Bewusstsein“ für Vorfall mit Calvin Ridley am Flughafen",
+        "summary": "Tennessee hat ein Ereignis mit WR Calvin Ridley am Nashville‑Flughafen bestätigt und spricht von einer „unfortunate“ Situation; rechtliche Stellen seien eingebunden, Details gibt das Team aber nicht preis. Der Vorfall kommt in die Nähe der Trade‑Deadline und könnte Ridleys Verfügbarkeit sowie seinen Status im Team beeinflussen. Ridley, der in dieser Saison kaum involviert war, galt ohnehin als möglicher Kandidat für einen Wechsel; organisatorisch und sportlich stellt das eine zusätzliche Unwägbarkeit dar.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/article/nfc-north-is-this-the-best-division-in-football-history-163431090.html",
+        "source_url": "https://sports.yahoo.com/nfl/article/titans-aware-of-airport-incident-involving-wideout-calvin-ridley-175811987.html",
         "source_name": "sports.yahoo.com"
       }
     ],
     "austria": {
-      "text": "Die Indianapolis Colts haben gegen die Dallas Cowboys eine weitere Niederlage kassiert; laut LAOLA1 ist das bereits die fünfte Pleite in Serie und die siebte in neun Saisonspielen. In dem Bericht wird auch der österreichische Left Tackle Bernhard Raimann namentlich genannt und die anhaltende schlechte Teambilanz thematisiert. LAOLA1 stellt zudem Spekulationen über mögliche Abgänge größerer Namen im Kader in den Raum, sollte die Negativserie andauern. Für Raimann bedeutet die anhaltende Krise der Colts höhere mediale und sportliche Aufmerksamkeit in Österreich — die Frage, ob das Team personelle Konsequenzen zieht, bleibt in den kommenden Wochen zu beobachten.",
-      "source_url": "https://www.laola1.at/de/red/sport-mix/football/nfl/news/naechste-colts-niederlage--weitere-stars-vor-dem-abschied-/",
-      "source_name": "laola1.at"
+      "text": "Die Indianapolis Colts kassierten gegen die Dallas Cowboys eine dramatische 23:27‑Heimniederlage und damit die fünfte Pleite in Serie; das Team steht nun bei sieben Niederlagen in neun Spielen. Österreicher Bernhard Raimann wird in Berichten namentlich erwähnt: ORF notiert Schwierigkeiten und mehrere Strafen für den Left Tackle, die im Spielverlauf auffielen. Zusätzlich war ein folgenschwerer Ballverlust von RB Jonathan Taylor ein Spielentscheidender Moment. Die Niederlage vertieft die Krise der Colts, die sich mitten im Austausch von Leistungsträgern befinden — die sportliche Zukunft des Teams sowie Personalfragen bleiben offene Themen.",
+      "source_url": "https://sport.orf.at/stories/3164692/",
+      "source_name": "sport.orf.at"
     },
     "game_center": [
       {
@@ -170,7 +189,6 @@
     "Alle Aussagen, Zahlen und Originalquellen prüfen.",
     "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
     "Überschriften und Kurzmeldungen redaktionell prüfen.",
-    "Nur 4 Brief-Themen; keine Meldungen erfunden.",
     "13 ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen."
   ]
 }
