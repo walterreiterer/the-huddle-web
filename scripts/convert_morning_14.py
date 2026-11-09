@@ -1,438 +1,214 @@
-
 #!/usr/bin/env python3
-"""THE HUDDLE – Markdown in unveröffentlichte JSON-Testvorschau.
+"""THE HUDDLE – sichere Umwandlung des unveröffentlichten Markdown-Entwurfs in JSON.
 
 Aufruf: python scripts/convert_morning_14.py
-Schreibt ausschließlich drafts/morning-preview.json.
+Schreibt ausschließlich drafts/morning-preview.json. Keine Veröffentlichung.
 """
-
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-ROOT = Path("drafts")
-SOURCE = ROOT / "the-huddle-morgenausgabe-13.md"
-AUDIT = ROOT / "redaktionspruefung-13.md"
-TARGET = ROOT / "morning-preview.json"
-
-URL = re.compile(r"https://[^\s)<>\],;]+")
-SOURCE_NOTE = re.compile(
-    r"\s*\((?:Quellen?|Zwischenstand, ESPN-Spielseite):"
-    r"\s*[^)]*\)",
-    re.I
-)
-
-TITLE_LINE = re.compile(r"^\*\*(.+?)\*\*\s*$")
-
-FALLBACK_TITLE = "NFL-Meldung: Überschrift redaktionell prüfen"
+ROOT = Path('drafts')
+SOURCE = ROOT / 'the-huddle-morgenausgabe-13.md'
+AUDIT = ROOT / 'redaktionspruefung-13.md'
+GAMES = ROOT / 'nfl-spiele-08.md'
+TARGET = ROOT / 'morning-preview.json'
+URL = re.compile(r'https://[^\s)<>\],;]+')
+SOURCE_NOTE = re.compile(r'\s*\((?:Quellen?|Zwischenstand, ESPN-Spielseite):\s*[^)]*\)', re.I)
+TITLE_LINE = re.compile(r'^\*\*(.+?)\*\*\s*$')
+GAME_LINE = re.compile(r'^- (ENDE|LIVE|NOCH NICHT BEENDET):\s*(.+?)\s*\|\s*\[ESPN-Spielseite\]\((https://www\.espn\.com/nfl/game/[^)]+)\)\s*$')
+FALLBACK_TITLE = 'NFL-Meldung: Überschrift redaktionell prüfen'
 
 
 def fail(message):
-    raise SystemExit("KONVERTER: " + message)
+    raise SystemExit('KONVERTER: ' + message)
 
 
 def links_in(text):
-    return list(dict.fromkeys(
-        u.rstrip(".,;") for u in URL.findall(text)
-    ))
+    return list(dict.fromkeys(u.rstrip('.,;') for u in URL.findall(text)))
 
 
 def clean(text):
-    text = SOURCE_NOTE.sub("", text)
-    text = URL.sub("", text)
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
-    text = re.sub(r"\(\s*\)", "", text)
-    return " ".join(text.split()).strip(" ,;")
+    text = SOURCE_NOTE.sub('', text)
+    text = URL.sub('', text)
+    text = re.sub(r'\s+([,.;:!?])', r'\1', text)
+    text = re.sub(r'\(\s*\)', '', text)
+    return ' '.join(text.split()).strip(' ,;')
 
 
 def valid_url(url):
     parsed = urlparse(url)
-    return parsed.scheme == "https" and bool(parsed.netloc)
+    return parsed.scheme == 'https' and bool(parsed.netloc)
 
 
 def entry(text, *, title=None, category=None):
-    urls = [
-        u for u in links_in(text)
-        if valid_url(u)
-    ]
-
+    urls = [u for u in links_in(text) if valid_url(u)]
     body = clean(text)
-
-    if title is None:
-        result = {"text": body}
-    else:
-        result = {
-            "title": title,
-            "summary": body,
-            "category": category or "AROUND THE LEAGUE",
-        }
-
-    # Keine unsichere Quellenzuordnung durch Textähnlichkeit.
-    # Ohne explizite Originalquelle bleibt die Meldung ungeprüft.
+    result = ({'text': body} if title is None else
+              {'title': title, 'summary': body, 'category': category or 'AROUND THE LEAGUE'})
     if urls:
-        result["source_url"] = urls[0]
-        result["source_name"] = (
-            urlparse(urls[0]).netloc.removeprefix("www.")
-        )
-
+        result['source_url'] = urls[0]
+        result['source_name'] = urlparse(urls[0]).netloc.removeprefix('www.')
     return result
 
 
 def sections_of(md):
-    aliases = {
-        "THE LEAD": "THE LEAD",
-        "LEAD": "THE LEAD",
-        "GAME CENTER": "GAME CENTER",
-        "GAMECENTER": "GAME CENTER",
-        "AROUND THE LEAGUE": "AROUND THE LEAGUE",
-        "TOP STORIES": "AROUND THE LEAGUE",
-        "AUSTRIAN WATCH": "AUSTRIAN WATCH",
-    }
-
-    sections = {}
-    current = None
-
-    pattern = (
-        r"^\s*#{1,6}\s*"
-        r"(THE LEAD|LEAD|GAME CENTER|GAMECENTER|"
-        r"AROUND THE LEAGUE|TOP STORIES|AUSTRIAN WATCH)"
-        r"\s*$"
-    )
-
+    aliases = {'LEAD': 'THE LEAD', 'GAMECENTER': 'GAME CENTER',
+               'TOP STORIES': 'AROUND THE LEAGUE'}
+    sections, current = {}, None
+    pattern = re.compile(r'^\s*#{1,6}\s*(THE LEAD|LEAD|GAME CENTER|GAMECENTER|AROUND THE LEAGUE|TOP STORIES|AUSTRIAN WATCH)\s*$', re.I)
     for line in md.splitlines():
-        match = re.match(pattern, line, re.I)
-
+        match = pattern.match(line)
         if match:
-            current = aliases[match.group(1).upper()]
+            current = aliases.get(match.group(1).upper(), match.group(1).upper())
             sections.setdefault(current, [])
         elif current is not None:
             sections[current].append(line)
-
-    return {
-        name: "\n".join(lines).strip()
-        for name, lines in sections.items()
-    }
+    return {name: '\n'.join(lines).strip() for name, lines in sections.items()}
 
 
 def paragraphs(section):
-    items = []
-
-    for part in re.split(r"\n\s*\n", section.strip()):
-        part = part.strip()
-
-        if not part:
-            continue
-
-        if re.match(
-            r"^vor veröffentlichung redaktionell prüfen\.?$",
-            part,
-            re.I
-        ):
-            continue
-
-        items.append(part)
-
-    return items
+    return [part.strip() for part in re.split(r'\n\s*\n', section.strip())
+            if part.strip() and not re.match(r'^vor veröffentlichung redaktionell prüfen\.?$', part.strip(), re.I)]
 
 
 def parse_news(paragraph):
-    """Liest eine markierte Überschrift und den zugehörigen Text."""
     lines = paragraph.strip().splitlines()
-
     if not lines:
         return None
-
-    first = lines[0].strip()
-    match = TITLE_LINE.fullmatch(first)
-
-    if match:
-        title = match.group(1).strip()
-        body = "\n".join(lines[1:]).strip()
-        title_marked = True
-    else:
-        title = FALLBACK_TITLE
-        body = paragraph.strip()
-        title_marked = False
-
-    # Titel wird nicht aus dem Fließtext herausgeschnitten.
-    if not 15 <= len(title) <= 110:
-        title = FALLBACK_TITLE
-
-    if title.endswith(
-        ("…", "...", ",", ";", ":", " an", " nach dem", " wegen der")
-    ):
-        title = FALLBACK_TITLE
-
+    match = TITLE_LINE.fullmatch(lines[0].strip())
+    title = match.group(1).strip() if match else FALLBACK_TITLE
+    body = '\n'.join(lines[1:]).strip() if match else paragraph.strip()
     if not body:
         return None
-
-    return {
-        "title": title,
-        "body": body,
-        "title_marked": title_marked,
-    }
-
-
-def first_sentence(text):
-    match = re.search(
-        r"(?<=[.!?])\s+(?=[A-ZÄÖÜ])",
-        text
-    )
-
-    return (
-        text[:match.start()].strip()
-        if match
-        else text.strip()
-    )
-
-
-def brief_text(text):
-    return first_sentence(clean(text))
+    if not 15 <= len(title) <= 110 or title.endswith(('…', '...', ',', ';', ':', ' an', ' nach dem', ' wegen der')):
+        title = FALLBACK_TITLE
+    return {'title': title, 'body': body}
 
 
 def topic_key(text):
-    body = clean(text).lower()
+    return ' '.join(re.findall(r'[a-zäöüß0-9]{4,}', clean(text).lower())[:12])
 
-    # Exakte Doppelungen vermeiden.
-    words = re.findall(r"[a-zäöüß0-9]{4,}", body)
-    return " ".join(words[:12])
+
+def game_center_from_espn():
+    """Liest die vollständigen ESPN-Spielzeilen direkt; KI darf sie nicht kürzen."""
+    if not GAMES.is_file():
+        fail('ESPN-Spieldatei fehlt; Game Center kann nicht geprüft werden.')
+    games, seen, day = [], set(), None
+    for raw in GAMES.read_text(encoding='utf-8').splitlines():
+        line = raw.strip()
+        if line.startswith('## Spieltag '):
+            day = line.removeprefix('## Spieltag ').strip()
+        match = GAME_LINE.fullmatch(line)
+        if match:
+            status, matchup, url = match.groups()
+            if url in seen:
+                fail('Doppelte ESPN-Spielseite: ' + url)
+            seen.add(url)
+            games.append({'date_label': day, 'status': status, 'matchup': matchup,
+                          'source_url': url, 'source_name': 'espn.com'})
+        elif line.startswith(('- ENDE:', '- LIVE:', '- NOCH NICHT BEENDET:')):
+            fail('Nicht lesbare ESPN-Spielzeile: ' + line[:140])
+    if not games:
+        fail('Keine ESPN-Spiele erkannt.')
+    return games
 
 
 def main():
     if not SOURCE.is_file() or not AUDIT.is_file():
-        fail("Entwurf oder Prüfbericht fehlt.")
-
-    md = SOURCE.read_text(encoding="utf-8")
-    audit = AUDIT.read_text(encoding="utf-8")
-
-    marker = (
-        "TESTENTWURF – AUTOMATISCH ERSTELLT, "
-        "NICHT VERÖFFENTLICHEN"
-    )
-
-    if not md.startswith(marker):
-        fail("Testentwurf-Kennzeichnung fehlt.")
-
-    if "## Vor Veröffentlichung manuell prüfen" not in audit:
-        fail("Prüfbericht nicht erkannt.")
+        fail('Entwurf oder Prüfbericht fehlt.')
+    md = SOURCE.read_text(encoding='utf-8')
+    audit = AUDIT.read_text(encoding='utf-8')
+    if not md.startswith('TESTENTWURF – AUTOMATISCH ERSTELLT, NICHT VERÖFFENTLICHEN'):
+        fail('Testentwurf-Kennzeichnung fehlt.')
+    if '## Vor Veröffentlichung manuell prüfen' not in audit:
+        fail('Prüfbericht nicht erkannt.')
 
     sections = sections_of(md)
+    lead = [n for p in paragraphs(sections.get('THE LEAD', '')) if (n := parse_news(p))]
+    around = [n for p in paragraphs(sections.get('AROUND THE LEAGUE', '')) if (n := parse_news(p))]
+    if not lead or not around:
+        fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
-    lead_raw = paragraphs(
-        sections.get("THE LEAD", "")
-    )
-
-    around_raw = paragraphs(
-        sections.get("AROUND THE LEAGUE", "")
-    )
-
-    lead = [
-        item for part in lead_raw
-        if (item := parse_news(part)) is not None
-    ]
-
-    around = [
-        item for part in around_raw
-        if (item := parse_news(part)) is not None
-    ]
-
-    if not lead:
-        fail("THE LEAD enthält keine lesbare Nachricht.")
-
-    if not around:
-        fail("AROUND THE LEAGUE enthält keine lesbare Nachricht.")
-
-
-    # Kurzmeldungen: nur Nachrichten mit expliziter Originalquelle.
-    candidates = lead[:1] + around
-
-    brief = []
-    seen = set()
-
-    for news in candidates:
-        key = topic_key(news["body"])
-
+    brief, seen = [], set()
+    for news in lead[:1] + around:
+        key = topic_key(news['body'])
         if key in seen:
             continue
-
-        item = entry(news["body"])
-
-        if not item.get("source_url"):
-            print("Ohne Quelle übersprungen (Brief):", news["title"])
+        item = entry(news['body'])
+        if not item.get('source_url'):
+            print('Ohne Quelle übersprungen (Brief):', news['title'])
             continue
-
-        item["text"] = brief_text(news["body"])
-
+        # Kein Satz-Splitting: "Jr." und ähnliche Abkürzungen dürfen
+        # keine vier Zeichen langen Kurzmeldungen erzeugen.
+        body = item['text']
+        if not 65 <= len(body) <= 1500 or not re.search(r'''[.!?]["”']?$''', body):
+            print('Ungeeigneter Brief übersprungen:', news['title'], len(body))
+            continue
         brief.append(item)
         seen.add(key)
-
         if len(brief) >= 5:
             break
 
-    # Top Stories: nur Meldungen mit Originalquellenlink.
     stories = []
-
     for news in around:
-        item = entry(
-            news["body"],
-            title=news["title"],
-            category="AROUND THE LEAGUE"
-        )
-
-        if not item.get("source_url"):
-            print("Ohne Quelle übersprungen (Story):", news["title"])
-            continue
-
-        stories.append(item)
-
+        item = entry(news['body'], title=news['title'], category='AROUND THE LEAGUE')
+        if item.get('source_url'):
+            stories.append(item)
+        else:
+            print('Ohne Quelle übersprungen (Story):', news['title'])
         if len(stories) >= 6:
             break
 
     if len(brief) < 3:
-        fail("Zu wenige belegte Kurzmeldungen für die Vorschau.")
-
+        fail('Zu wenige vollständige, belegte Kurzmeldungen.')
     if len(stories) < 2:
-        fail("Zu wenige belegte Top Stories für die Vorschau.")
-
-
-
-    austrian_raw = paragraphs(
-        sections.get("AUSTRIAN WATCH", "")
-    )
+        fail('Zu wenige belegte Top Stories.')
 
     austrian = None
+    austrian_raw = paragraphs(sections.get('AUSTRIAN WATCH', ''))
+    if austrian_raw and (parsed := parse_news(austrian_raw[0])):
+        austrian = entry(parsed['body'])
 
-    if austrian_raw:
-        parsed = parse_news(austrian_raw[0])
+    date_match = re.search(r'^# THE HUDDLE – (.+)$', md, re.M)
+    if not date_match:
+        fail('Ausgabedatum fehlt.')
+    date = re.sub(r'\s+Wien\s*$', '', date_match.group(1)).strip()
+    try:
+        datetime.fromisoformat(date.replace('Z', '+00:00'))
+    except ValueError:
+        fail('Ausgabedatum nicht im ISO-Format: ' + date)
 
-        if parsed:
-            austrian = entry(parsed["body"])
-
-    date_match = re.search(
-        r"^# THE HUDDLE – (.+)$",
-        md,
-        re.M
-    )
-
-    game_section = sections.get("GAME CENTER", "")
-
-    game_count = sum(
-        1
-        for line in game_section.splitlines()
-        if re.match(
-            r"^\s*(?:-\s*)?"
-            r"(?:ENDE:|LIVE\s*\(|NOCH NICHT BEENDET)",
-            line
-        )
-    )
-
+    games = game_center_from_espn()
     warnings = [
-        "Nicht veröffentlichen: Keine redaktionelle Freigabe.",
-        "Alle Aussagen, Zahlen und Originalquellen prüfen.",
-        "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
-        "Überschriften und Kurzmeldungen redaktionell prüfen.",
+        'Nicht veröffentlichen: Keine redaktionelle Freigabe.',
+        'Alle Aussagen, Zahlen und Originalquellen prüfen.',
+        'LIVE-Spielstände vor Veröffentlichung neu abrufen.',
+        'Überschriften und Kurzmeldungen redaktionell prüfen.',
     ]
-
-    fallback_count = sum(
-        story["title"] == FALLBACK_TITLE
-        for story in stories
-    )
-
+    fallback_count = sum(s['title'] == FALLBACK_TITLE for s in stories)
     if fallback_count:
-        warnings.append(
-            f"{fallback_count} Story-Überschrift(en) "
-            "müssen redaktionell ergänzt werden."
-        )
-
+        warnings.append(f'{fallback_count} Story-Überschrift(en) redaktionell ergänzen.')
     if len(brief) < 5:
-        warnings.append(
-            f"Nur {len(brief)} unterschiedliche Brief-Themen "
-            "vorhanden; keine Meldungen erfunden."
-        )
-
-    if any(
-        len(item["text"]) > 250
-        for item in brief
-    ):
-        warnings.append(
-            "Mindestens eine Kurzmeldung ist länger "
-            "als 250 Zeichen."
-        )
-
-    missing_sources = sum(
-        "source_url" not in item
-        for item in brief + stories
-    )
-
-    if missing_sources:
-        warnings.append(
-            f"{missing_sources} Meldung(en) ohne "
-            "ausdrücklichen Originalquellenlink."
-        )
-
-    if game_count:
-        warnings.append(
-            f"{game_count} Game-Center-Zeilen bewusst "
-            "nicht als statische Ergebnisse übernommen."
-        )
-
+        warnings.append(f'Nur {len(brief)} Brief-Themen; keine Meldungen erfunden.')
+    warnings.append(f'{len(games)} ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen.')
     result = {
-        "version": "1.0",
-        "status": "draft",
-        "published_at": None,
-        "message": (
-            "Nur interne Testvorschau – "
-            "nicht veröffentlichen."
-        ),
-        "edition": {
-            "date": (
-    re.sub(
-        r"\s+Wien\s*$",
-        "",
-        date_match.group(1)
-    ) + ":00" if False else (
-        re.sub(r"\s+Wien\s*$", "", date_match.group(1))
-        if date_match
-        else "Datum prüfen"
-    )
-),
-            "headline": (
-                "THE HUDDLE – Redaktionelle Testvorschau"
-            ),
-            "intro": (
-                "Unveröffentlichter Entwurf. "
-                "Sämtliche Meldungen vor Freigabe prüfen."
-            ),
-            "brief": brief,
-            "stories": stories,
-            "austria": austrian,
+        'version': '1.0', 'status': 'draft', 'published_at': None,
+        'message': 'Nur interne Testvorschau – nicht veröffentlichen.',
+        'edition': {
+            'date': date, 'headline': 'THE HUDDLE – Redaktionelle Testvorschau',
+            'intro': 'Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.',
+            'brief': brief, 'stories': stories, 'austria': austrian,
+            'game_center': games,
         },
-        "review_required": warnings,
+        'review_required': warnings,
     }
-
-    ROOT.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    TARGET.write_text(
-        json.dumps(
-            result,
-            ensure_ascii=False,
-            indent=2
-        ) + "\n",
-        encoding="utf-8"
-    )
-
-    print(
-        f"Vorschau: {TARGET}; "
-        f"{len(brief)} Brief-Themen; "
-        f"{len(stories)} Stories; "
-        f"{fallback_count} Ersatzüberschriften; "
-        "NICHT veröffentlicht."
-    )
+    ROOT.mkdir(parents=True, exist_ok=True)
+    TARGET.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(f'Vorschau: {TARGET}; {len(brief)} Brief-Themen; {len(stories)} Stories; {len(games)} ESPN-Spiele; NICHT veröffentlicht.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
