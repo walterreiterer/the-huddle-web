@@ -4,67 +4,71 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-07T07:44+01:00",
+    "date": "2026-11-09T18:15+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "brief": [
       {
-        "text": "Der Rehabilitations- und Reintegrationsprozess von WR Brandon Aiyuk bleibt offen: Die Liga hat dem Receiver laut Berichten mitgeteilt, er müsse etwa 13 Millionen Dollar an die San Francisco 49ers zurückzahlen, bevor eine formelle Reinstufung möglich sei, und sein Treffen mit Agent Drew Rosenhaus und dem Klub hat bisher keine abschließende Einigung gebracht; die NFL hat Aiyuk noch nicht reinstiert.",
-        "source_url": "https://www.nfl.com/news/wr-brandon-aiyuk-meets-with-49ers-back-to-100-percent-as-he-seeks-reinstatement",
+        "text": "Die Jacksonville Jaguars haben Pro‑Bowl‑Safety Jessie Bates III von den Atlanta Falcons verpflichtet und im Gegenzug einen Zweitrundenpick 2027 sowie einen Fünftundenpick 2028 abgegeben; Atlanta übernehme nach Informationen einen Großteil von Bates' Restgehalt, um den Wechsel zu ermöglichen.",
+        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
         "source_name": "nfl.com"
       },
       {
-        "text": "Eine NBC-Analyse stellt fest, dass Vikings, Bears, Lions und Packers zusammen eine 17-3-Bilanz gegen Nicht-NFC-North-Teams aufweisen, was einer Erfolgsquote von 85 Prozent entspricht und laut Recherche das beste Divisionsresultat seit der Fusion 1970 darstellt; theoretisch könnten alle vier Teams in die Playoffs kommen, doch dafür wären spezifische Wild-Card-Platzierungen nötig.",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/nfc-north-has-17-3-record-against-non-nfc-north-teams",
+        "text": "Denver‑Quarterback Bo Nix hat in dieser Saison bereits sechs sogenannte game‑winning drives gesammelt und kommt in seinen ersten drei NFL‑Saisons auf insgesamt 16 solche Siegestreffer, was laut NBC Sports einen Rekord darstellt; zuletzt leitete er zwei späte Touchdown‑Dri­ves gegen Carolina und sicherte so den Broncos‑Sieg.",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
         "source_name": "nbcsports.com"
       },
       {
-        "text": "Jerry Jones wehrte in einem Radiointerview Kritik ab, wonach er nicht bereit wäre, Topgehälter für Trainer zu zahlen, und sagte, Geld habe ihn nie davon abgehalten, den passenden Coach zu holen; Jones sprach zudem über Kaderentscheidungen und deutete an, Dallas könnte eher ergänzen als große Teile zu verkaufen.",
-        "source_url": "https://www.nfl.com/news/cowboys-owner-jerry-jones-money-has-never-stood-in-way-of-hiring-right-coach",
+        "text": "Nach seinem Wechsel von den Cardinals zu den Houston Texans ist Marvin Harrison Jr. noch nicht durchgestartet: NBC Sports bilanziert fünf Catches für 85 Yards und ein TD in Arizona sowie sechs Catches für 60 Yards und ein TD in Houston, sodass der Wechsel bislang keine deutliche Leistungssteigerung brachte.",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/marvin-harrison-jr-s-production-hasnt-improved-since-trade-from-cardinals-to-texans",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "text": "Trotz einer karrierehöchsten Vier‑Interception‑Partie blieb Bears‑Quarterback Caleb Williams nach dem 27:24‑Erfolg gegen Tampa Bay gelassen und betonte, er werde weiter aggressiv spielen: „I'm going to keep grippin' it, keep rippin' it.“ Trainer und Team hoben den Wert des Sieges trotz der Fehler hervor.",
+        "source_url": "https://www.nfl.com/news/bears-qb-caleb-williams-undaunted-by-4-int-night-in-win-over-bucs-i-m-going-to-keep-grippin-it-keep-rippin-it",
         "source_name": "nfl.com"
       },
       {
-        "text": "Quellen zufolge beobachten Teams die einbrechende Euphorie um die Quarterback-Klasse für den Draft 2027 genau; einige Entscheider schätzen, dass ein weniger hoch eingeschätzter Jahrgang die Bereitschaft erhöhen könnte, Draft-Picks beim Trade-Deadline-Entscheid zu veräußern, während andere Teams weiter auf konservative Bewertung setzen.",
-        "source_url": "https://sports.yahoo.com/nfl/article/will-arch-manning-dante-moore-and-other-qb-prospect-questions-influence-nfl-trade-deadline-041655621.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "text": "Head Coach Todd Monken bestätigte, dass Shedeur Sanders in Week 9 für die Cleveland Browns starten wird, während Deshaun Watson zwar wieder eingeschränkt trainierte, aber noch im Concussion-Protocol verbleibt und sein Einsatz gegen New Orleans als fraglich gelistet ist.",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/browns-shedeur-sanders-to-start-vs-saints-as-deshaun-watson-remains-in-concussion-protocol-182544696.html",
-        "source_name": "sports.yahoo.com"
+        "text": "Offensive Tackle Luke Goedeke bemängelte nach dem Spiel das Verhalten von Jeffery Simmons und sprach von wiederholtem Halten bei Passspielzügen, das seiner Ansicht nach von den Offiziellen zu selten geahndet werde; Goedeke forderte genauere Beobachtung, während Simmons für seine Wirkung gegen die Buccaneers gelobt wurde.",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/luke-goedeke-airs-grievances-about-jeffery-simmons",
+        "source_name": "nbcsports.com"
       }
     ],
     "stories": [
       {
-        "title": "NFC North hält 17-3-Bilanz gegen Nicht-Divisionsgegner und dominiert die Statistik",
-        "summary": "Eine NBC-Analyse stellt fest, dass Vikings, Bears, Lions und Packers zusammen eine 17-3-Bilanz gegen Nicht-NFC-North-Teams aufweisen, was einer Erfolgsquote von 85 Prozent entspricht und laut Recherche das beste Divisionsresultat seit der Fusion 1970 darstellt; theoretisch könnten alle vier Teams in die Playoffs kommen, doch dafür wären spezifische Wild-Card-Platzierungen nötig.",
+        "title": "Bo Nix häuft sechs game‑winning drives an und führt Broncos in engen Spielen",
+        "summary": "Denver‑Quarterback Bo Nix hat in dieser Saison bereits sechs sogenannte game‑winning drives gesammelt und kommt in seinen ersten drei NFL‑Saisons auf insgesamt 16 solche Siegestreffer, was laut NBC Sports einen Rekord darstellt; zuletzt leitete er zwei späte Touchdown‑Dri­ves gegen Carolina und sicherte so den Broncos‑Sieg.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/nfc-north-has-17-3-record-against-non-nfc-north-teams",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
         "source_name": "nbcsports.com"
       },
       {
-        "title": "Cowboys-Besitzer Jerry Jones: Geld stand nie im Weg bei der Suche nach dem richtigen Trainer",
-        "summary": "Jerry Jones wehrte in einem Radiointerview Kritik ab, wonach er nicht bereit wäre, Topgehälter für Trainer zu zahlen, und sagte, Geld habe ihn nie davon abgehalten, den passenden Coach zu holen; Jones sprach zudem über Kaderentscheidungen und deutete an, Dallas könnte eher ergänzen als große Teile zu verkaufen.",
+        "title": "Marvin Harrison Jr. bleibt nach Trade zu den Texans bislang unauffällig",
+        "summary": "Nach seinem Wechsel von den Cardinals zu den Houston Texans ist Marvin Harrison Jr. noch nicht durchgestartet: NBC Sports bilanziert fünf Catches für 85 Yards und ein TD in Arizona sowie sechs Catches für 60 Yards und ein TD in Houston, sodass der Wechsel bislang keine deutliche Leistungssteigerung brachte.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nfl.com/news/cowboys-owner-jerry-jones-money-has-never-stood-in-way-of-hiring-right-coach",
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/marvin-harrison-jr-s-production-hasnt-improved-since-trade-from-cardinals-to-texans",
+        "source_name": "nbcsports.com"
+      },
+      {
+        "title": "Caleb Williams reagiert selbstbewusst auf vier Interceptions in Bears‑Sieg",
+        "summary": "Trotz einer karrierehöchsten Vier‑Interception‑Partie blieb Bears‑Quarterback Caleb Williams nach dem 27:24‑Erfolg gegen Tampa Bay gelassen und betonte, er werde weiter aggressiv spielen: „I'm going to keep grippin' it, keep rippin' it.“ Trainer und Team hoben den Wert des Sieges trotz der Fehler hervor.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/bears-qb-caleb-williams-undaunted-by-4-int-night-in-win-over-bucs-i-m-going-to-keep-grippin-it-keep-rippin-it",
         "source_name": "nfl.com"
       },
       {
-        "title": "NFL-Front Offices prüfen, ob ein schwächer eingeschätzter QB-Jahrgang Einfluss auf die Deadline hat",
-        "summary": "Quellen zufolge beobachten Teams die einbrechende Euphorie um die Quarterback-Klasse für den Draft 2027 genau; einige Entscheider schätzen, dass ein weniger hoch eingeschätzter Jahrgang die Bereitschaft erhöhen könnte, Draft-Picks beim Trade-Deadline-Entscheid zu veräußern, während andere Teams weiter auf konservative Bewertung setzen.",
+        "title": "Goedeke kritisiert Jeffery Simmons wegen wiederholtem Halten im Passspiel",
+        "summary": "Offensive Tackle Luke Goedeke bemängelte nach dem Spiel das Verhalten von Jeffery Simmons und sprach von wiederholtem Halten bei Passspielzügen, das seiner Ansicht nach von den Offiziellen zu selten geahndet werde; Goedeke forderte genauere Beobachtung, während Simmons für seine Wirkung gegen die Buccaneers gelobt wurde.",
         "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/article/will-arch-manning-dante-moore-and-other-qb-prospect-questions-influence-nfl-trade-deadline-041655621.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "title": "Browns setzen gegen die Saints auf Shedeur Sanders, Watson im Concussion-Protocol",
-        "summary": "Head Coach Todd Monken bestätigte, dass Shedeur Sanders in Week 9 für die Cleveland Browns starten wird, während Deshaun Watson zwar wieder eingeschränkt trainierte, aber noch im Concussion-Protocol verbleibt und sein Einsatz gegen New Orleans als fraglich gelistet ist.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/browns-shedeur-sanders-to-start-vs-saints-as-deshaun-watson-remains-in-concussion-protocol-182544696.html",
-        "source_name": "sports.yahoo.com"
+        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/luke-goedeke-airs-grievances-about-jeffery-simmons",
+        "source_name": "nbcsports.com"
       }
     ],
-    "austria": null
+    "austria": {
+      "text": "Die Indianapolis Colts verloren gegen die Dallas Cowboys mit 23:27, was für Bernhard Raimann und sein Team die fünfte Pleite nacheinander bedeutete; im Bericht wird zudem über mögliche Abgänge von Schlüsselspielern wie Daniel Jones und Jonathan Taylor spekuliert, nachdem es angebliche Anfragen anderer Teams gegeben haben soll.",
+      "source_url": "https://www.laola1.at/de/red/sport-mix/football/nfl/news/naechste-colts-niederlage--weitere-stars-vor-dem-abschied-/",
+      "source_name": "laola1.at"
+    }
   },
   "review_required": [
     "Nicht veröffentlichen: Keine redaktionelle Freigabe.",
@@ -72,6 +76,6 @@
     "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
     "Überschriften und Kurzmeldungen redaktionell prüfen.",
     "Mindestens eine Kurzmeldung ist länger als 250 Zeichen.",
-    "1 Game-Center-Zeilen bewusst nicht als statische Ergebnisse übernommen."
+    "4 Game-Center-Zeilen bewusst nicht als statische Ergebnisse übernommen."
   ]
 }
