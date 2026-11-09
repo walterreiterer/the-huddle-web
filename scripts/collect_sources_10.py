@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import urllib.parse
+from html.parser import HTMLParser
 from pathlib import Path
 
 import feedparser
@@ -28,7 +29,8 @@ SOURCES = {
     'Heute': 'heute.at',
     'Die Presse': 'diepresse.com',
     'Tiroler Tageszeitung': 'tt.com',
-    'Kicker': 'kicker.de',
+    'Kicker Deutschland': 'kicker.de',
+    'Kicker Österreich': 'kicker.at',
 }
 HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; TheHuddle/1.1; editorial source test)'}
 EXCLUDE = re.compile(r'\b(betting|sportsbook|odds|parlay|prop bets?|gambling|fantasy|mock draft|how to watch|watch live|streaming guide|picks against the spread)\b', re.I)
@@ -129,6 +131,90 @@ def canonical_url(url):
     return urllib.parse.urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, '', ''))
 
 
+
+# Sky's public American-football overview is reachable, while individual
+# article URLs can return HTTP 403. Keep headline-only leads OUT of the
+# verified article payload consumed by the editorial writer.
+SKY_INDEX = 'https://www.skysportaustria.at/american-football/'
+SKY_RADAR_JSON = Path('drafts/sky-nachrichtenradar.json')
+SKY_RADAR_MD = Path('drafts/sky-nachrichtenradar.md')
+SKY_TOPIC = re.compile(
+    r'\b(?:NFL|American Football|Super Bowl|Raimann|Senn|Colts|'
+    r'International Games|Bengals|Chiefs|Cowboys|Quarterback|'
+    r'Broncos|Packers|Patriots|Falcons|Jaguars|Mahomes|Burrow)\b', re.I
+)
+
+
+class SkyLinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+        self.current_href = None
+        self.current_text = []
+        self.depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a' and self.current_href is None:
+            self.current_href = dict(attrs).get('href')
+            self.current_text = []
+            self.depth = 1
+        elif self.current_href is not None:
+            self.depth += 1
+
+    def handle_data(self, data):
+        if self.current_href is not None:
+            self.current_text.append(data)
+
+    def handle_endtag(self, tag):
+        if self.current_href is None:
+            return
+        if tag == 'a':
+            title = clean_title(' '.join(self.current_text))
+            if title:
+                self.links.append((title, self.current_href))
+            self.current_href = None
+            self.current_text = []
+            self.depth = 0
+        elif self.depth > 1:
+            self.depth -= 1
+
+
+def collect_sky_radar(session, now):
+    """Public index only; no attempts to bypass article-level restrictions."""
+    response = session.get(SKY_INDEX, timeout=22)
+    response.raise_for_status()
+    parser = SkyLinkParser()
+    parser.feed(response.text)
+    found, seen = [], set()
+    for title, href in parser.links:
+        url = urllib.parse.urljoin(SKY_INDEX, href)
+        if not host_matches(url, 'skysportaustria.at'):
+            continue
+        path = urllib.parse.urlsplit(url).path.strip('/')
+        # Exclude category/navigation/media listings; accept article-like slugs.
+        if not path or '/' in path or path in ('american-football', 'news', 'mediathek'):
+            continue
+        if not SKY_TOPIC.search(title + ' ' + path):
+            continue
+        key = canonical_url(url)
+        if key in seen:
+            continue
+        seen.add(key)
+        found.append({'title': title, 'url': key, 'published': None,
+                      'status': 'headline_only_unverified'})
+    result = {'checked_utc': now.isoformat(), 'source': 'Sky Sport Austria',
+              'index_url': SKY_INDEX, 'articles': found[:30],
+              'note': 'Nur Ueberschriften/Links; kein Volltext und kein bestaetigtes Datum.'}
+    SKY_RADAR_JSON.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+    lines = ['# Sky Sport Austria – Nachrichtenradar (nur Recherchehinweise)', '',
+             'Keine Volltexte; Meldungen und Daten vor Verwendung gegenpruefen.', '']
+    lines.extend(f'- [{a["title"]}]({a["url"]}) – ungeprueft' for a in found[:30])
+    if not found:
+        lines.append('Keine passenden Artikellinks erkannt.')
+    SKY_RADAR_MD.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return len(found)
+
+
 def main():
     now = dt.datetime.now(dt.timezone.utc)
     items, audit, seen_urls, seen_titles = [], [], set(), set()
@@ -213,6 +299,14 @@ def main():
             count += len(items) - before
 
     Path('drafts').mkdir(exist_ok=True)
+    try:
+        sky_count = collect_sky_radar(session, now)
+        audit.append(f'- Sky-Nachrichtenradar: {sky_count} Ueberschriften/Links erfasst (nicht als Artikel verwendet)')
+    except Exception as exc:
+        audit.append(f'- Sky-Nachrichtenradar: {type(exc).__name__}: {str(exc)[:150]}')
+        # Prevent stale radar results from a previous run being mistaken for new ones.
+        for radar_file in (SKY_RADAR_JSON, SKY_RADAR_MD):
+            radar_file.unlink(missing_ok=True)
     Path('drafts/quellen-10.json').write_text(
         json.dumps({'collected_utc': now.isoformat(), 'articles': items}, ensure_ascii=False, indent=2),
         encoding='utf-8')
