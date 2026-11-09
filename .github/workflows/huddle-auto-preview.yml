@@ -44,6 +44,15 @@ jobs:
       - name: Quellen sammeln
         if: steps.time.outputs.run == 'true'
         run: python scripts/collect_sources_10.py
+      - name: Sky-Zugriff diagnostizieren (nur Test)
+        if: steps.time.outputs.run == 'true'
+        continue-on-error: true
+        run: |
+          python scripts/sky_diagnose.py
+          echo 'Direkter Sky-Artikeltest (HTTP-Status):'
+          curl --location --silent --show-error --max-time 20 --output /dev/null \
+            --write-out 'Sky-Raimann-Artikel: HTTP %{http_code}\n' \
+            'https://www.skysportaustria.at/niederlage-gegen-cowboys-playoffs-fuer-colts-und-raimann-in-weiter-ferne/'
       - name: Ausgabe erstellen
         if: steps.time.outputs.run == 'true'
         env:
@@ -72,6 +81,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: huddle-preview-diagnose
-          path: drafts/
+          path: |
+            drafts/
+            sky-diagnose.json
           if-no-files-found: ignore
           retention-days: 7
