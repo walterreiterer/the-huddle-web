@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import urllib.parse
+import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -181,10 +182,20 @@ class SkyLinkParser(HTMLParser):
 
 def collect_sky_radar(session, now):
     """Public index only; no attempts to bypass article-level restrictions."""
-    response = session.get(SKY_INDEX, timeout=22)
-    response.raise_for_status()
+    # Use the same public-page request method and headers as sky_diagnose.py,
+    # which returned HTTP 200 in the GitHub Actions runner.
+    request = urllib.request.Request(
+        SKY_INDEX,
+        headers={
+            'User-Agent': 'TheHuddleEditorialDiagnostic/1.0 (public-page-access-check)',
+            'Accept': 'text/html,application/xhtml+xml',
+        },
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        raw_html = response.read(800_000)
+        encoding = response.headers.get_content_charset() or 'utf-8'
     parser = SkyLinkParser()
-    parser.feed(response.text)
+    parser.feed(raw_html.decode(encoding, errors='replace'))
     found, seen = [], set()
     for title, href in parser.links:
         url = urllib.parse.urljoin(SKY_INDEX, href)
