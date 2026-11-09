@@ -4,73 +4,69 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-09T20:39+01:00",
+    "date": "2026-11-09T20:58+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "lead": {
-      "title": "Jaguars rüsten sekundär massiv auf – Bates und Godchaux verändern Playoff-Perspektive",
-      "summary": "Die Jacksonville Jaguars haben mit den Transfers von Safety Jessie Bates III (von den Atlanta Falcons) und DT Davon Godchaux (von den New Orleans Saints) sofort die Defensivstruktur des Teams für die Saison 2026 verändert. Bates, ein etablierter Ballhawk mit 28 Karriere-Interceptions, bringt sofortige Playmaking-Fähigkeit in die Free-Safety-Rolle und adressiert eine Schwäche gegen den Pass: Jacksonville liegt diese Saison gegen den Pass vergleichsweise schwächer und verliert durch Verletzungen in der Defensive bereits Stammkräfte wie Eric Murray und DaVon Hamilton. Godchaux soll die Innenfront stabilisieren und die Rotation gegen den Lauf sowie in Passrush-Situationen stärken. Sportlich bedeutet das einen klaren Schub für das Jaguars-Defense-Konzept unter Coordinator Anthony Campanile: Mehr Erfahrung in Schlüsselpositionen erhöht die Chancen, knappe Playoff-Spiele zu gewinnen, und macht Jacksonville in der AFC deutlich schwieriger ausrechenbar. Für Atlanta und New Orleans sind die Deals auch typische Deadline-Entscheidungen — Bates bringt Atlanta noch einen Day-2-Pick, während die Saints Gehalts- und Kaderflexibilität gewinnen. Kurzfristig pushen die Zugänge Jacksonville in die Favoritenrolle der AFC South und könnten die Erwartungen an eine tiefergehende Playoff-Teilnahme nachhaltig erhöhen; langfristig bleibt abzuwarten, ob Bates als Free Agent gehalten werden kann.",
+      "title": "Bo Nix bestätigt sich als „Comeback‑Quarterback“ – Broncos bauen Titelambitionen auf seine Clutch‑Qualitäten",
+      "summary": "Bo Nix ist in dieser Saison zur personifizierten Rückkehr‑Garantie geworden: Mit sechs sogenannten Game‑Winning‑Drives führt er die NFL in dieser Kategorie – und hat in den ersten drei Jahren seiner Karriere bereits 16 solcher Drives auf dem Konto, ein Rekordwert für diesen Zeitraum. Nix’ jüngster viertel‑ und spielentscheidender Schlusstakt brachte den Denver Broncos nicht nur den knappen Sieg in Carolina, sondern unterstrich auch ein strukturelles Merkmal dieses Teams: Selbst wenn es in Rückstand gerät, vertraut Denver auf die Offense und auf Nix’ Fähigkeit, Drucksituationen zu lösen. Sportlich bedeutet das mehr als nur spektakuläre Endszenen: Ein Quarterback, der regelmäßig Spiele im vierten Viertel dreht, verändert das Coaching‑ und Matchup‑Verhalten von Gegnern und hebt die Play‑Calling‑Strategie seines eigenen Teams. Die Broncos stehen nach dem Sieg bei 7-2 und an der Spitze der AFC West — mit einem Signal, das Playoff‑und Titelambitionen stärkt. Für die Liga ist das relevant, weil Teams mit „Clutch‑QBs“ tendenziell anders verwaltet werden (mehr Risiko im Kaderbau, Fokus auf situative Verstärkungen) und weil der Marktwert eines jungen Signalgebers mit solchen Statistiken deutlich steigt. Ob Nix diese Form langfristig halten kann, entscheidet nicht nur über Denvers Saison, sondern auch über die Quarterback‑Debatten der Liga in den kommenden Jahren.",
       "category": "THE LEAD",
-      "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
-      "source_name": "nfl.com"
+      "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
+      "source_name": "nbcsports.com"
     },
     "brief": [
       {
-        "text": "Broncos-Quarterback Bo Nix hat mit seinen beiden späten Touchdown‑Drives gegen die Panthers seine außergewöhnliche Erfolgsstatistik weiter ausgebaut: Er führt die NFL mit sechs Game‑Winning Drives in dieser Saison und kommt in seiner Dreijahres‑Karriere auf 16 dieser Drives — ein NFL‑Rekord für die ersten drei Spielzeiten eines QBs.",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
-        "source_name": "nbcsports.com"
-      },
-      {
-        "text": "Patrick Mahomes musste nach einem Sack und einem unglücklichen Ellbogen‑Verdrehen während des Jets‑Spiels kurz vom Feld, konnte aber zurückkehren und Kansas City zum Sieg führen.",
+        "text": "Patrick Mahomes zog sich im Spiel gegen die Jets einen Schlag auf den Wurfarm zu, konnte aber weiterspielen und war nach dem Spiel wieder auf dem Feld.",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Seattle hat Quarterback Sam Darnold für Week 10 gegen die Raiders offiziell aus dem Kader genommen; Drew Lock hat laut Coach Mike Macdonald eine Oblique‑Verletzung, die „gut untersucht“ wurde und voraussichtlich kein Start‑Hindernis darstellt.",
+        "text": "Die Jaguars tätigten am Montag zwei signifikante Personaltransfers: Safety Jessie Bates III wurde aus Atlanta verpflichtet, DT Davon Godchaux kam aus New Orleans.",
+        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
+        "source_name": "nfl.com"
+      },
+      {
+        "text": "Seattle‑Coach Mike Macdonald gab ein Update: Starter Sam Darnold wird für Week 10 gegen die Raiders ausfallen; Drew Lock, der zuletzt eingewechselt wurde, hat eine Oberschenkel‑/Rippen‑Sorgen‑Konstellation hinter sich und erlitt nun eine Oblique‑Beschwerde, die Team‑Ärzte aber als handhabbar bezeichnen.",
         "source_url": "https://sports.yahoo.com/nfl/article/seahawks-rule-out-qb-sam-darnold-for-week-10-vs-raiders-drew-lock-dealing-with-oblique-injury-175613358.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Detroit hat vom New York Jets‑Secondaryspieler Andre Cisco für einen 2028er Sechstrundenpick verpflichtet.",
+        "text": "Die Detroit Lions haben laut Medienberichten Safety Andre Cisco von den New York Jets für einen 2028er Sechstrundenpick verpflichtet.",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-agree-to-acquire-s-andre-cisco-from-jets",
         "source_name": "nbcsports.com"
       }
     ],
     "stories": [
       {
-        "title": "Bo Nix setzt historische Serie fort und macht Denver zum Comeback-Team",
-        "summary": "Broncos-Quarterback Bo Nix hat mit seinen beiden späten Touchdown‑Drives gegen die Panthers seine außergewöhnliche Erfolgsstatistik weiter ausgebaut: Er führt die NFL mit sechs Game‑Winning Drives in dieser Saison und kommt in seiner Dreijahres‑Karriere auf 16 dieser Drives — ein NFL‑Rekord für die ersten drei Spielzeiten eines QBs. Nix’ Fähigkeit, Spiele im vierten Viertel zu entscheiden, hat Denver an die Spitze der AFC West (7‑2) gebracht und erhöht die Erwartung, dass die Broncos auch in engen Partien die Oberhand behalten. Seine Konstanz in Drucksituationen verändert die Wahrnehmung, wie das Team gebaut ist: nicht nur über das Playoff‑Seeding, sondern auch in Hinblick auf Trainerentscheidungen und Kaderzusammenstellung.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/bo-nix-has-an-nfl-high-6-game-winning-drives-this-season-and-a-record-16-through-3-seasons",
-        "source_name": "nbcsports.com"
-      },
-      {
-        "title": "Patrick Mahomes mit sauberer MRI‑Bilanz nach Ellbogen‑Schreck",
-        "summary": "Patrick Mahomes musste nach einem Sack und einem unglücklichen Ellbogen‑Verdrehen während des Jets‑Spiels kurz vom Feld, konnte aber zurückkehren und Kansas City zum Sieg führen. Laut Berichten zeigte die post‑game MRI keine gravierende Verletzung, Mahomes fühlte sich nach dem Spiel „okay“ und spielte die Partie weiter. Coach Andy Reid sprach von „mehr positiven als negativen“ Befunden zur Bildgebung; Mahomes’ Verfügbarkeit bleibt damit für die kommenden Wochen gesichert, auch wenn Soreness zu erwarten ist. Für die Chiefs ist das kurzfristig ein enormer Erleichterungsfaktor im Rennen um die AFC‑Platzierungen.",
+        "title": "NFL-Meldung: Überschrift redaktionell prüfen",
+        "summary": "Patrick Mahomes zog sich im Spiel gegen die Jets einen Schlag auf den Wurfarm zu, konnte aber weiterspielen und war nach dem Spiel wieder auf dem Feld. Postgame‑Untersuchungen ergaben laut Berichten eine saubere MRT, Coach Andy Reid bezeichnete die Bilder als „positiver als negativ“. Mahomes führte Kansas City trotz kurzzeitiger Schmerzen zum Sieg und zeigte anschließend keine auffälligen Leistungseinbußen. Für die Chiefs ist das kurzfristig ein großes Aufatmen, weil Mahomes Gesundheit zentral für Kansas Citys Kürzlich‑gezeigte Konstanz ist; längerfristig bleibt zu beobachten, wie sich das QB‑Management vor den nächsten hochkarätigen Duellen gestaltet.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/patrick-mahomes-reportedly-has-clean-mri-after-returning-from-elbow-injury-scare-to-lead-chiefs-past-jets-175456226.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Seahawks: Darnold aus, Lock mit Oblique‑Problem – Saisonverlauf anfällig",
-        "summary": "Seattle hat Quarterback Sam Darnold für Week 10 gegen die Raiders offiziell aus dem Kader genommen; Drew Lock hat laut Coach Mike Macdonald eine Oblique‑Verletzung, die „gut untersucht“ wurde und voraussichtlich kein Start‑Hindernis darstellt. Lock gewann seine bisher zwei Starts in dieser Saison, Darnold hat dagegen eine wechselhafte Bilanz (3–4 in sieben Starts). Seattle steht damit vor einer kritischen Phase: Nach Week 10 folgt die Bye, anschließend aber ein hochrelevantes Divisions‑Duell gegen San Francisco in Week 12. Die QB‑Stabilität bleibt ein zentraler Faktor für Seattles Ambitionen in der NFC West.",
+        "title": "NFL-Meldung: Überschrift redaktionell prüfen",
+        "summary": "Die Jaguars tätigten am Montag zwei signifikante Personaltransfers: Safety Jessie Bates III wurde aus Atlanta verpflichtet, DT Davon Godchaux kam aus New Orleans. Bates bringt Erfahrung als Ball‑hawk und könnte sofort eine Schwachstelle in Jacksonvilles Passverteidigung angehen; Godchaux soll die Defensive Line gegen den Lauf und als Rotationstiefe stabilisieren. Jacksonville reagiert damit auf Verletzungen im Front‑Seven und liefert sich eine klare Short‑Term‑Push‑Strategie für die Playoff‑Phase. Für Atlanta und New Orleans bedeuten die Deals vor allem Kaderplanungssignale Richtung 2027‑Offseason.",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://www.nfl.com/news/jessie-bates-jaguars-falcons-trade",
+        "source_name": "nfl.com"
+      },
+      {
+        "title": "NFL-Meldung: Überschrift redaktionell prüfen",
+        "summary": "Seattle‑Coach Mike Macdonald gab ein Update: Starter Sam Darnold wird für Week 10 gegen die Raiders ausfallen; Drew Lock, der zuletzt eingewechselt wurde, hat eine Oberschenkel‑/Rippen‑Sorgen‑Konstellation hinter sich und erlitt nun eine Oblique‑Beschwerde, die Team‑Ärzte aber als handhabbar bezeichnen. Lock hat in seinen Einsätzen keine Turnover‑Probleme gezeigt und soll den Start übernehmen; Backup Jalen Milroe wurde lediglich als Notfall warmgemacht. Für die Seahawks bedeutet das: Kurzfristig eine Fortsetzung der Quarterback‑Rotation, langfristig aber die Hoffnung, Darnold rechtzeitig für das Spitzenduell gegen San Francisco wieder fit zu haben.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://sports.yahoo.com/nfl/article/seahawks-rule-out-qb-sam-darnold-for-week-10-vs-raiders-drew-lock-dealing-with-oblique-injury-175613358.html",
         "source_name": "sports.yahoo.com"
       },
       {
-        "title": "Lions holen Safety Andre Cisco als kurzfristige Verstärkung",
-        "summary": "Detroit hat vom New York Jets‑Secondaryspieler Andre Cisco für einen 2028er Sechstrundenpick verpflichtet. Cisco (26) ist in diesem Vertragsjahr ein erfahrener Ergänzungsspieler und könnte den Lions helfen, die Defensive Bank zu verlängern — besonders da er diese Saison in neun Spielen bereits produktiv war. Für die Lions, die ihre Bye schon hatten, bedeutet der Trade auch die Möglichkeit, Cisco in mehr Spielen einzusetzen (potenziell 18 Einsätze). Für die Jets ist es ein kleiner Rückfluss für einen Spieler in seinem letzten Vertragsjahr. Sportlich ist es ein schrittweiser Versuch Detroits, verletzungsbedingte Lücken in der Secondary zu schließen.",
+        "title": "NFL-Meldung: Überschrift redaktionell prüfen",
+        "summary": "Die Detroit Lions haben laut Medienberichten Safety Andre Cisco von den New York Jets für einen 2028er Sechstrundenpick verpflichtet. Cisco, 26, bringt NFL‑Erfahrung und könnte in Detroits Secondary sofort als Rotationsspieler oder situativer Starter auflaufen; für die Lions erhöht sich die Chance, Verletzungs‑Ausfälle im Backfield abzufedern. Für die Jets ist es eine kleine Kompensation in Form eines Draftpicks; Cisco läuft in diesem Jahr aus Vertrag. Der Transfer zeigt, wie Teams in der Regular Season gezielt Tiefe und sofortige Hilfe suchen, wenn die Playoff‑Ambitionen realistisch sind.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/lions-agree-to-acquire-s-andre-cisco-from-jets",
         "source_name": "nbcsports.com"
       }
     ],
-    "austria": {
-      "text": "Die Indianapolis Colts kassierten gegen Dallas die fünfte Niederlage in Serie (27–23, ESPN Game Center) — ein Negativlauf, in den auch das Team des österreichischen Left Tackles Bernhard Raimann eingebunden ist. LAOLA1 berichtet, dass es für die Colts weiter „alles andere als nach Wunsch“ läuft und spekuliert über mögliche Konsequenzen für das Kader (inkl. Diskussionen um andere Stars), nennt Raimann jedoch nicht als individuell verletzten oder ausfallenden Spieler. Zu Valentin Senn liegen in den übergebenen Quellen keine neuen, belegten Entwicklungen vor. Damit bleibt Raimanns Situation Teil eines breiteren Colts‑Problems, ohne dass aus den vorliegenden Meldungen seine persönliche Verfügbarkeits- oder Leistungsentwicklung konkret hervorgeht.",
-      "source_url": "https://www.laola1.at/de/red/sport-mix/football/nfl/news/naechste-colts-niederlage--weitere-stars-vor-dem-abschied-/",
-      "source_name": "laola1.at"
-    },
+    "austria": null,
     "game_center": [
       {
         "date_label": "08.11.2026 (Wien)",
@@ -170,6 +166,7 @@
     "Alle Aussagen, Zahlen und Originalquellen prüfen.",
     "LIVE-Spielstände vor Veröffentlichung neu abrufen.",
     "Überschriften und Kurzmeldungen redaktionell prüfen.",
+    "4 Story-Überschrift(en) redaktionell ergänzen.",
     "Nur 4 Brief-Themen; keine Meldungen erfunden.",
     "13 ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen."
   ]
