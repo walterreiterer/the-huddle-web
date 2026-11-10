@@ -286,6 +286,22 @@ als Einschaetzung erkennbar ist (z. B. "das erhoeht den Druck",
 Entscheidung oder als Aussage einer Quelle ausgeben. Keine erfundenen
 Motive, Trainerzitate, Kaderentscheidungen oder angeblichen Gewissheiten.
 
+THE HUDDLE 0.9 – RESSORTPLAN UND ZEITLOGIK (VERBINDLICH):
+Die Lead-Story ist EIN Ereignis und bekommt genau eine Hauptplatzierung.
+Nicht als Story 1 des Morning Briefs erneut erzaehlen. Ein Morning Brief
+fasst die gesamte Ausgabe mit mehreren VERSCHIEDENEN Ereignissen zusammen;
+Lead maximal ein kurzer Satz, andere Nachrichten haben Vorrang.
+Keine zweite ausfuehrliche Lead-Erzaehlung in AROUND THE LEAGUE.
+Bei gleichwertigen Meldungen Themenvielfalt vor mehrfachen Trades desselben Teams.
+Relevante belegte Spielverlegungen/Anstosszeit-Aenderungen aktiv pruefen;
+nur bei aktueller Relevanz aufnehmen, mit Quelle, Datum und Europa-Zeit.
+Die bekannte Giants-Verschiebung auf 22:25 Uhr ist ein REDAKTIONELLER
+TESTFALL, KEINE QUELLE und darf niemals ohne frischen Beleg erzaehlt werden.
+Die Bezeichnung 'NFL-Nacht' nur fuer Spiele, die tatsaechlich in der
+relevanten europaeischen Nacht stattgefunden haben. London-Spiele am
+Sonntagnachmittag sind KEINE Ergebnisse der NFL-Nacht. Kein vergangenes
+Spiel als heutiges Nachtresultat ausgeben.
+
 THE LEAD: Waehle das journalistisch wichtigste, nachweislich belegte Thema.
 Wichtig sind Auswirkungen auf die Liga, sportliche Bedeutung, Besonderheit
 und Interesse fuer ein europaeisches NFL-Publikum. Bevorzuge nicht einfach
