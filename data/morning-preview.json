@@ -4,96 +4,70 @@
   "published_at": null,
   "message": "Nur interne Testvorschau – nicht veröffentlichen.",
   "edition": {
-    "date": "2026-11-10T01:11+01:00",
+    "date": "2026-11-10T01:29+01:00",
     "headline": "THE HUDDLE – Redaktionelle Testvorschau",
     "intro": "Unveröffentlichter Entwurf. Sämtliche Meldungen vor Freigabe prüfen.",
     "lead": {
-      "title": "Jaguars setzen auf Defense‑Schwergewicht: Jordan Davis wechselt — Ein Blockbuster, der das AFC‑Titelrennen verändert",
-      "summary": "Faktisch: Die Jacksonville Jaguars haben kurz vor Ablauf der Trade‑Deadline Eagles‑Defensive‑Tackle Jordan Davis verpflichtet. Jacksonville gab dafür einen Erstrundenpick 2027 und einen Zweitrundenpick 2029 an Philadelphia ab, bestätigten beide Teams. Der Transfer ist Teil eines Dreierschlags der Jaguars am Montag, zu dem zuvor bereits Safety Jessie Bates III (von Atlanta) und DT Davon Godchaux (von New Orleans) gehörten. Davis ist ein 26‑jähriger Innenverteidiger, 2022 in der ersten Runde gedraftet; seine Statistiken 2026 (bis Week 9) lagen bei 31 Tackles und 1,5 Sacks. Einordnung (journalistisch nachvollziehbar): Jacksonville gibt damit große Draft‑Kapitalien preis und signalisiert ein klares „Win‑Now“-Szenario: Die Jaguars (6‑2) wollen die personellen Verluste in der Innenverteidigung (u. a. DaVon Hamilton) unmittelbar kompensieren und die Run‑D stabilisieren — ein Bereich, in dem Davis laut Next Gen Stats starke Run‑Stop‑Werte vorweisen kann. Sportlich stärkt das die Chancen der Jags, in einer AFC mit mehreren starken Lauf‑Offensiven (Bills, Chiefs, Steelers) Playoff‑Matchups mit kontrollierbarem Run‑Gegenspiel anzugehen. Offene Fragen / Risiken: Der Preis (Erstrundenpick 2027 + 2029er Pick) reduziert Jaguars‑Futures an Draft‑Flexibilität; zudem war Davis 2026 offensiv nicht dominant. Ob Coaching/Umfeld in Jacksonville seine Leistung re‑unlockt, bleibt offen. Auf Philly‑Seite verschafft der Deal große Draft‑Kapazität zur Rebuild‑Planung, bestätigt aber zugleich, dass die Eagles diese Saison als verloren betrachten.",
+      "title": "Jaguars geben hohe Draft-Kosten aus – Jordan Davis macht Interior-Defensive-Line-Aufrüstung zum klaren Statement",
+      "summary": "Fakten: Die Jacksonville Jaguars haben kurz vor der Trade-Deadline den Defensive Tackle Jordan Davis von den Philadelphia Eagles verpflichtet und dafür einen Erstrundenpick 2027 sowie einen Zweitrundenpick 2029 abgegeben. Es ist die dritte defensive Verpflichtung an diesem Handelstag nach Jessie Bates III (aus Atlanta) und DaVon Godchaux (aus New Orleans). Davis, 26, kommt aus seiner fünften NFL-Saison; 2025 verzeichnete er ein Karrierehoch von 72 Tackles und 4,5 Sacks, in dieser Saison stehen 31 Tackles und 1,5 Sacks nach neun Spielen zu Buche. Einschätzung: Die Transaktion ist klar auf den kurzfristigen Titelgewinn ausgerichtet: Jacksonville opfert Draft-Kapital, um akute Verletzungslücken – unter anderem den Ausfall von DaVon Hamilton – zu schließen. Die Verpflichtung eines physischen Nose-Tackles wie Davis neben Godchaux soll die Run-Defence stabilisieren und Jacksonville für Playoff-Matches gegen starke Laufattacken rüsten. Sportlich signalisiert der Trade, dass die Jaguars ihr Fenster für einen Super-Bowl-Run für geöffnet halten. Offene Fragen: Wie schnell kann Davis in das Front-Seven-System der Jags integriert werden, und rechtfertigt seine bisher überschaubare Produktion den hohen Preis langfristig? Welche Auswirkungen haben die verlorenen Picks auf die Kaderplanung nach dieser Saison?",
       "category": "THE LEAD",
-      "source_url": "https://www.nfl.com/news/jordan-davis-trade-jaguars-eagles",
-      "source_name": "nfl.com"
+      "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/jaguars-land-dt-jordan-davis-in-blockbuster-deal-with-eagles-marking-latest-trade-ahead-of-deadline-221650026.html",
+      "source_name": "sports.yahoo.com"
     },
     "brief": [
       {
-        "text": "Faktisch: Die Jacksonville Jaguars haben kurz vor Ablauf der Trade‑Deadline Eagles‑Defensive‑Tackle Jordan Davis verpflichtet.",
-        "source_url": "https://www.nfl.com/news/jordan-davis-trade-jaguars-eagles",
-        "source_name": "nfl.com",
-        "title": "Jaguars setzen auf Defense‑Schwergewicht: Jordan Davis wechselt — Ein Blockbuster, der das AFC‑Titelrennen verändert"
-      },
-      {
-        "text": "Faktisch: Die NFL hat WR Brandon Aiyuk von der Reserve/Left‑Squad‑Liste reinstellt und den San Francisco 49ers eine zweiwöchige Roster‑Exemption gewährt.",
+        "title": "Brandon Aiyuk wieder vom Reserve/Left-Squad-List reinstated – 49ers haben zwei Wochen Handlungsraum",
+        "text": "Fakten: Die NFL hat Brandon Aiyuk von der Reserve/Left-Squad-Liste reinstated und den San Francisco 49ers eine zweiwöchige Roster-Exemption gewährt.",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/nfl-reinstates-wr-brandon-aiyuk-from-reserveleft-squad-list-leaving-49ers-with-a-decision-233133186.html",
-        "source_name": "sports.yahoo.com",
-        "title": "Brandon Aiyuk ist wieder spielberechtigt — 49ers haben zwei Wochen Entscheidungszeit"
+        "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Faktisch: Die Arizona Cardinals gaben bekannt, dass Wide Receiver Michael Wilson nach einer im Spiel erlittenen „Fraktur im Bereich des Hals-/Nackenbereichs“ die Saison vorzeitig beendet; Wilson hatte das Spiel trotz Beschwerden zu Ende gespielt.",
+        "title": "Arizona verliert Top-Receiver Michael Wilson für die Saison nach Halsverletzung",
+        "text": "Fakten: Die Arizona Cardinals haben bekanntgegeben, dass WR Michael Wilson sich eine „Fraktur im Halsbereich“ zugezogen hat und für die Saison ausfällt.",
         "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/cardinals-wr-michael-wilson-out-for-the-season-due-to-fracture-in-his-neck-area-215131041.html",
-        "source_name": "sports.yahoo.com",
-        "title": "Arizona verliert WR Michael Wilson für die Saison — schwere Nackenschaden‑Diagnose"
+        "source_name": "sports.yahoo.com"
       },
       {
-        "text": "Faktisch: Die Indianapolis Colts verloren am Sonntag 23:27 bei den Dallas Cowboys (ESPN‑Spielbericht).",
-        "source_url": "https://www.laola1.at/de/red/sport-mix/football/nfl/news/naechste-colts-niederlage--weitere-stars-vor-dem-abschied-/",
-        "source_name": "laola1.at",
-        "title": "Austrian Watch"
-      },
-      {
-        "title": "Ergebnis der NFL-Nacht",
-        "text": "Endstand laut ESPN: Cincinnati Bengals 34 – 17 Atlanta Falcons.",
-        "source_url": "https://www.espn.com/nfl/game/_/gameId/401873038",
-        "source_name": "espn.com"
+        "title": "Packers: Josh Jacobs unterzieht sich Finger-Operation – Verfügbarkeit unklar",
+        "text": "Fakten: Green-Bay-RB Josh Jacobs wird sich diese Woche einer Operation an einem gebrochenen Finger unterziehen; die Rückkehrzeit ist noch offen.",
+        "source_url": "https://www.nfl.com/news/packers-rb-josh-jacobs-to-undergo-surgery-on-finger-this-week",
+        "source_name": "nfl.com"
       }
     ],
     "stories": [
       {
-        "title": "Brandon Aiyuk ist wieder spielberechtigt — 49ers haben zwei Wochen Entscheidungszeit",
-        "summary": "Faktisch: Die NFL hat WR Brandon Aiyuk von der Reserve/Left‑Squad‑Liste reinstellt und den San Francisco 49ers eine zweiwöchige Roster‑Exemption gewährt. Die Liga‑Transaktion wurde am Montag veröffentlicht; Aiyuk hatte über seinen neuen Agenten Drew Rosenhaus die Reinstattung beantragt. Einordnung: Die Frist gibt den 49ers administrativen Spielraum, Aiyuk zu halten, zu tauschen oder zu entlassen — mit finanziellen Implikationen: Sein Gehalt für 2026 ist zum Teil ausgesetzt, und ein Trade würde einen Wechsel für einen niedrigen Non‑Guaranteed‑Anteil erlauben. Sportlich scheint San Francisco intern eine Rückkehr ausgeschlossen zu haben; ein Trade vor Ablauf der Frist erscheint wahrscheinlich, sofern keine finanzielle Einigung erzielt wurde. Offene Fragen: Unklar bleibt, ob Aiyuk Vereinbarungen zur Rückzahlung von Boni getroffen hat (Berichte nennen rund 13 Mio. USD) und ob ein Abnehmer gefunden wird, der Vertrags‑ und Reha‑Risiken eingeht.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/nfl-reinstates-wr-brandon-aiyuk-from-reserveleft-squad-list-leaving-49ers-with-a-decision-233133186.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "title": "Arizona verliert WR Michael Wilson für die Saison — schwere Nackenschaden‑Diagnose",
-        "summary": "Faktisch: Die Arizona Cardinals gaben bekannt, dass Wide Receiver Michael Wilson nach einer im Spiel erlittenen „Fraktur im Bereich des Hals-/Nackenbereichs“ die Saison vorzeitig beendet; Wilson hatte das Spiel trotz Beschwerden zu Ende gespielt. Er beendete die Saison mit 546 Yards und zwei TDs in neun Spielen. Einordnung: Wilsons Ausfall entleert Arizonas Receiver‑Depth weiter, nachdem Marvin Harrison Jr. bereits abgegeben wurde. Die verbleibenden Außenoptionen sind begrenzt; Sollten weitere Verletzungen Manager zu kurzfristigen Verstärkungen zwingen, könnte Arizona in den kommenden Wochen am Markt aktiv werden. Offene Fragen: Evaluations zu Gardener Minshews Armverletzung sind noch nicht abgeschlossen; falls Minshew nicht spielen kann, wäre Rookie Carson Beck als Starter benannt. Das beeinflusst unmittelbar Kaderplanung und mögliche externe Verpflichtungen.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://sports.yahoo.com/nfl/breaking-news/article/cardinals-wr-michael-wilson-out-for-the-season-due-to-fracture-in-his-neck-area-215131041.html",
-        "source_name": "sports.yahoo.com"
-      },
-      {
-        "title": "Josh Jacobs: Finger‑OP bei den Packers — IR‑Option möglich",
-        "summary": "Faktisch: Packers‑RB Josh Jacobs unterzieht sich diese Woche einer Operation an einem gebrochenen Finger; eine Rückkehrzeit wurde nicht genannt. Head Coach Matt LaFleur sagte, ein IR‑Platz würde „alles auf den Tisch“ bringen. Einordnung: Green Bays Run‑Attack ist schon in dieser Saison problematisch; Jacobs’ Ausfall verschiebt carries auf Backup‑BRS (Kaleb Johnson, MarShawn Lloyd u. a.). Sportlich könnte das Passing‑Lasting stärker gewichtet werden, solange Jacobs fehlt. Zusätzlich läuft eine NFL‑Untersuchung zu früheren Vorwürfen gegen Jacobs weiter — juristische/disciplinarische Fragen können Kaderentscheidungen komplizieren. Offene Fragen: Ob die Packers Jacobs auf IR setzen und wie lange er ausfällt, bleibt offen; die Entscheidung wird auch von der weiteren Untersuchung und gesundheitlichen Entwicklung abhängen.",
-        "category": "AROUND THE LEAGUE",
-        "source_url": "https://www.nfl.com/news/packers-rb-josh-jacobs-to-undergo-surgery-on-finger-this-week",
-        "source_name": "nfl.com"
-      },
-      {
-        "title": "Jordan Love: Saisonbestleistung katapultiert Packers‑QB in MVP‑Diskussion",
-        "summary": "Faktisch: Jordan Love führte die Green Bay Packers zu einem 45:27‑Sieg in Foxborough und erzielte 372 Passing‑Yards sowie drei TDs; seine Performance wurde von Berichterstattern als überragend bezeichnet. Einordnung: Love liefert damit ein MVP‑würdiges Signalspiel und befeuert Diskussionen über seine Rolle in der MVP‑Debatte; Green Bay bleibt in einer engen NFC‑North‑Auseinandersetzung. Für Gegner sind Long‑Ball‑Vulnerabilities der aktuellen Defenses stärker zu beachten. Offene Fragen: Kann Love seine Form über mehrere Wochen halten und wie reagieren gegnerische Gameplans? Die Belastbarkeit über die Saison bleibt ein Faktor für langfristige MVP‑Prognosen.",
+        "title": "Jordan Love in Foxborough überragend – MVP-Diskussion flammt auf",
+        "summary": "Fakten: Green Bay dominierte die New England Patriots 45:27; Jordan Love spielte eine herausragende Partie (372 Yards, 3 TDs, 153,2 Passer Rating laut Berichten). Wideouts Matthew Golden und Christian Watson lieferten große Receiving-Zahlen. Einschätzung: Love hat mit dieser Performance seine Position in der MVP-Debatte deutlich gestärkt und zeigt, dass Green Bays Offensivkonzept bei ihm in Hochform explosive Big-Play-Fähigkeit hat. Die Partie erhöht den Druck auf NFC-Rivalen – insbesondere bei anstehenden Duellen gegen starke Defenses. Offene Fragen: Ob Love die Konstanz über den Rest der Saison hält, bleibt offen; die nächsten Wochen mit starken Gegnern werden zeigen, ob diese Partie nur Peak-Performance oder Wendepunkt ist.",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.foxsports.com/stories/nfl/jordan-love-game-his-life-drake-maye-one-his-worst-rams-bengals",
         "source_name": "foxsports.com"
       },
       {
-        "title": "Myles Garrett kehrt zurück — Rams‑Passrush bekommt Schub",
-        "summary": "Faktisch: Myles Garrett kehrte nach Knieverletzung in die Rams‑Aufstellung zurück und registrierte in seinem Comeback drei Sacks; die Rams gewannen 20:13 gegen Washington. In der Auswertung sank die erlaubte Yard‑Zahl pro Play deutlich, wenn Garrett und Aaron Donald zusammen auf dem Feld standen. Einordnung: Garretts Rückkehr stärkt sofort die Passrush‑Dynamik und entlastet eine Offense, die zuletzt verletzungsbedingt wackelte. Für die Rams bedeutet das steigende Chancen, enge Spiele defensiv zu kontrollieren; die Langzeitwirkung hängt von Garretts Belastungssteuerung ab. Offene Fragen: Wie viele Snaps wird Garrett mittelfristig spielen, und reichen kurzfristige Auswirkungen, um L.A. in die Playoff‑Positionen zu tragen?",
+        "title": "Myles Garrett kehrt zurück und sticht bei Rams-Sieg heraus",
+        "summary": "Fakten: Myles Garrett kehrte von der IR-Rückkehr zurück und erzielte in seinem Comeback drei Sacks, darunter Strip-Sacks, die für wichtige Momentum-Swing sorgten. Die Rams gewannen 20:13 gegen die Washington Commanders. Einschätzung: Garretts Rückkehr gibt den Rams-Passrush sofortige Impulse und erhöht die Verteidigungs-Optionen, vor allem wenn er öfter mit Aaron Donald auf dem Feld steht. Das Duo könnte der Rams-Defense noch einmal deutlich mehr Schlagkraft verleihen. Offene Fragen: Wie nachhaltig ist Garretts Form nach längerer Pause, und welche Belastungssteuerung wird Head Coach Sean McVay wählen, um Verletzungsrisiken zu minimieren?",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://www.nfl.com/news/nfl-week-9-sunday-aftermath-myles-garrett-s-return-buoys-rams-jordan-love-joe-burrow-shine-again",
         "source_name": "nfl.com"
       },
       {
-        "title": "Bengals, Burrow & Chase schreiben Geschichte beim NFL‑Euro‑Auftritt in Madrid",
-        "summary": "Faktisch: Die Cincinnati Bengals gewannen in Madrid 34:17 gegen die Atlanta Falcons. Joe Burrow lieferte 271 Passing‑Yards und drei TDs; Ja’Marr Chase erzielte 155 Yards und trug mit historischen Marken zur Statistik bei. Einordnung: Die Europaspiele behalten für die Liga Bedeutung als globale Bühne — sportlich bestätigt Cincinnati mit einer weiteren starken Leistung seinen Status in der AFC. Für europäische Zuschauer bleibt das Format ein Wachstumsinstrument, das zudem Rekordleistungen wie die von Chase ins Rampenlicht rückt. Offene Fragen: Wie oft und in welchem Umfang wird die NFL weiterhin reguläre Saisonspiele in Europa ansetzen, ohne Wettbewerbsverzerrungen durch Reise‑ und Erholungszeiten?",
+        "title": "NFL-Statistiken und Rekorde aus Week 9: Burrow, Chase, Mahomes/Kelce, McCaffrey",
+        "summary": "Fakten: - Joe Burrow und Ja’Marr Chase setzten Meilensteine beim Bengals-Sieg in Madrid; Burrow lieferte erneut eine Top-Leistung, Chase erreichte mehrere historische Receiving-Marken. - Patrick Mahomes und Travis Kelce überholten das Duo Philip Rivers/Antonio Gates in gemeinsamen Receiving-Yards. - Christian McCaffrey zog an Marshall Faulk vorbei in einer Kategorie der Receiving-TDs eines RBs. Einschätzung: Solche individuellen Meilensteine unterstreichen die Bedeutung etablierter Angriffsduos und zeigen, wie sich Spitzentalente in längerfristige Narrative (MVP-Kandidaturen, Franchise-Historie) verwandeln. Für die Liga bedeuten Rekorde kontinuierliche mediale Anknüpfungspunkte, die Wettbewerbs- und Storytelling-Werte erhöhen. Offene Fragen: Wie beeinflussen diese individuellen Entwicklungen die Trade- und Vertragsstrategien der betroffenen Franchises in den kommenden Offseasons?",
         "category": "AROUND THE LEAGUE",
         "source_url": "https://football-austria.com/nfl-week-9-2026-rekorde-burrow-chase-mahomes/",
+        "source_name": "football-austria.com"
+      },
+      {
+        "title": "Nachwuchsfootball in Österreich: Vikings, Raiders Tirol und Playoff-Ansetzungen",
+        "summary": "Fakten: Die AFC Vienna Vikings gewannen das U12-Finale 36:32 gegen die Danube Dragons. In weiteren Altersklassen erreichten die Vikings und Raiders Tirol entscheidende Playoff- und Finalrunden; konkrete Termine und Ansetzungen für U14- und U16-Finals wurden kommuniziert (22. November u. a.). Einschätzung: Die österreichische Nachwuchsstruktur zeigt Kontinuität und Breite; die Vikings positionieren sich erneut als ein Zentrum für Jugendförderung, während die Raiders Tirol ihre U14-Form bestätigen. Solche Entwicklungen sind wichtig für die langfristige Qualität des Football-Angebots in Österreich. Offene Fragen: Wie werden Spielorte, genaue Kickoff-Zeiten und mediale Übertragungen für die Finalwochenenden finalisiert?",
+        "category": "AROUND THE LEAGUE",
+        "source_url": "https://football-austria.com/nachwuchsfootball-2026-ergebnisse-playoffs-finaltermine/",
         "source_name": "football-austria.com"
       }
     ],
     "austria": {
-      "text": "Faktisch: Die Indianapolis Colts verloren am Sonntag 23:27 bei den Dallas Cowboys (ESPN‑Spielbericht). Österreichs Left Tackle Bernhard Raimann spielte laut Berichten mit einer Armschiene; die Serie der Colts setzte sich damit fort — Laola1 berichtet von der fünften Niederlage in Folge und nennt Spekulationen über mögliche Abgänge bei Schlüsselspielern wie Daniel Jones und Jonathan Taylor.",
-      "source_url": "https://www.laola1.at/de/red/sport-mix/football/nfl/news/naechste-colts-niederlage--weitere-stars-vor-dem-abschied-/",
-      "source_name": "laola1.at"
+      "text": "Fakten: Die Indianapolis Colts unterlagen den Dallas Cowboys 23:27 (ESPN-Scoreboard bestätigt Ergebnis). Lokale Berichte erwähnen Bernhard Raimann als teilnehmenden Left Tackle, der mit einer Armschiene spielte. Medienberichte aus Österreich sprechen von der fünften Niederlage in Folge für die Franchise in der aktuellen Saison und von Spekulationen über mögliche Abgänge weiterer Schlüsselspieler.",
+      "source_url": "https://www.krone.at/4330202",
+      "source_name": "krone.at"
     },
     "game_center": [
       {
