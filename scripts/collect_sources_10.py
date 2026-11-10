@@ -239,6 +239,15 @@ def main():
             if good >= limit or attempted >= 12:
                 break
             title = clean_title(entry.get('title', ''))
+                        # Football-Austria: nur NFL-relevante Artikel
+            if source == 'Football-Austria':
+                if not re.search(
+                    r'\b(NFL|Super Bowl|National Football League)\b',
+                    title,
+                    re.I
+                ):
+                    rejected += 1
+                    continue
             german = source not in ('Yahoo Sports', 'NBC Sports', 'FOX Sports', 'NFL.com')
             if not title or EXCLUDE.search(title):
                 continue
