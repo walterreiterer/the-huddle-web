@@ -58,7 +58,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/build_morning_13.py
-      
+
       - name: Test-JSON erzeugen
         if: steps.time.outputs.run == 'true'
         run: python scripts/convert_morning_14.py
@@ -74,6 +74,10 @@ jobs:
       - name: Redaktionelle Dopplungen kontrollieren (0.9)
         if: steps.time.outputs.run == 'true'
         run: python scripts/editorial_gate_09.py
+
+      - name: Quellen-Audit erstellen (0.9.3 – keine Freigabe)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/source_audit_093.py
 
       - name: Vorschau ins Repository schreiben
         if: steps.time.outputs.run == 'true'
