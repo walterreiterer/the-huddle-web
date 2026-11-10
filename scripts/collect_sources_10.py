@@ -21,7 +21,7 @@ SOURCES = {
     'FOX Sports': 'foxsports.com',
     'NFL.com': 'nfl.com',
     'Football-Austria': 'football-austria.com',
-    'ORF Sport': 'orf.at',,
+    'ORF Sport': 'orf.at',
     'Sky Sport Austria': 'skysportaustria.at',
     'Kronen Zeitung': 'krone.at',
     'Kurier': 'kurier.at',
