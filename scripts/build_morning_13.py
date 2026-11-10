@@ -38,6 +38,8 @@ HIGH = re.compile(
     re.I
 )
 
+SCHEDULE_CHANGE = re.compile(r"\b(rescheduled|reschedule|flexed|flex scheduling|kickoff moved|kickoff time changed|game moved|start time changed|time change)\b", re.I)
+
 LOW_NEWS_VALUE = re.compile(
     r"\b(podcast|interview|columnist|reporter|journalist|"
     r"broadcast|broadcaster|tv host|media personality|"
@@ -72,6 +74,8 @@ def priority(article):
     points = 2 if HIGH.search(title) else 0
     if LOW_NEWS_VALUE.search(title):
         points -= 8
+    if SCHEDULE_CHANGE.search(title):
+        points += 3  # Relevante Spielplanänderungen als Servicemeldung sichtbar halten
     if age is not None:
         if 0 <= age <= 18:
             points += 3
@@ -211,6 +215,21 @@ def load_sources():
 
         if len(selected) >= 18:
             break
+
+    # Eine belegte aktuelle Spielplanänderung soll in der Quellenauswahl nicht
+    # allein durch Trade-/Injury-Schlagzeilen verdrängt werden. Kein Ersatz
+    # durch erfundene oder außerhalb des Zeitfensters liegende Nachrichten.
+    schedule_candidates = [a for a in filtered if SCHEDULE_CHANGE.search(str(a.get('title', '')))]
+    if schedule_candidates:
+        candidate = schedule_candidates[0]
+        if not any(a.get('url') == candidate.get('url') for a in selected):
+            if len(selected) >= 18:
+                selected[-1] = candidate
+            else:
+                selected.append(candidate)
+        print(f'Spielplanänderungen: {len(schedule_candidates)} belegte Kandidaten im Zeitfenster.')
+    else:
+        print('Spielplanänderungen: Keine passende aktuelle Quelle im Zeitfenster; nichts erfinden.')
 
     # Austrian Watch: Mindestens eine geeignete, aktuelle Spielerquelle
     # an die Redaktion weitergeben, ohne den journalistischen Entscheid

@@ -23,12 +23,17 @@ def main():
     errors=[]
     if not title:
         errors.append('Lead-Titel fehlt')
+    if not edition.get('brief'):
+        errors.append('Morning Brief fehlt oder ist leer')
     for i, story in enumerate(edition.get('stories') or [],1):
-        if overlap(title,story.get('title','')) >= .75:
+        if (overlap(title,story.get('title','')) >= .75 or
+            (lead.get('source_url') and lead.get('source_url') == story.get('source_url'))):
             errors.append(f'Lead-Dublette in Around the League #{i}: {story.get("title", "")}')
     brief=edition.get('brief') or []
-    if brief and overlap(title,brief[0].get('title','')) >= .75:
-        errors.append('Lead-Dublette als erste Morning-Brief-Meldung')
+    for i, item in enumerate(brief,1):
+        if (overlap(title,item.get('title','')) >= .75 or
+            (lead.get('source_url') and lead.get('source_url') == item.get('source_url'))):
+            errors.append(f'Lead-Dublette im Morning Brief #{i}')
     for i, item in enumerate(brief,1):
         text=(item.get('title','')+' '+item.get('text','')).lower()
         if ('nfl-nacht' in text or 'vergangenen nacht' in text) and ('london' in text or 'sonntagnachmittag' in text):
