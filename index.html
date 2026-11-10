@@ -11,6 +11,61 @@
     'wait_for_update': 500
   });
 </script>
+<!-- GA4 wird erst nach positiver CMP-Entscheidung geladen. -->
+<script>
+(function () {
+  'use strict';
+  var measurementId = 'G-Q8XG6N68Y1';
+  var analyticsStarted = false;
+  var listenerRegistered = false;
+
+  function startAnalytics() {
+    if (analyticsStarted) return;
+    analyticsStarted = true;
+    // Die Google-CMP verwaltet die AdSense-Einwilligung separat.
+    // GA4 erhält erst nach ausdrücklicher Zustimmung die Freigabe.
+    gtag('consent', 'update', {analytics_storage: 'granted'});
+    gtag('js', new Date());
+    gtag('config', measurementId);
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    document.head.appendChild(script);
+  }
+
+  function handleConsent(tcData, success) {
+    if (!success || !tcData) return;
+    if (tcData.eventStatus !== 'tcloaded' && tcData.eventStatus !== 'useractioncomplete') return;
+    var purposes = tcData.purpose && tcData.purpose.consents || {};
+    // Vorsichtige Freigabe: Speicherung/Zugriff, Inhaltsmessung und
+    // Entwicklung/Verbesserung müssen ausdrücklich erlaubt sein.
+    var allowed = purposes[1] === true && purposes[8] === true && purposes[10] === true;
+    if (allowed) startAnalytics();
+    else {
+      gtag('consent', 'update', {analytics_storage: 'denied'});
+      // Bereits geladene Skripte lassen sich nicht rückwirkend entladen.
+      // Bei späterem Widerruf wird die Messung gesperrt; für einen
+      // vollständigen Neustart ist ein Seiten-Reload nötig.
+    }
+  }
+
+  function registerListener() {
+    if (listenerRegistered || typeof window.__tcfapi !== 'function') return false;
+    listenerRegistered = true;
+    window.__tcfapi('addEventListener', 2, handleConsent);
+    return true;
+  }
+
+  if (!registerListener()) {
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries++;
+      if (registerListener() || tries >= 120) clearInterval(timer);
+    }, 250);
+  }
+})();
+</script>
+
 <!-- AdSense lädt die Google-CMP; Analytics ist noch nicht eingebunden. -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1749499010977661"
      crossorigin="anonymous"></script></head><body><header><div class="wrap"><div><div class="tag">INDEPENDENT NFL MORNING JOURNAL</div><div class="brand">THE HUDDLE<span style="color:#f08080">.</span></div><div class="sub">Die NFL-Nacht. Auf den Punkt. Für Europa.</div></div><span class="pill">REDAKTIONELLER TESTBETRIEB</span></div></header><nav><div class="wrap"><a href="#brief">Morning Brief</a><a href="#games">Game Center</a><a href="#stories">Top Stories</a><a href="#austria">Austrian Watch</a><a href="#sources">Quellen</a></div></nav><main class="wrap"><div class="notice"><strong>THE HUDDLE befindet sich im redaktionellen Testbetrieb.</strong> Die unten gezeigten Beiträge und Ergebnisse stammen aus einer archivierten Probeausgabe vom 3. November 2026. Sie sind keine aktuellen NFL-Nachrichten. Neue automatisch erzeugte Entwürfe werden vor einer Veröffentlichung redaktionell geprüft und freigegeben.</div><section class="hero"><div class="eyebrow">ARCHIVIERTE PROBEAUSGABE · 3. NOVEMBER 2026</div><h1>Die NFL-Nacht. Auf den Punkt.</h1><p>THE HUDDLE – dein NFL-Morgenjournal mit Ergebnissen, Geschichten und dem österreichischen Blick auf die Liga.</p><span class="pill">Archiv-Ausgabe vom 03.11.2026 · Nicht aktuell</span></section><section class="section grid"><div class="card" id="brief"><div class="eyebrow">01 / MORNING BRIEF</div><h2>Die NFL in 60 Sekunden – Archiv vom 3. November</h2><div class="editorial"><p>Die NFL trade deadline am 10. November rückt näher, und erste spektakuläre Deals haben die Liga bewegt. Die Chicago Bears verstärken sich mit Jeffery Simmons, um ihre Super-Bowl-Ambitionen zu untermauern. Gleichzeitig leiten die Indianapolis Colts mit dem Abgeben von Schlüsselspielern wie Quenton Nelson und DeForest Buckner einen grundlegenden Umbau ein. Die Baltimore Ravens stehen vor einem Dilemma: Die Verletzung von Lamar Jackson sorgt für Unsicherheit, und die Frage wird diskutiert, ob der Nachwuchs-QB Tyson Bagent ein teurer Trade wert ist. Ein weiterer Blick gilt den Los Angeles Chargers, die trotz Niederlagen Khalil Mack womöglich nicht abgeben wollen. <a href="https://www.cbssports.com/nfl/news/2026-nfl-trade-deadline-tracker-latest-deals-grades/">CBS Sports</a></p>
