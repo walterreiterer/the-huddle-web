@@ -282,7 +282,23 @@ def main():
                 )
                 continue
         audit.append(f'- {label}: {good} Artikel extrahiert ({attempted} abgerufen, {rejected} wegen fehlendem NFL-Bezug verworfen)')
-
+    # Football-Austria: direkter WordPress-RSS-Feed
+    try:
+        rss_url = 'https://football-austria.com/feed/'
+        response = session.get(rss_url, timeout=25)
+        response.raise_for_status()
+        entries = feedparser.parse(response.content).entries
+        collect(
+            entries,
+            'Football-Austria',
+            'football-austria.com',
+            MAX_PER_SOURCE,
+            'Football-Austria RSS'
+        )
+    except Exception as exc:
+        audit.append(
+            f'- Football-Austria RSS: {type(exc).__name__}: {str(exc)[:150]}'
+        )
     for source, domain in SOURCES.items():
         german = source not in ('Yahoo Sports', 'NBC Sports', 'FOX Sports', 'NFL.com')
         query = (f'site:{domain} (NFL OR "American Football" OR Raimann OR "Valentin Senn") when:3d'
