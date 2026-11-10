@@ -206,46 +206,47 @@ def main():
             return None
         return short
 
-    brief, seen = [], set()
-
-    def add_brief(body, title=None):
-        key = topic_key(title or body)
-        if key in seen:
-            return False
-        item = entry(body)
-        if not item.get('source_url'):
-            return False
-        short = short_brief(item['text'])
-        if not short:
-            return False
-        item['text'] = short
-        if title:
-            item['title'] = title
-        brief.append(item)
-        seen.add(key)
-        return True
-
-    # Der Brief ist ein Querschnitt der Ausgabe: Lead, Nachrichten,
-    # Austrian Watch und ein tatsächlich beendetes Spiel.
-    add_brief(lead_item['summary'] + ' (Quelle: ' + lead_item['source_url'] + ')', lead_item['title'])
-    for news in around[:2]:
-        add_brief(news['body'], news['title'])
+    # Jede Nachricht darf nur in einer redaktionellen Rubrik erscheinen.
+    # Der Lead und Austrian Watch sind eigenstaendige Rubriken.
+    # Morning Brief und Around the League teilen die vorhandenen Stories auf.
+    brief = []
+    remaining_stories = []
+    reserved_urls = {lead_item['source_url']}
     if austrian:
-        add_brief(austrian['text'] + ' (Quelle: ' + austrian['source_url'] + ')', 'Austrian Watch')
-    finished = next((game for game in games if game['status'] == 'ENDE'), None)
-    if finished and len(brief) < 5:
+        reserved_urls.add(austrian['source_url'])
+    used_urls = set(reserved_urls)
+    used_topics = {topic_key(lead_item['title'])}
+
+    for story in stories:
+        url = story.get('source_url', '')
+        key = topic_key(story['title'])
+        if not url or url in used_urls or key in used_topics:
+            print('Doppelte Geschichte uebersprungen:', story['title'])
+            continue
+        used_urls.add(url)
+        used_topics.add(key)
+        remaining_stories.append(story)
+
+    # Maximal drei kurze eigenstaendige Brief-Meldungen; mindestens zwei
+    # ausfuehrliche Around-the-League-Geschichten bleiben erhalten.
+    brief_candidates = remaining_stories[:max(0, min(3, len(remaining_stories) - 2))]
+    stories = remaining_stories[len(brief_candidates):]
+    for story in brief_candidates:
+        short = short_brief(story['summary'])
+        if not short:
+            # Ungeeignete Kurzmeldung nicht verlieren, sondern als Story behalten.
+            stories.insert(0, story)
+            continue
         brief.append({
-            'title': 'Ergebnis der NFL-Nacht',
-            'text': 'Endstand laut ESPN: ' + finished['matchup'] + '.',
-            'source_url': finished['source_url'],
-            'source_name': 'espn.com',
+            'title': story['title'],
+            'text': short,
+            'source_url': story['source_url'],
+            'source_name': story.get('source_name', ''),
         })
-    for news in around[2:]:
-        if len(brief) >= 5:
-            break
-        add_brief(news['body'], news['title'])
-    if len(brief) < 3:
-        fail('Zu wenige vollständige, belegte Kurzmeldungen.')
+    if len(stories) < 2:
+        fail('Zu wenige eigenstaendige Around-the-League-Geschichten.')
+    if not brief:
+        print('Hinweis: Keine geeigneten eigenstaendigen Morning-Brief-Meldungen.')
 
     date_match = re.search(r'^# THE HUDDLE – (.+)$', md, re.M)
     if not date_match:
@@ -273,8 +274,8 @@ def main():
     fallback_count = sum(s['title'] == FALLBACK_TITLE for s in stories)
     if fallback_count:
         warnings.append(f'{fallback_count} Story-Überschrift(en) redaktionell ergänzen.')
-    if len(brief) < 5:
-        warnings.append(f'Nur {len(brief)} Brief-Themen; keine Meldungen erfunden.')
+    if len(brief) < 3:
+        warnings.append(f'Nur {len(brief)} eigenstaendige Brief-Themen; keine Meldungen erfunden.')
     warnings.append(f'{len(games)} ESPN-Spiele im strukturierten Game Center; Spielstände vor Veröffentlichung prüfen.')
     result = {
         'version': '1.0', 'status': 'draft', 'published_at': None,
