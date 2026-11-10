@@ -31,6 +31,9 @@ def links_in(text):
 
 
 def clean(text):
+    # Markdown-Trennlinien sind Layout, kein Bestandteil der Nachricht.
+    text = re.sub(r'(?m)^\s*(?:-{3,}|\*{3,}|_{3,})\s*$', '', text)
+    text = re.sub(r'(?:\s+---\s*)+$', '', text.strip())
     text = SOURCE_NOTE.sub('', text)
     text = URL.sub('', text)
     text = re.sub(r'\s+([,.;:!?])', r'\1', text)
