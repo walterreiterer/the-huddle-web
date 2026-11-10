@@ -7,6 +7,7 @@ Schreibt ausschließlich drafts/morning-preview.json. Keine Veröffentlichung.
 import json
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -263,15 +264,27 @@ def main():
     # Das Modell kann den ISO-Zeitstempel in Markdown-Klammern setzen.
     if date.startswith('[') and date.endswith(']'):
         date = date[1:-1].strip()
-    # Nur den ISO-Zeitstempel übernehmen; redaktionelle Zusätze wie
-    # '(ZEIT WIEN)' oder '(Stand: ...)' sind keine Datumsbestandteile.
-    iso_match = re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?', date)
-    if iso_match:
-        date = iso_match.group(0)
+    # Beide Formen erlauben: ISO 8601 und "2026-11-10 04:03 (Wien)".
+    # Bei einer ausdrücklich als Wien bezeichneten Uhrzeit die lokale
+    # Zeitzone verwenden, einschließlich Sommer-/Winterzeit.
+    date_match = re.fullmatch(
+        r'(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?)'
+        r'(Z|[+-]\d{2}:\d{2})?'
+        r'(?:\s*\((Wien|ZEIT WIEN)\))?',
+        date,
+        re.I,
+    )
+    if not date_match:
+        fail('Ausgabedatum nicht im unterstuetzten Format: ' + date)
+    date_part, time_part, offset, vienna_label = date_match.groups()
     try:
-        datetime.fromisoformat(date.replace('Z', '+00:00'))
+        dt = datetime.fromisoformat(date_part + 'T' + time_part + (offset or ''))
+        if dt.tzinfo is None:
+            # Das Huddle-Redaktionsdatum ist immer Wiener Ortszeit.
+            dt = dt.replace(tzinfo=ZoneInfo('Europe/Vienna'))
+        date = dt.isoformat(timespec='seconds')
     except ValueError:
-        fail('Ausgabedatum nicht im ISO-Format: ' + date)
+        fail('Ausgabedatum ungueltig: ' + date)
 
     warnings = [
         'Nicht veröffentlichen: Keine redaktionelle Freigabe.',
