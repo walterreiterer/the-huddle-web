@@ -18,7 +18,7 @@ TARGET = ROOT / 'morning-preview.json'
 URL = re.compile(r'https://[^\s)<>\],;]+')
 SOURCE_NOTE = re.compile(r'\s*\((?:Quellen?|Zwischenstand, ESPN-Spielseite):\s*[^)]*\)', re.I)
 TITLE_LINE = re.compile(r'^\*\*(.+?)\*\*\s*$')
-GAME_LINE = re.compile(r'^- (ENDE|LIVE|NOCH NICHT BEENDET):\s*(.+?)\s*\|\s*\[ESPN-Spielseite\]\((https://www\.espn\.com/nfl/game/[^)]+)\)\s*$')
+GAME_LINE = re.compile(r'^- (ENDE|LIVE(?: \(KEIN Endergebnis\))?|NOCH NICHT BEENDET|GEPLANT \(Scheduled\)):\s*(.+?)\s*\|\s*\[ESPN-Spielseite\]\((https://www\.espn\.com/nfl/game/[^)]+)\)\s*$')
 FALLBACK_TITLE = 'NFL-Meldung: Überschrift redaktionell prüfen'
 
 
@@ -131,12 +131,17 @@ def game_center_from_espn():
         match = GAME_LINE.fullmatch(line)
         if match:
             status, matchup, url = match.groups()
+            # Zwischenstände und geplante Spiele niemals als Endergebnis markieren.
+            status = {
+                'LIVE (KEIN Endergebnis)': 'LIVE',
+                'GEPLANT (Scheduled)': 'NOCH NICHT BEENDET',
+            }.get(status, status)
             if url in seen:
                 fail('Doppelte ESPN-Spielseite: ' + url)
             seen.add(url)
             games.append({'date_label': day, 'status': status, 'matchup': matchup,
                           'source_url': url, 'source_name': 'espn.com'})
-        elif line.startswith(('- ENDE:', '- LIVE:', '- NOCH NICHT BEENDET:')):
+        elif line.startswith(('- ENDE:', '- LIVE', '- NOCH NICHT BEENDET:', '- GEPLANT')):
             fail('Nicht lesbare ESPN-Spielzeile: ' + line[:140])
     if not games:
         fail('Keine ESPN-Spiele erkannt.')
