@@ -71,6 +71,10 @@ jobs:
         if: steps.time.outputs.run == 'true'
         run: python scripts/check_preview.py
 
+      - name: Redaktionelle Dopplungen kontrollieren (0.9)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/editorial_gate_09.py
+
       - name: Vorschau ins Repository schreiben
         if: steps.time.outputs.run == 'true'
         run: |
