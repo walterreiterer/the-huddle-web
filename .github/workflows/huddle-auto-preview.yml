@@ -79,6 +79,10 @@ jobs:
         if: steps.time.outputs.run == 'true'
         run: python scripts/source_audit_093.py
 
+      - name: Redaktionelle Sicherheitsschranke (0.9.4)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/editorial_safety_094.py
+
       - name: Vorschau ins Repository schreiben
         if: steps.time.outputs.run == 'true'
         run: |
