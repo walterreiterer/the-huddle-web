@@ -207,9 +207,12 @@ Gib ausschließlich gültiges JSON zurück:
 "korrekturen":["..."]}],"uebergreifend":["..."],"grenzen":["..."]}.
 Keine Veröffentlichung oder Freigabe. Pro Meldung knapp, maximal 3 Kernbehauptungen.'''
         payload = {'model': MODEL, 'instructions': instructions,
-                   'input': json.dumps({'meldungen': items, 'quellen': evidence,
-                                        'espn_rohdaten': games,
-                                        'ausgabe_datum': edition.get('date')}, ensure_ascii=False),
+                   'input': 'Antworte ausschließlich mit einem gültigen JSON-Objekt.\n' + json.dumps({
+                       'meldungen': items, 'quellen': evidence,
+                       'espn_rohdaten': games,
+                       'ausgabe_datum': edition.get('date')
+                   }, ensure_ascii=False),
+
                    'max_output_tokens': 16000, 'store': False,
                    'text': {'format': {'type': 'json_object'}}}
         review = None
