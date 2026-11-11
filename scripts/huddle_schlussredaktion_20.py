@@ -61,20 +61,31 @@ Erstelle eine gut lesbare, lebendige, aber sachliche INTERNE LESERFASSUNG aus de
 Rechercheentwurf und dem unabhängigen Prüfbericht. Keine Ich-Form, keine Clickbait-Titel.
 Die Zielgröße sind 650 bis 750 Wörter, soweit ausreichend geprüfter Stoff vorliegt.
 Struktur: THE HUDDLE / Datum, 60-Sekunden-Brief (3–4 kurze Meldungen),
-Top Stories (3–4, jeweils circa 80–120 Wörter), Austrian Watch nur bei echtem
+Top Stories (2–4, jeweils circa 80–120 Wörter), Austrian Watch nur bei echtem
 aktuellem Nachrichtenwert, Game Center mit knappen Ergebnissen.
 Priorisiere wichtige aktuelle Nachrichten, streiche Wiederholungen, entferne interne
 Rubriken wie 'Belegte Fakten', 'Einschätzung' und 'Offene Fragen'.
+Die Leserfassung darf keine internen Prüfhinweise, Warnlisten oder Arbeitsaufträge
+enthalten; diese gehören ausschließlich in redaktionelle_hinweise.
 AKTUALITÄT: Das Ausgabedatum ist der zeitliche Bezugspunkt. Prüfe beim Formulieren,
 ob genannte Saisonbilanzen, Tabellenstände, Serien, Spielwochen, Ankündigungen und
 Ausblicke zum Ausgabedatum passen. Eine ältere Quelle darf als Hintergrund dienen,
 aber ein darin genannter früherer Zwischenstand darf nicht als aktueller Stand
 übernommen werden. Wenn der aktuelle Stand aus den gelieferten Daten nicht sicher
 hervorgeht, lasse die konkrete Zahl weg oder ordne sie eindeutig zeitlich ein.
+WICHTIG: Ein alter Saisonstand wie 'aktuell 2:3' darf NICHT einfach aus einer
+älteren Quelle in eine November-Ausgabe übernommen werden. Entferne den alten
+Stand aus dem Lesertext, wenn keine aktuelle, zeitlich passende Zahl vorliegt.
+Auch Formulierungen wie 'kommenden Sonntag' oder 'in Week 10' nur verwenden,
+wenn sie relativ zum Ausgabedatum tatsächlich noch in der Zukunft liegen.
 Keine neuen Ergebnisse, Datumsangaben oder Statistiken errechnen oder erfinden.
 THEMENVIELFALT: Wähle unterschiedliche wichtige Entwicklungen aus dem gelieferten
 Material. Bündle eng zusammenhängende Nachrichten zu Team, Spieler oder Trade
 in einer Geschichte, statt mehrere Top Stories mit nahezu gleichem Kern zu schreiben.
+Konkret: Wenn Lead und mehrere Top Stories denselben Trade, dieselbe QB-Situation
+oder denselben Klub behandeln, fasse sie zu EINER Hauptgeschichte zusammen.
+Fülle freie Plätze nur mit tatsächlich vorhandenen, eigenständigen Nachrichten;
+notfalls sind zwei oder drei Top Stories besser als vier Wiederholungen.
 Bevorzuge bei ähnlichem Nachrichtenwert verschiedene Teams und Themenfelder.
 Eine besonders bedeutende Entwicklung darf trotzdem mehrere Aspekte erhalten,
 wenn jeder einen eigenständigen Nachrichtenwert besitzt. Keine Themenvielfalt durch
@@ -148,9 +159,7 @@ Niemals eine Veröffentlichung oder Freigabe behaupten.'''
         count = len(re.findall(r'\b[\wÄÖÜäöüß]+\b', markdown))
         heading = ('> **INTERNE TESTFASSUNG – NICHT VERÖFFENTLICHEN**  \n'
                    f'> Gegenprüfung: **{review["gesamtstatus"]}** · Keine redaktionelle Freigabe.\n\n')
-        if hints:
-            markdown += '\n\n---\n\n## Interne redaktionelle Hinweise (nicht für Leser)\n' + ''.join(
-                f'\n- {str(h)}' for h in hints)
+        # Hinweise bleiben ausschließlich im JSON-Bericht, nie in der Leserfassung.
         OUTPUT.write_text(heading + markdown.strip() + '\n', encoding='utf-8')
         save_report('ENTWURF_ERSTELLT', 'Nur intern, manuelle Freigabe erforderlich.',
                     wortzahl=count, gegenpruefung_status=review['gesamtstatus'],
