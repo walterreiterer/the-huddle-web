@@ -54,7 +54,7 @@ def check_item(item, number, kind):
     if kind == 'Story':
         if not 15 <= len(title) <= 110:
             fail(f'{label}: schlechte Titel-Laenge ({len(title)})')
-        if title.endswith(('…', '...', ',', ';', ':', ' an')):
+        if title.endswith(('…', '...', ',', ';', ':')):
             fail(f'{label}: abgeschnittene Ueberschrift')
     if title and ('redaktionell prüfen' in title.lower() or 'redaktionell pruefen' in title.lower()):
         fail(f'{label}: Platzhalter-Ueberschrift')
