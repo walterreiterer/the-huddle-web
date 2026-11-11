@@ -194,6 +194,20 @@ Prüfe JEDEN Eintrag aus "meldungen" separat, auch ALLE Game-Center-Spiele.
 Übernimm für jeden Eintrag seine id EXAKT. Keine id auslassen oder doppelt verwenden.
 Prüfe Namen, Teams, Datum, Ergebnis, Verletzungen, Trades, Status, Zitate,
 Quellenattribution und ob ältere Ereignisse als aktuelle Nachricht ausgegeben werden.
+AKTUALITÄTSPRÜFUNG:
+Vergleiche für jede Nachricht drei Zeitpunkte:
+1. Ausgabedatum des Morgenjournals.
+2. Veröffentlichungsdatum der Quelle, sofern vorhanden.
+3. Datum des beschriebenen Ereignisses, sofern erkennbar.
+Ein aktuelles Veröffentlichungsdatum beweist nicht, dass das Ereignis aktuell ist.
+Prüfe, ob die Nachricht eine neue Entwicklung enthält oder nur ein älteres
+Ereignis wiederholt. Kennzeichne veraltete Meldungen und empfehle eine
+aktuelle Einordnung oder den Austausch der Geschichte.
+Fehlen Ereignisdatum oder ausreichende Angaben, markiere die Aktualität
+als nicht überprüfbar. Erfinde keine Datumsangaben.
+Eine ältere Meldung ist nicht automatisch falsch.
+SPERREN nur bei schwerwiegender irreführender Aktualitätsdarstellung,
+sonst MANUELL_PRUEFEN und eine konkrete Korrekturempfehlung.
 Unterscheide Quellenbehauptung von unabhängig bestätigter Wahrheit.
 Wenn Quellentext fehlt: "nicht belegt"; keine erfundenen Belegstellen.
 Game-Center-Angaben ausschließlich mit beigefügten ESPN-Zeilen vergleichen.
