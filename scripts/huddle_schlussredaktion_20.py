@@ -20,7 +20,7 @@ MODEL = os.getenv('HUDDLE_EDITOR_MODEL', 'gpt-4.1-mini')
 def save_report(status, reason, **extra):
     ROOT.mkdir(exist_ok=True)
     REPORT.write_text(json.dumps({
-        'version': '2.0', 'status': status, 'grund': reason,
+        'version': '2.1', 'status': status, 'grund': reason,
         'freigabe': False, 'veroeffentlicht': False,
         'zeit_utc': datetime.now(timezone.utc).isoformat(), **extra
     }, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -40,6 +40,64 @@ def response_text(obj):
                 chunks.append(part.get('text', ''))
     return ''.join(chunks)
 
+
+
+def api_json(instructions, input_data, max_tokens=7000):
+    payload = {
+        'model': MODEL,
+        'instructions': instructions,
+        'input': input_data,
+        'max_output_tokens': max_tokens,
+        'store': False,
+        'text': {'format': {'type': 'json_object'}}
+    }
+    request = urllib.request.Request(
+        'https://api.openai.com/v1/responses',
+        data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
+        headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY'],
+                 'Content-Type': 'application/json'},
+        method='POST'
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=100) as resp:
+            raw = json.load(resp)
+    except urllib.error.HTTPError as exc:
+        raise ValueError(f'API HTTP {exc.code}: {exc.read(600).decode("utf-8", errors="replace")}') from exc
+    if raw.get('status') == 'incomplete':
+        raise ValueError('API-Ausgabe unvollständig.')
+    return json.loads(response_text(raw))
+
+
+def correct_reader_draft(markdown, edition, review):
+    instructions = """Du bist die unabhängige TEXTKORREKTUR für THE HUDDLE.
+Du erhältst einen bereits geschriebenen NFL-Morgenbrief und seine Quelldaten.
+Deine einzige Aufgabe ist, den vorhandenen Lesertext redaktionell zu KORRIGIEREN,
+nicht die Ausgabe neu zu recherchieren oder neue Geschichten zu erfinden.
+
+1. Fasse doppelte Top Stories zum selben Trade oder Nachrichtenereignis zusammen.
+   Ein Thema darf im 60-Sekunden-Brief kurz und in einer Top Story ausführlich vorkommen;
+   es darf aber nicht mehrere Top Stories mit nahezu identischem Kern belegen.
+   Entferne notfalls eine Top Story, statt einen schwachen Ersatz zu erfinden.
+2. Entferne überholte Saisonbilanzen, Tabellenstände und Ausblicke, wenn ihre
+   Aktualität zum Ausgabedatum nicht aus den Quelldaten hervorgeht. Stelle
+   historische Zwischenstände nicht als aktuelle Fakten dar. Auch historisch
+   markierte alte Bilanzen ohne konkreten Nachrichtenwert lieber streichen.
+3. Entferne interne Warnungen, Prüfhinweise und Arbeitsaufträge aus dem Markdown.
+   Halte offene Probleme nur im Feld redaktionelle_hinweise fest.
+4. Bewahre alle übrigen belegten Informationen, die Nachrichtenstruktur,
+   Football-Fachbegriffe und die zugehörigen Quellen-URLs. Keine neuen
+   Tatsachen, Zahlen, Ergebnisse, Zitate, Namen, Links oder Quellen ergänzen.
+5. Gib ausschließlich ein JSON-Objekt zurück mit den Feldern:
+   markdown (vollständiger korrigierter Text),
+   redaktionelle_hinweise (Liste noch offener redaktioneller Fragen),
+   verwendete_quellen (Liste tatsächlich im korrigierten Markdown genutzter URLs).
+Die Ausgabe ist intern, nicht freigegeben und wird niemals automatisch veröffentlicht."""
+    data = {
+        'leserfassung_vor_korrektur': markdown,
+        'ausgabe': edition,
+        'gegenpruefung': review,
+    }
+    return api_json(instructions, json.dumps(data, ensure_ascii=False))
 
 def main():
     if not PREVIEW.is_file() or not REVIEW.is_file():
@@ -98,54 +156,19 @@ Tatsachenbehauptungen dürfen nicht als gesicherte Fakten erscheinen: lasse sie 
 oder markiere sie klar als ungeklärt. Veraltete Meldungen nicht als neu darstellen.
 Bei schwerwiegenden Beanstandungen keine glatte Leserfassung vortäuschen;
 benenne offene redaktionelle Entscheidungen im separaten Prüfhinweis.
-VERBINDLICHER LETZTER REDAKTIONSDURCHGANG:
-Prüfe die fertig geschriebene Leserfassung vor der Ausgabe erneut.
-1. Kommen zwei Top Stories zum selben Trade oder zur selben
-   Entwicklung vor? Dann führe sie zusammen und überarbeite
-   die Leserfassung tatsächlich.
-2. Enthält der Text Saisonbilanzen oder zeitliche Aussagen,
-   deren Aktualität zum Ausgabedatum nicht belegt ist?
-   Entferne diese Angaben direkt aus dem Lesertext.
-3. Enthält die Leserfassung interne Prüfhinweise, Warnungen
-   oder Arbeitsaufträge? Entferne sie aus dem Markdown und
-   übertrage sie in redaktionelle_hinweise.
-4. Prüfe, ob jede verbleibende Top Story einen eigenständigen
-   Nachrichtenwert hat.
-WICHTIG: Beschreibe erkannte Probleme nicht nur im Bericht.
-Korrigiere zuerst den Markdown-Text. Melde in
-redaktionelle_hinweise nur Probleme, die danach noch offen sind.
 Antworte ausschließlich als JSON-Objekt mit Schlüsseln:
 "markdown" (vollständige interne Leserfassung als Markdown),
 "redaktionelle_hinweise" (Liste kurzer Hinweise),
 "verwendete_quellen" (Liste der tatsächlich verwendeten Quell-URLs).
 Niemals eine Veröffentlichung oder Freigabe behaupten.'''
-        payload = {
-            'model': MODEL,
-            'instructions': instructions,
-            'input': 'Erstelle ausschließlich ein gültiges JSON-Objekt.\n' + json.dumps({
+        result = api_json(
+            instructions,
+            'Erstelle ausschließlich ein gültiges JSON-Objekt.\n' + json.dumps({
                 'ausgabe': edition,
                 'gegenpruefung': review,
                 'hinweis': 'Interner Entwurf; keine Veröffentlichung.'
-            }, ensure_ascii=False),
-            'max_output_tokens': 7000,
-            'store': False,
-            'text': {'format': {'type': 'json_object'}}
-        }
-        request = urllib.request.Request(
-            'https://api.openai.com/v1/responses',
-            data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
-            headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY'],
-                     'Content-Type': 'application/json'},
-            method='POST'
+            }, ensure_ascii=False)
         )
-        try:
-            with urllib.request.urlopen(request, timeout=100) as resp:
-                raw = json.load(resp)
-        except urllib.error.HTTPError as exc:
-            return fail(f'API HTTP {exc.code}: {exc.read(600).decode("utf-8", errors="replace")}')
-        if raw.get('status') == 'incomplete':
-            return fail('API-Ausgabe unvollständig.')
-        result = json.loads(response_text(raw))
         markdown = result.get('markdown')
         urls = result.get('verwendete_quellen')
         hints = result.get('redaktionelle_hinweise')
@@ -153,6 +176,23 @@ Niemals eine Veröffentlichung oder Freigabe behaupten.'''
             return fail('Leserfassung fehlt oder ist zu kurz.')
         if not isinstance(urls, list) or not isinstance(hints, list):
             return fail('Quellenliste oder redaktionelle Hinweise fehlen.')
+        # Zweiter, unabhängiger KI-Durchgang: tatsächliche Textkorrektur.
+        # Bei Fehlern bleibt der ursprüngliche Entwurf erhalten, aber es wird
+        # ausdrücklich KEINE scheinbar korrigierte Leserfassung ausgegeben.
+        try:
+            corrected = correct_reader_draft(markdown, edition, review)
+        except (OSError, ValueError, TypeError, KeyError, urllib.error.URLError) as exc:
+            return fail('Zweiter Textkorrektur-Durchgang fehlgeschlagen: ' + str(exc)[:250])
+        corrected_markdown = corrected.get('markdown')
+        corrected_urls = corrected.get('verwendete_quellen')
+        corrected_hints = corrected.get('redaktionelle_hinweise')
+        if not isinstance(corrected_markdown, str) or len(corrected_markdown.strip()) < 500:
+            return fail('Korrigierte Leserfassung fehlt oder ist zu kurz.')
+        if not isinstance(corrected_urls, list) or not isinstance(corrected_hints, list):
+            return fail('Quellen oder Hinweise der Textkorrektur fehlen.')
+        markdown = corrected_markdown
+        urls = corrected_urls
+        hints = list(hints) + list(corrected_hints)
         allowed = set()
         for key in ('lead',):
             obj = edition.get(key)
@@ -177,10 +217,10 @@ Niemals eine Veröffentlichung oder Freigabe behaupten.'''
                    f'> Gegenprüfung: **{review["gesamtstatus"]}** · Keine redaktionelle Freigabe.\n\n')
         # Hinweise bleiben ausschließlich im JSON-Bericht, nie in der Leserfassung.
         OUTPUT.write_text(heading + markdown.strip() + '\n', encoding='utf-8')
-        save_report('ENTWURF_ERSTELLT', 'Nur intern, manuelle Freigabe erforderlich.',
-                    wortzahl=count, gegenpruefung_status=review['gesamtstatus'],
+        save_report('ENTWURF_ERSTELLT', 'Zwei KI-Durchgänge; nur intern, manuelle Freigabe erforderlich.',
+                    textkorrektur='ZWEITER_DURCHGANG_ERFOLGREICH', wortzahl=count, gegenpruefung_status=review['gesamtstatus'],
                     hinweise=hints, quellen=urls)
-        print(f'Schlussredaktion 2.0: interne Leserfassung erstellt ({count} Wörter), KEINE Freigabe')
+        print(f'Schlussredaktion 2.1: korrigierte interne Leserfassung erstellt ({count} Wörter), KEINE Freigabe')
         return 0
     except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError, urllib.error.URLError) as exc:
         return fail(f'{type(exc).__name__}: {str(exc)[:300]}')
