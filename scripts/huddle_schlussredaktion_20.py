@@ -98,6 +98,22 @@ Tatsachenbehauptungen dürfen nicht als gesicherte Fakten erscheinen: lasse sie 
 oder markiere sie klar als ungeklärt. Veraltete Meldungen nicht als neu darstellen.
 Bei schwerwiegenden Beanstandungen keine glatte Leserfassung vortäuschen;
 benenne offene redaktionelle Entscheidungen im separaten Prüfhinweis.
+VERBINDLICHER LETZTER REDAKTIONSDURCHGANG:
+Prüfe die fertig geschriebene Leserfassung vor der Ausgabe erneut.
+1. Kommen zwei Top Stories zum selben Trade oder zur selben
+   Entwicklung vor? Dann führe sie zusammen und überarbeite
+   die Leserfassung tatsächlich.
+2. Enthält der Text Saisonbilanzen oder zeitliche Aussagen,
+   deren Aktualität zum Ausgabedatum nicht belegt ist?
+   Entferne diese Angaben direkt aus dem Lesertext.
+3. Enthält die Leserfassung interne Prüfhinweise, Warnungen
+   oder Arbeitsaufträge? Entferne sie aus dem Markdown und
+   übertrage sie in redaktionelle_hinweise.
+4. Prüfe, ob jede verbleibende Top Story einen eigenständigen
+   Nachrichtenwert hat.
+WICHTIG: Beschreibe erkannte Probleme nicht nur im Bericht.
+Korrigiere zuerst den Markdown-Text. Melde in
+redaktionelle_hinweise nur Probleme, die danach noch offen sind.
 Antworte ausschließlich als JSON-Objekt mit Schlüsseln:
 "markdown" (vollständige interne Leserfassung als Markdown),
 "redaktionelle_hinweise" (Liste kurzer Hinweise),
