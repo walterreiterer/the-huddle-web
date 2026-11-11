@@ -77,8 +77,14 @@ def call_api(payload):
         data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
         headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY'],
                  'Content-Type': 'application/json'}, method='POST')
-    with urllib.request.urlopen(request, timeout=150) as response:
-        return json.load(response)
+    
+    try:
+        with urllib.request.urlopen(request, timeout=150) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode('utf-8', errors='replace')[:2000]
+        raise ValueError(f'OpenAI API HTTP {exc.code}: {detail}') from exc
+
 
 
 def collect_items(edition):
