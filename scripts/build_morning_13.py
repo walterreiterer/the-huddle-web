@@ -266,8 +266,9 @@ def load_sources():
 def make_material(selected):
     blocks = []
 
-    for article in selected:
+    for index, article in enumerate(selected, 1):
         blocks.append(
+            f"QUELLEN-ID: Q{index:02d}\n" +
             "QUELLE: " + str(article.get("source", "")) +
             "\nTITEL: " + str(article.get("title", "")) +
             "\nURL: " + str(article.get("url", "")) +
@@ -381,6 +382,13 @@ Service-Updates duerfen deutlich kuerzer als die Richtwerte sein.
 
 QUELLEN: Jede Geschichte endet mit (Quelle: https://...). Nur exakt
 uebergebene Original-URLs verwenden, keine erfundenen Fakten oder Links.
+Jeder Artikel im ARTIKELMATERIAL hat eine eindeutige QUELLEN-ID Q01 usw.
+Ordne jeder Geschichte genau die ID des Artikels zu, dessen Text die
+konkreten Aussagen tatsaechlich belegt. Schreibe direkt nach dem
+(Quelle: https://...)-Verweis in derselben Zeile [Q01] (mit richtiger ID).
+Die URL muss exakt zur ID passen. Keine IDs oder URLs vertauschen.
+Eine vorhandene URL allein beweist NICHT, dass sie die Geschichte belegt.
+Wenn kein passender Artikel vorliegt, schreibe die Geschichte nicht.
 Unbestaetigte Meldungen deutlich kennzeichnen. Geplante, berichtete
 und vollzogene Transfers strikt unterscheiden. Behauptungen zu Spielstatus
 und Spielausgang muessen mit dem ESPN-Bericht vereinbar sein.
@@ -491,9 +499,11 @@ def main():
     ROOT.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(content + "\n", encoding="utf-8")
 
-    allowed_urls = {
-        str(article["url"]) for article in selected
+    source_ids = {
+        f"Q{index:02d}": str(article["url"])
+        for index, article in enumerate(selected, 1)
     }
+    allowed_urls = set(source_ids.values())
 
     # ESPN-Spiel-URLs sind eigenständige, strukturierte Quellen.
     # Nur Links zulassen, die im tatsächlich geladenen Spielbericht stehen.
@@ -531,6 +541,20 @@ def main():
         flags.append(
             "Nicht erlaubte Quellenlinks: " +
             ", ".join(unknown[:5])
+        )
+    # Quellen-ID und Original-URL muessen zusammenpassen.
+    # Die inhaltliche Belegbarkeit bleibt Aufgabe der Gegenpruefung.
+    references = re.findall(
+        r"\(Quelle:\s*(https://[^)\s]+)\)\s*\[(Q\d{2,})\]",
+        content, re.I
+    )
+    for url, source_id in references:
+        if source_ids.get(source_id.upper()) != url:
+            flags.append(f"Quellen-ID/URL passen nicht zusammen: {source_id} / {url}")
+    if len(references) != len(source_links):
+        flags.append(
+            f"Quellen-ID fehlt oder ist ungueltig: {len(references)} "
+            f"von {len(source_links)} Quellenverweisen zugeordnet"
         )
 
     for heading in ("THE LEAD", "AROUND THE LEAGUE"):
@@ -579,9 +603,9 @@ def main():
         "",
     ])
 
-    for article in selected:
+    for index, article in enumerate(selected, 1):
         report.append(
-            f"- {article.get('title', '')}: "
+            f"- Q{index:02d} | {article.get('title', '')}: "
             f"{article.get('url', '')}"
         )
 
