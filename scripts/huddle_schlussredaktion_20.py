@@ -46,7 +46,7 @@ def api_json(instructions, input_data, max_tokens=7000):
     payload = {
         'model': MODEL,
         'instructions': instructions,
-        'input': input_data,
+        'input': 'Antworte ausschließlich mit einem gültigen JSON-Objekt.\n' + input_data,
         'max_output_tokens': max_tokens,
         'store': False,
         'text': {'format': {'type': 'json_object'}}
