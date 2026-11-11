@@ -270,7 +270,7 @@ def main():
     date_match = re.fullmatch(
         r'(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?)'
         r'(Z|[+-]\d{2}:\d{2})?'
-        r'(?:\s*\((Wien|ZEIT WIEN)\))?',
+        r'(?:\s*\(?\s*(Wien|ZEIT WIEN)\s*\)?)?',
         date,
         re.I,
     )
