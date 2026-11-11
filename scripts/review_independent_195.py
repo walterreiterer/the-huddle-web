@@ -219,7 +219,11 @@ Gib ausschließlich gültiges JSON zurück:
 "behauptungen":[{"aussage":"...","bewertung":"belegt|teilweise belegt|nicht belegt|widersprochen",
 "quelle":"URL oder ESPN","beleg":"kurze genaue Textstelle oder leer","hinweis":"..."}],
 "korrekturen":["..."]}],"uebergreifend":["..."],"grenzen":["..."]}.
-Keine Veröffentlichung oder Freigabe. Pro Meldung knapp, maximal 3 Kernbehauptungen.'''
+Keine Veröffentlichung oder Freigabe.
+Prüfe sämtliche konkreten Tatsachenbehauptungen einer Meldung, insbesondere
+Zahlen, Namen, Teamwechsel, Verletzungen und personelle Konsequenzen.
+Fasse zusammengehörige Aussagen zusammen, aber lasse keine überprüfbare
+Tatsachenbehauptung ungeprüft. Halte die Begründungen kurz.'''
         payload = {'model': MODEL, 'instructions': instructions,
                    'input': 'Antworte ausschließlich mit einem gültigen JSON-Objekt.\n' + json.dumps({
                        'meldungen': items, 'quellen': evidence,
