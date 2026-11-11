@@ -82,6 +82,12 @@ jobs:
       - name: Redaktionelle Sicherheitsschranke (0.9.4)
         if: steps.time.outputs.run == 'true'
         run: python scripts/editorial_safety_094.py
+        
+      - name: Unabhängige Gegenprüfung 1.9.5
+        if: steps.time.outputs.run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/review_independent_195.py
 
       - name: Diagnose sichern
         if: always()
