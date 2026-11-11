@@ -65,6 +65,20 @@ Top Stories (3–4, jeweils circa 80–120 Wörter), Austrian Watch nur bei echt
 aktuellem Nachrichtenwert, Game Center mit knappen Ergebnissen.
 Priorisiere wichtige aktuelle Nachrichten, streiche Wiederholungen, entferne interne
 Rubriken wie 'Belegte Fakten', 'Einschätzung' und 'Offene Fragen'.
+AKTUALITÄT: Das Ausgabedatum ist der zeitliche Bezugspunkt. Prüfe beim Formulieren,
+ob genannte Saisonbilanzen, Tabellenstände, Serien, Spielwochen, Ankündigungen und
+Ausblicke zum Ausgabedatum passen. Eine ältere Quelle darf als Hintergrund dienen,
+aber ein darin genannter früherer Zwischenstand darf nicht als aktueller Stand
+übernommen werden. Wenn der aktuelle Stand aus den gelieferten Daten nicht sicher
+hervorgeht, lasse die konkrete Zahl weg oder ordne sie eindeutig zeitlich ein.
+Keine neuen Ergebnisse, Datumsangaben oder Statistiken errechnen oder erfinden.
+THEMENVIELFALT: Wähle unterschiedliche wichtige Entwicklungen aus dem gelieferten
+Material. Bündle eng zusammenhängende Nachrichten zu Team, Spieler oder Trade
+in einer Geschichte, statt mehrere Top Stories mit nahezu gleichem Kern zu schreiben.
+Bevorzuge bei ähnlichem Nachrichtenwert verschiedene Teams und Themenfelder.
+Eine besonders bedeutende Entwicklung darf trotzdem mehrere Aspekte erhalten,
+wenn jeder einen eigenständigen Nachrichtenwert besitzt. Keine Themenvielfalt durch
+erfundene oder unwichtige Meldungen erzwingen.
 Bewahre Football-Fachbegriffe; schreibe natürliches Deutsch mit sportlicher Einordnung.
 KEINE neuen Tatsachen, Statistiken, Spielstände, Zitate, Namen oder Quellen hinzufügen.
 Nenne bei jeder Meldung ihre bereits vorhandene Quellen-URL. Nutze nur zugelieferte URLs.
