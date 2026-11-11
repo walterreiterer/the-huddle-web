@@ -264,6 +264,27 @@ Tatsachenbehauptung ungeprüft. Halte die Begründungen kurz.'''
                ([f'Quellentext fehlt für: {without_evidence}'] if without_evidence else [])
         if review.get('gesamtstatus') not in STATUSES:
             gaps.append('Ungültiger KI-Gesamtstatus')
+         
+        # Sicherheitsregel: Einzelbewertungen haben Vorrang vor KI-Status.
+        for meldung in review['meldungen']:
+            if not isinstance(meldung, dict):
+                continue
+            behauptungen = meldung.get('behauptungen', [])
+            if not isinstance(behauptungen, list):
+                continue
+
+            bewertungen = [
+                b.get('bewertung', '').strip().lower()
+                for b in behauptungen
+                if isinstance(b, dict) and isinstance(b.get('bewertung'), str)
+            ]
+
+            if any(b == 'widersprochen' for b in bewertungen):
+                meldung['status'] = 'SPERREN'
+            elif any(b in ('teilweise belegt', 'nicht belegt') for b in bewertungen):
+                if meldung.get('status') == 'UNAUFFAELLIG':
+                    meldung['status'] = 'MANUELL_PRUEFEN'
+
         statuses = [x.get('status') for x in review['meldungen'] if isinstance(x, dict)]
         if gaps or 'SPERREN' in statuses or review.get('gesamtstatus') == 'SPERREN':
             final = 'SPERREN'
