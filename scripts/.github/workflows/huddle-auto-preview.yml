@@ -44,60 +44,68 @@ jobs:
       - name: Quellen sammeln
         if: steps.time.outputs.run == 'true'
         run: python scripts/collect_sources_10.py
+      - name: Sky-Zugriff diagnostizieren (nur Test)
+        if: steps.time.outputs.run == 'true'
+        continue-on-error: true
+        run: |
+          python scripts/sky_diagnose.py
+          echo 'Direkter Sky-Artikeltest (HTTP-Status):'
+          curl --location --silent --show-error --max-time 20 --output /dev/null \
+            --write-out 'Sky-Raimann-Artikel: HTTP %{http_code}\n' \
+            'https://www.skysportaustria.at/niederlage-gegen-cowboys-playoffs-fuer-colts-und-raimann-in-weiter-ferne/'
       - name: Ausgabe erstellen
         if: steps.time.outputs.run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/build_morning_13.py
+
       - name: Test-JSON erzeugen
         if: steps.time.outputs.run == 'true'
         run: python scripts/convert_morning_14.py
+
+      - name: Gamebooks aus Archiv ergänzen
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/add_gamebooks_preview.py
+
       - name: Test-JSON prüfen
         if: steps.time.outputs.run == 'true'
         run: python scripts/check_preview.py
-      
-      - name: Vorschau ins Repository schreiben
+
+      - name: Redaktionelle Dopplungen kontrollieren (0.9)
         if: steps.time.outputs.run == 'true'
-        run: |
-          set -e
-          cp drafts/morning-preview.json /tmp/huddle-preview.json
+        run: python scripts/editorial_gate_09.py
 
-          git config user.name 'the-huddle-bot'
-          git config user.email 'the-huddle-bot@users.noreply.github.com'
+      - name: Quellen-Audit erstellen (0.9.3 – keine Freigabe)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/source_audit_093.py
 
-          for attempt in 1 2 3; do
-            echo "Push-Versuch $attempt von 3"
+      - name: Redaktionelle Sicherheitsschranke (0.9.4)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/editorial_safety_094.py
+        
+      - name: Unabhängige Gegenprüfung 1.9.5
+        if: steps.time.outputs.run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/review_independent_195.py
 
-            git fetch origin main
-            git checkout -B main origin/main
+      - name: Automatische Schlussredaktion 2.0
+        if: steps.time.outputs.run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/huddle_schlussredaktion_20.py
 
-            mkdir -p data
-            cp /tmp/huddle-preview.json data/morning-preview.json
-            git add data/morning-preview.json
-
-            if git diff --cached --quiet; then
-              echo "Vorschau bereits aktuell."
-              exit 0
-            fi
-
-            git commit -m 'THE HUDDLE: automatische Testvorschau'
-
-            if git push origin HEAD:main; then
-              echo "Testvorschau erfolgreich gespeichert."
-              exit 0
-            fi
-
-            echo "Push-Konflikt, aktueller Stand wird erneut geladen."
-          done
-
-          echo "FEHLER: Push nach drei Versuchen nicht möglich."
-          exit 1
+      - name: Redaktionsstatus verbindlich prüfen (nur Test, keine Freigabe)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/check_editorial_status.py
 
       - name: Diagnose sichern
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: huddle-preview-diagnose
-          path: drafts/
+          path: |
+            drafts/
+            sky-diagnose.json
           if-no-files-found: ignore
           retention-days: 7
