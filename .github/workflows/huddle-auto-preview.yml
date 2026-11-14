@@ -95,6 +95,14 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/huddle_schlussredaktion_20.py
 
+      - name: Teamnamen, Zeitbezug und Quellen prüfen (2.1)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/quality_gate_21.py
+
+      - name: Redaktionsstatus verbindlich prüfen (nur Test, keine Freigabe)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/check_editorial_status.py
+
       - name: Diagnose sichern
         if: always()
         uses: actions/upload-artifact@v4
