@@ -16,6 +16,7 @@ OUT_JSON = ROOT / 'aktualitaetskontrolle-196.json'
 PATTERNS = [
     ('TRADE_DEADLINE', r'(?i)\b(?:trade[ -]?deadline|trading[ -]?deadline|deadline|transferfrist)\b', 'Fristbezug: prüfen, ob die Frist zum Ausgabezeitpunkt noch bevorsteht'),
     ('FUTURE_EVENT', r'(?i)\b(?:morgen|heute|am sonntag|am montag|vor dem spiel|soll starten|wird starten|ahead of|on sunday|on monday|set to start)\b', 'Zeitabhängige Ankündigung: Status und Spieltermin erneut prüfen'),
+    ('MEDICAL_STATUS', r'(?i)\b(?:operation|operiert|operieren|eingriff|surgery|undergo surgery|verletzung|injury|ersatz[ -]?quarterback|backup quarterback|weeks? out|wochen ausfallen)\b', 'Medizinischer Status oder Ersatzspieler: neueste bestätigte Entwicklung vor Ausgabe prüfen'),
     ('ONGOING', r'(?i)\b(?:derzeit|aktuell|weiterhin|noch immer|in gesprächen|führt.*gespräche|ongoing|reportedly entertaining)\b', 'Laufender Sachverhalt: prüfen, ob inzwischen eine Entscheidung vorliegt'),
 ]
 
@@ -87,7 +88,7 @@ def main():
         'version': '1.9.6', 'status': 'MANUELL_PRUEFEN' if findings else 'KEINE_HEURISTISCHEN_TREFFER',
         'collected_utc': collected.isoformat(), 'reviewed_news_blocks': sum(1 for s, _, _ in extract_blocks(draft) if s != 'GAME CENTER'),
         'flagged_news_blocks': len(findings), 'findings': findings,
-        'limitations': 'Fristablauf und Ereignisstatus werden nicht live verifiziert. Ein Treffer ist ein Prüfhinweis, kein nachgewiesener Fehler. Keine Freigabe.'
+        'limitations': 'Die Kontrolle sucht keine neuen externen Quellen; ein fehlender Treffer bestätigt keine Aktualität. Fristablauf und Ereignisstatus werden nicht live verifiziert. Ein Treffer ist ein Prüfhinweis, kein nachgewiesener Fehler. Keine Freigabe.'
     }
     ROOT.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

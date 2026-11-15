@@ -98,6 +98,13 @@ def main():
     morning.AUDIT = AUDIT
     morning.INSTRUCTIONS += '''
 THE HUDDLE 1.9.3 – ZUSATZREGELN:
+STATUSMELDUNGEN (Verletzungen, Operationen, Ersatz-Quarterbacks, Trades):
+Formuliere einen früheren Status nicht als aktuellen Stand, wenn eine spätere
+Entwicklung im bereitgestellten Material erkennbar ist. Trenne „geplant“,
+„durchgeführt“ und „bestätigt“. Fehlt eine neuere Bestätigung, nenne
+Quellendatum und Unsicherheit ausdrücklich. Eine ältere Quelle ist kein
+Beleg dafür, dass seitdem nichts passiert ist. Keine Live-Recherche behaupten.
+
 Die Themen wurden mit Revision B redaktionell vorgefiltert.
 Höchstens eine Brandon-Aiyuk-Meldung in der fertigen Ausgabe, sofern nicht zwei
 unabhängige, außergewöhnlich wichtige Entwicklungen klar getrennt belegbar sind.
