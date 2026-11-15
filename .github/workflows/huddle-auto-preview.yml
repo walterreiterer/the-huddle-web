@@ -67,6 +67,10 @@ jobs:
         if: steps.time.outputs.run == 'true'
         run: python scripts/convert_morning_14.py
 
+      - name: Juristisch sensible Einzelmeldungen zurueckstellen (nur Vorschau)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/quarantine_sensitive_stories.py
+
       - name: Gamebooks aus Archiv ergänzen
         if: steps.time.outputs.run == 'true'
         run: python scripts/add_gamebooks_preview.py
