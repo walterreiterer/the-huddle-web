@@ -44,6 +44,10 @@ jobs:
       - name: Quellen sammeln
         if: steps.time.outputs.run == 'true'
         run: python scripts/collect_sources_10.py
+      - name: Quellen vor der Texterstellung prüfen (2.2)
+        if: steps.time.outputs.run == 'true'
+        run: python scripts/source_preflight_22.py
+
       - name: Sky-Zugriff diagnostizieren (nur Test)
         if: steps.time.outputs.run == 'true'
         continue-on-error: true
