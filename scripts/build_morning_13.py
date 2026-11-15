@@ -498,6 +498,27 @@ def call_openai(selected, games):
     return content
 
 
+def restore_original_source_urls(content, selected):
+    """Use the collected URL for each explicit Q source ID, never an AI-made URL."""
+    source_ids = {
+        f"Q{index:02d}": str(article["url"])
+        for index, article in enumerate(selected, 1)
+    }
+    pattern = re.compile(
+        r"\(Quelle:\s*(https://[^)\s]+)\)\s*\[(Q\d{2,})\]",
+        re.I,
+    )
+
+    def replace(match):
+        source_id = match.group(2).upper()
+        original_url = source_ids.get(source_id)
+        if not original_url:
+            fail(f"Unbekannte Quellen-ID: {source_id}")
+        return f"(Quelle: {original_url})[{source_id}]"
+
+    return pattern.sub(replace, content)
+
+
 def main():
     articles, selected, games, undated, out_of_window = load_sources()
     try:
@@ -505,6 +526,7 @@ def main():
     except ValueError as exc:
         fail(str(exc))
     content = call_openai(selected, games)
+    content = restore_original_source_urls(content, selected)
     try:
         content = insert_game_center(content, game_entries)
     except ValueError as exc:
