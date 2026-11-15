@@ -206,6 +206,18 @@ aktuelle Einordnung oder den Austausch der Geschichte.
 Fehlen Ereignisdatum oder ausreichende Angaben, markiere die Aktualität
 als nicht überprüfbar. Erfinde keine Datumsangaben.
 Eine ältere Meldung ist nicht automatisch falsch.
+Unterscheide strikt zwischen einer redaktionell notwendigen Korrektur und
+optionalen Stil- oder Detailvorschlägen. Eine verkürzte, aber sachlich richtige
+Formulierung (etwa "wegen einer Erkrankung") ist zulässig, auch wenn die Quelle
+zusätzliche medizinische Einzelheiten enthält. Verlange keine unnötigen Details.
+Ein früherer Quellen-Audit-Vermerk "inhaltlich nicht geprüft" ist KEIN
+Gegenbeleg und darf keine eigenständige manuelle Sperre auslösen.
+Setze MANUELL_PRUEFEN nur, wenn eine KONKRETE wesentliche Tatsachenbehauptung
+unklar, unbelegt oder zeitlich irreführend ist. Nenne die betroffene Behauptung.
+Ein optionales Veröffentlichungsdatum oder eine reine Stilpräzisierung genügt
+nicht für MANUELL_PRUEFEN. Bleibt eine nebensächliche, nicht belegte Behauptung
+im Text stehen, kennzeichne sie weiterhin als teilweise/nicht belegt; sie muss
+vor einer Freigabe entfernt oder belegt werden.
 SPERREN nur bei schwerwiegender irreführender Aktualitätsdarstellung,
 sonst MANUELL_PRUEFEN und eine konkrete Korrekturempfehlung.
 Unterscheide Quellenbehauptung von unabhängig bestätigter Wahrheit.
