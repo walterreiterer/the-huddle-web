@@ -68,12 +68,36 @@ def api_json(instructions, input_data, max_tokens=7000):
     return json.loads(response_text(raw))
 
 
+def correction_brief(review):
+    """Compact, source-grounded checklist for the final text pass."""
+    result = []
+    for entry in review.get('meldungen', []):
+        if not isinstance(entry, dict):
+            continue
+        problems = []
+        for claim in entry.get('behauptungen', []):
+            if isinstance(claim, dict) and str(claim.get('bewertung', '')).lower() not in ('belegt', 'bestätigt', 'bestaetigt'):
+                problems.append({'aussage': claim.get('aussage', ''), 'bewertung': claim.get('bewertung', ''), 'hinweis': claim.get('hinweis', '')})
+        corrections = [str(x) for x in entry.get('korrekturen', []) if x]
+        if problems or corrections or entry.get('status') in ('SPERREN', 'MANUELL_PRUEFEN'):
+            result.append({'id': entry.get('id'), 'titel': entry.get('titel'), 'status': entry.get('status'),
+                           'nicht_gesicherte_behauptungen': problems, 'korrekturen': corrections})
+    return result
+
+
 def correct_reader_draft(markdown, edition, review):
     instructions = """Du bist die unabhängige TEXTKORREKTUR für THE HUDDLE.
 Du erhältst einen bereits geschriebenen NFL-Morgenbrief und seine Quelldaten.
 Deine einzige Aufgabe ist, den vorhandenen Lesertext redaktionell zu KORRIGIEREN,
 nicht die Ausgabe neu zu recherchieren oder neue Geschichten zu erfinden.
 
+0. Arbeite die Liste pruefauftraege EINZELN ab. Jede in der Gegenprüfung
+   beanstandete Aussage muss im Lesertext entfernt, mit korrekter Quellenzuordnung
+   relativiert oder eindeutig als Einschätzung gekennzeichnet werden.
+   "Soll diskutiert werden" ist kein Beschluss; "könnte" ist kein bestätigter Effekt.
+   Meinungen von Ligaquellen sind keine objektiven Rankings. Falls die zugelieferten
+   Daten eine Korrektur nicht erlauben, streiche die fragliche Aussage.
+   Schreibe keine neuen Quellen oder Fakten hinzu.
 1. Fasse doppelte Top Stories zum selben Trade oder Nachrichtenereignis zusammen.
    Ein Thema darf im 60-Sekunden-Brief kurz und in einer Top Story ausführlich vorkommen;
    es darf aber nicht mehrere Top Stories mit nahezu identischem Kern belegen.
@@ -96,6 +120,7 @@ Die Ausgabe ist intern, nicht freigegeben und wird niemals automatisch veröffen
         'leserfassung_vor_korrektur': markdown,
         'ausgabe': edition,
         'gegenpruefung': review,
+        'pruefauftraege': correction_brief(review),
     }
     return api_json(instructions, json.dumps(data, ensure_ascii=False))
 
@@ -219,7 +244,7 @@ Niemals eine Veröffentlichung oder Freigabe behaupten.'''
         OUTPUT.write_text(heading + markdown.strip() + '\n', encoding='utf-8')
         save_report('ENTWURF_ERSTELLT', 'Zwei KI-Durchgänge; nur intern, manuelle Freigabe erforderlich.',
                     textkorrektur='ZWEITER_DURCHGANG_ERFOLGREICH', wortzahl=count, gegenpruefung_status=review['gesamtstatus'],
-                    hinweise=hints, quellen=urls)
+                    hinweise=hints, quellen=urls, pruefauftraege=correction_brief(review))
         print(f'Schlussredaktion 2.1: korrigierte interne Leserfassung erstellt ({count} Wörter), KEINE Freigabe')
         return 0
     except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError, urllib.error.URLError) as exc:
