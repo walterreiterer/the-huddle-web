@@ -268,7 +268,8 @@ def main():
     # Bei einer ausdrücklich als Wien bezeichneten Uhrzeit die lokale
     # Zeitzone verwenden, einschließlich Sommer-/Winterzeit.
     date_match = re.fullmatch(
-        r'(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?)'
+        r'(\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{4})[T ]'
+        r'(\d{2}:\d{2}(?::\d{2})?)'
         r'(Z|[+-]\d{2}:\d{2})?'
         r'(?:\s*\(?\s*(Wien|ZEIT WIEN)\s*\)?)?',
         date,
@@ -277,6 +278,11 @@ def main():
     if not date_match:
         fail('Ausgabedatum nicht im unterstuetzten Format: ' + date)
     date_part, time_part, offset, vienna_label = date_match.groups()
+    if '.' in date_part:
+        try:
+            date_part = datetime.strptime(date_part, '%d.%m.%Y').date().isoformat()
+        except ValueError:
+            fail('Ausgabedatum ungueltig: ' + date)
     try:
         dt = datetime.fromisoformat(date_part + 'T' + time_part + (offset or ''))
         if dt.tzinfo is None:
