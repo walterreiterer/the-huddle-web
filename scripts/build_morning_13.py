@@ -76,13 +76,17 @@ def priority(article):
         points -= 8
     if SCHEDULE_CHANGE.search(title):
         points += 3  # Relevante Spielplanänderungen als Servicemeldung sichtbar halten
+    # Aktualitaet ist ein starkes Ranking-Signal, nicht nur ein Tie-Breaker.
+    # Die 48-Stunden-Grenze bleibt als Quellenfenster bestehen.
     if age is not None:
-        if 0 <= age <= 18:
+        if -FUTURE_TOLERANCE_HOURS <= age <= 12:
+            points += 12
+        elif age <= 24:
+            points += 8
+        elif age <= 36:
             points += 3
-        elif 0 <= age <= 36:
-            points += 2
-        elif 0 <= age <= 48:
-            points += 1
+        elif age <= 48:
+            points -= 3
     return points
 
 
@@ -321,6 +325,16 @@ Die Bezeichnung 'NFL-Nacht' nur fuer Spiele, die tatsaechlich in der
 relevanten europaeischen Nacht stattgefunden haben. London-Spiele am
 Sonntagnachmittag sind KEINE Ergebnisse der NFL-Nacht. Kein vergangenes
 Spiel als heutiges Nachtresultat ausgeben.
+
+AKTUALITAET (VERBINDLICH): Entscheidend ist der Zeitpunkt der NEUEN
+Entwicklung, nicht nur das Datum eines spaeter veroeffentlichten Rueckblicks.
+Bevorzuge fuer THE LEAD und die ersten Meldungen Entwicklungen der letzten
+24 Stunden. Ein bereits seit 24–48 Stunden bekannter Trade oder eine alte
+Verletzung darf nur dann Lead werden, wenn das Material eine wesentliche
+NEUE Entwicklung innerhalb der letzten 24 Stunden belegt. Sonst als
+Hintergrund oder Kurzmeldung einordnen oder weglassen. Verwechsle eine
+aktuelle Quelle nicht mit einem neuen Ereignis. Wenn kein frischer Lead
+belegt ist, kennzeichne die Lage ehrlich und erfinde keinen Aufmacher.
 
 THE LEAD: Waehle das journalistisch wichtigste, nachweislich belegte Thema.
 Wichtig sind Auswirkungen auf die Liga, sportliche Bedeutung, Besonderheit
