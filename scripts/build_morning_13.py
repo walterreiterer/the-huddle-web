@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 ROOT = Path("drafts")
-ARTICLES = ROOT / "quellen-10.json"
+ARTICLES = ROOT / "quellen-geprueft-22.json"
 GAMES = ROOT / "nfl-spiele-08.md"
 OUTPUT = ROOT / "the-huddle-morgenausgabe-13.md"
 AUDIT = ROOT / "redaktionspruefung-13.md"
