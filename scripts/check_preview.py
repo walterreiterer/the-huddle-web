@@ -39,7 +39,9 @@ def complete_text(body, label, min_length=50, max_length=1500):
         fail(f'{label}: Text endet mit Auslassungspunkten')
     if body.endswith((',', ';', ':')):
         fail(f'{label}: Satz unvollstaendig')
-    if not re.search(r'''[.!?]["”']?(?:\s*\(Quelle:\s*https://[^)\s]+\))?\s*(?:\[Q\d{2}\])?$''', body):
+    clean_end = re.sub(r'(?:\s*\[Q\d{2}\])+\s*$', '', body).rstrip()
+    clean_end = re.sub(r'\s*\(Quelle:\s*https://[^)\s]+\)\s*$', '', clean_end).rstrip()
+    if not re.search(r'''[.!?]["”']?$''', clean_end):
         fail(f'{label}: kein vollstaendiger Schlusssatz')
 
 
