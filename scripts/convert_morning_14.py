@@ -162,19 +162,33 @@ def main():
     sections = sections_of(md)
     lead = [n for p in paragraphs(sections.get('THE LEAD', '')) if (n := parse_news(p))]
     around = parse_story_blocks(sections.get('AROUND THE LEAGUE', ''))
-    # THE LEAD besteht oft aus einer alleinstehenden Fettschrift-Überschrift
-    # und mehreren folgenden Absätzen. Diese als einen Artikel erhalten.
+    # Akzeptiere die beiden üblichen Titelvarianten, ohne die Quellenpflicht
+    # oder die Mindestlänge des Nachrichtentextes aufzuweichen.
     lead_section = sections.get('THE LEAD', '').strip()
-    lead_match = re.match(r'^\*\*(.+?)\*\*\s*\n+([\s\S]+)$', lead_section)
     lead_item = None
-    if lead_match:
-        lead_title, lead_body = lead_match.group(1).strip(), lead_match.group(2).strip()
-        if 15 <= len(lead_title) <= 150:
-            candidate = entry(lead_body, title=lead_title, category='THE LEAD')
+    lead_lines = lead_section.splitlines()
+    if lead_lines:
+        first = lead_lines[0].strip()
+        bold_title = TITLE_LINE.fullmatch(first)
+        heading_title = re.fullmatch(r'#{1,6}\s+(.+)', first)
+        lead_title = (bold_title.group(1) if bold_title else
+                      heading_title.group(1) if heading_title else None)
+        lead_body = '\n'.join(lead_lines[1:]).strip()
+        if lead_title and 15 <= len(lead_title.strip()) <= 150 and lead_body:
+            candidate = entry(lead_body, title=lead_title.strip(), category='THE LEAD')
             if candidate.get('source_url') and len(candidate['summary']) >= 65:
                 lead_item = candidate
     if lead_item is None:
-        fail('THE LEAD: Überschrift, vollständiger Text oder Quelle fehlt.')
+        if not lead_section:
+            fail('THE LEAD fehlt oder ist leer. Entwurf auf Rubrik-Überschrift prüfen.')
+        if not lead_lines or not (TITLE_LINE.fullmatch(lead_lines[0].strip()) or
+                                  re.fullmatch(r'#{1,6}\s+(.+)', lead_lines[0].strip())):
+            fail('THE LEAD: Überschrift nicht erkannt (erwartet **Titel** oder ### Titel).')
+        if not lead_body or len(clean(lead_body)) < 65:
+            fail('THE LEAD: Nachrichtentext fehlt oder ist zu kurz (mindestens 65 Zeichen).')
+        if not links_in(lead_body):
+            fail('THE LEAD: HTTPS-Quellenlink fehlt im Nachrichtentext.')
+        fail('THE LEAD: Überschrift, vollständiger Text oder gültige Quelle fehlt.')
     if not lead or not around:
         fail('THE LEAD oder AROUND THE LEAGUE ohne lesbare Nachricht.')
 
