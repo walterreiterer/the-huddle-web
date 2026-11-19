@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-URL = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/standings'
+URL = 'https://site.api.espn.com/apis/v2/sports/football/nfl/standings'
 OUT = Path(__file__).resolve().parents[1] / 'data' / 'standings.json'
 DIVISIONS = {
     'AFC': {'East': ['BUF','MIA','NE','NYJ'], 'North': ['BAL','CIN','CLE','PIT'],
