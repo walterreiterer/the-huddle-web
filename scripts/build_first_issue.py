@@ -1,42 +1,107 @@
-import os,io,json,zipfile,requests
-from datetime import datetime,timezone
+#!/usr/bin/env python3
+"""One-run editorial draft. Consumes freshly collected local files; no GitHub artifact chain."""
+import json
+import os
+import re
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
 from openai import OpenAI
-repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GITHUB_TOKEN']
-headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
-s=requests.Session()
-def api(path,params=None):
- r=s.get('https://api.github.com'+path,headers=headers,params=params,timeout=25);r.raise_for_status();return r.json()
-rid=os.environ.get('SOURCE_RUN_ID','').strip()
-if not rid:
- runs=api(f'/repos/{repo}/actions/workflows/the-huddle-55.yml/runs',{'status':'success','per_page':25}).get('workflow_runs',[])
- if not runs:raise RuntimeError('Schritt 55 nicht gefunden')
- rid=str(runs[0]['id'])
-arts=api(f'/repos/{repo}/actions/runs/{rid}/artifacts').get('artifacts',[])
-a=next((x for x in arts if x['name']=='the-huddle-nachrichten-55' and not x['expired']),None)
-if not a:raise RuntimeError('Schritt-55-Artefakt fehlt')
-r=s.get(a['archive_download_url'],headers=headers,timeout=40);r.raise_for_status()
-with zipfile.ZipFile(io.BytesIO(r.content)) as z:data=json.loads(z.read('the-huddle-55.json'))
-# Only 55 source evidence is passed to the model; no unsupported facts.
-stories=data.get('top_stories',[])[:8]
-aw=data.get('austrian_watch',[])[:8]
-games=[g for g in data.get('games',[]) if g.get('completed')][:16]
-if not stories and not games:raise RuntimeError('Keine ausreichenden Daten aus 55')
-source={'timestamp_utc':datetime.now(timezone.utc).isoformat(),'top_stories':stories,'austrian_watch':aw,'games':games}
-# Cap input and output to keep a single manual API request inexpensive.
-serialized=json.dumps(source,ensure_ascii=False)[:19000]
-instructions="""Du bist Redakteur von THE HUDDLE, einem seriösen deutschsprachigen NFL-Morgenjournal für Österreich.
-Schreibe einen vollständigen, gut lesbaren MARKDOWN-ENTWURF, nicht bloß eine Quellensammlung.
-Abschnitte: Titel und Datum, NFL in 60 Sekunden (90-130 Wörter), Top Stories (bis zu 4, je 70-110 Wörter), Austrian Watch (2-3 Absätze), Game Center (alle gelieferten Final-Ergebnisse kompakt), Quellen- und Redaktionshinweise.
-Arbeite ausschließlich mit dem beigefügten JSON. Jede berichtete Nachricht braucht einen direkt danebenstehenden Originalquellenlink. Behandle RSS-Kurzbeschreibungen als begrenzte Quellen und formuliere keine Details hinzu. Spekulationen und Meinungen nicht als bestätigte Fakten darstellen. Doppelte Themen zusammenführen; wenn zu wenige harte Nachrichten vorhanden sind, lieber weniger Stories als erfundene Meldungen. Datumsangaben der Quellen beachten, ältere Austrian-Watch-Beiträge als Rückblick kennzeichnen. Colts-Entwicklungen können ohne direkte Namensnennung für Bernhard Raimann relevant sein, aber keine persönlichen Folgen ohne Beleg behaupten. Valentin Senn nur bei konkretem Beleg. Spielstände nur aus abgeschlossenen Spielen übernehmen. Auf Deutsch formulieren; NFL-Eigennamen beibehalten. Keine Werbesprache, keine erfundenen Zitate. Am Ende deutlich: ENTWURF – Faktenprüfung und Freigabe ausständig. Keine automatische Publikation."""
-client=OpenAI(api_key=os.environ['OPENAI_API_KEY'],timeout=90,max_retries=0)
-resp=client.responses.create(model='gpt-6.1-terra',instructions=instructions,input=serialized,max_output_tokens=2600,store=False)
-text=(resp.output_text or '').strip()
-if len(text)<700:raise RuntimeError('KI-Ausgabe unvollständig; keine Veröffentlichung. Status: '+str(resp.status))
-os.makedirs('drafts',exist_ok=True)
-with open('drafts/the-huddle-erstausgabe.md','w',encoding='utf-8') as f:f.write(text+'\n')
-usage=resp.usage
-with open('drafts/the-huddle-erstausgabe-meta.json','w',encoding='utf-8') as f:
- json.dump({'source_55_run':rid,'model':'gpt-6.1-terra','response_status':resp.status,
- 'input_tokens':getattr(usage,'input_tokens',None),'output_tokens':getattr(usage,'output_tokens',None),
- 'approved':False,'published':False,'api_calls':1},f,ensure_ascii=False,indent=2)
-print('Redaktionsentwurf erzeugt. Tokenverbrauch:',getattr(usage,'input_tokens',None),getattr(usage,'output_tokens',None))
+
+ROOT = Path('drafts')
+NOW = datetime.now(timezone.utc)
+MODEL = os.getenv('HUDDLE_EDITORIAL_MODEL', 'gpt-5-mini')
+
+
+def published(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
+    except (ValueError, AttributeError):
+        try:
+            return parsedate_to_datetime(value).astimezone(timezone.utc)
+        except (ValueError, TypeError, IndexError):
+            return None
+
+
+def main():
+    raw = json.loads((ROOT / 'quellen-10.json').read_text(encoding='utf-8'))
+    articles = []
+    seen = set()
+    for item in raw.get('articles', []):
+        stamp = published(item.get('published'))
+        if stamp is None or not NOW - timedelta(hours=72) <= stamp <= NOW + timedelta(hours=2):
+            continue
+        title = item.get('title', '').strip()
+        url = item.get('url', '')
+        body = item.get('text', '').strip()
+        if not title or not url.startswith('https://') or len(body.split()) < 120:
+            continue
+        key = re.sub(r'[^\w]', '', title.casefold())
+        if key in seen:
+            continue
+        seen.add(key)
+        articles.append({
+            'source': item.get('source'), 'title': title, 'url': url,
+            'published_utc': stamp.isoformat(), 'text': body[:3400]
+        })
+    articles.sort(key=lambda a: a['published_utc'], reverse=True)
+    # Cap by source so that the brief has a usable mix rather than a single outlet.
+    selected, counts = [], {}
+    for item in articles:
+        src = item['source']
+        if counts.get(src, 0) >= 3:
+            continue
+        selected.append(item)
+        counts[src] = counts.get(src, 0) + 1
+        if len(selected) >= 15:
+            break
+    if not selected:
+        raise RuntimeError('Keine aktuellen, ausreichend belegten NFL-Artikel gesammelt. Keine KI-Ausgabe erzeugt.')
+
+    game_center = (ROOT / 'nfl-spiele-08.md').read_text(encoding='utf-8')
+    # Game Center is deterministic ESPN output; AI may only reproduce it, not fill gaps.
+    context = {
+        'stand_wien': NOW.astimezone(ZoneInfo('Europe/Vienna')).strftime('%d.%m.%Y %H:%M'),
+        'articles': selected,
+        'game_center_espn': game_center[:13000],
+    }
+    instructions = '''Du bist die Redaktion von THE HUDDLE, dem deutschsprachigen NFL-Morgenjournal von Football-Austria.com.
+Erstelle einen lesbaren, präzisen journalistischen MARKDOWN-ENTWURF auf Deutsch mit:
+# THE HUDDLE – Datum (Wien)
+## Die NFL in 60 Sekunden (ca. 90–130 Wörter)
+## Top Stories (bis zu 4 eigenständige Meldungen, je ca. 70–110 Wörter)
+## Austrian Watch (nur wenn Quellen konkrete, belegte Neuigkeiten zu österreichischen NFL-Spielern enthalten; andernfalls ehrlich „Keine neue belegte Meldung“)
+## Game Center (relevante ESPN-Spielstände mit Datum; nur als ENDE markierte Resultate als Endstand ausgeben, geplante und laufende Spiele getrennt kennzeichnen)
+## Quellen und Redaktionshinweise
+Schreibe ausschließlich Fakten, die im gelieferten Quellenmaterial stehen. Keine erfundenen Details, Verletzungsfolgen, Zitate, Transfers, Spielstände oder Quellen. Meldungen aus verschiedenen Artikeln zum selben Ereignis zusammenführen. Bei schwacher Nachrichtenlage lieber kürzer schreiben. Jede Top Story braucht einen direkten Quellenlink. Behandle unbestätigte Aussagen als solche. Datumsangaben beachten. Austrian Watch ist kein Pflichtfüller: Bernhard Raimann oder Valentin Senn nur mit konkretem Quellenbeleg nennen. Im Game Center nur die gelieferten ESPN-Daten wiedergeben, keine Resultate ergänzen. Keine automatische Veröffentlichung. Abschließen mit „ENTWURF – journalistische Prüfung und Freigabe ausständig.“'''
+    client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], timeout=120, max_retries=1)
+    response = client.responses.create(
+        model=MODEL, instructions=instructions,
+        input=json.dumps(context, ensure_ascii=False),
+        max_output_tokens=3500, store=False,
+    )
+    draft = (response.output_text or '').strip()
+    if response.status != 'completed' or len(draft) < 600:
+        raise RuntimeError(f'KI-Entwurf nicht vollständig: {response.status}; {len(draft)} Zeichen')
+    if 'ENTWURF' not in draft:
+        draft += '\n\n**ENTWURF – journalistische Prüfung und Freigabe ausständig.**'
+    ROOT.mkdir(exist_ok=True)
+    (ROOT / 'the-huddle-erstausgabe.md').write_text(draft + '\n', encoding='utf-8')
+    meta = {
+        'generated_utc': NOW.isoformat(), 'model': MODEL,
+        'sources_eligible': len(articles), 'sources_passed_to_model': len(selected),
+        'source_urls': [a['url'] for a in selected],
+        'response_status': response.status,
+        'approved': False, 'published': False,
+        'input_tokens': getattr(response.usage, 'input_tokens', None),
+        'output_tokens': getattr(response.usage, 'output_tokens', None),
+    }
+    (ROOT / 'the-huddle-erstausgabe-meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f'Entwurf erzeugt: {len(selected)} aktuelle Quellen, {len(draft)} Zeichen, Modell {MODEL}')
+
+
+if __name__ == '__main__':
+    main()
