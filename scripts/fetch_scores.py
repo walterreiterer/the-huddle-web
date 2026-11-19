@@ -84,16 +84,15 @@ def build(now=None, fetch=None):
         lines.extend(['**ACHTUNG: ESPN-Datenabruf teilweise oder vollständig fehlgeschlagen. Ergebnisse können unvollständig sein.**',
                       'Fehler: ' + '; '.join(failures), ''])
     for day in sorted(local_days):
-        lines.extend([f'## Spieltag {day.strftime("%d.%m.%Y")} (Wien)', ''])
         selected = sorted((e for e in events.values() if (t := event_time(e)) and t.date() == day),
                           key=lambda e: event_time(e))
         rendered = [r for e in selected if (r := format_event(e, BASE + e['date'][:10].replace('-', '')))]
-        if rendered:
-            lines.extend(rendered)
-        elif failures:
-            lines.append('Keine Spiele aus den verfügbaren Daten bestätigt (Abruf unvollständig).')
-        else:
-            lines.append('Keine NFL-Spiele für dieses Wiener Datum in den ESPN-Daten gemeldet.')
+        # Spielfreie Tage im fertigen Game Center nicht anzeigen.
+        # Fehlgeschlagene ESPN-Abrufe bleiben oben als Warnung sichtbar.
+        if not rendered:
+            continue
+        lines.extend([f'## Spieltag {day.strftime("%d.%m.%Y")} (Wien)', ''])
+        lines.extend(rendered)
         lines.append('')
     lines.extend(['Datenquelle: [ESPN NFL Scoreboard](https://www.espn.com/nfl/scoreboard)', ''])
     return '\n'.join(lines) + '\n'
