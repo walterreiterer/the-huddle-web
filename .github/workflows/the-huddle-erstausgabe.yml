@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Abhaengigkeiten installieren
-        run: python -m pip install requests feedparser trafilatura googlenewsdecoder openai
+        run: python -m pip install requests feedparser trafilatura googlenewsdecoder openai mistune
       - name: Aktuelle NFL-Quellen sammeln
         run: python scripts/collect_sources_10.py
       - name: Aktuelle ESPN-Spielstaende abrufen
@@ -30,12 +30,18 @@ jobs:
           python scripts/build_first_issue.py
           test -s drafts/the-huddle-erstausgabe.md
           test -s drafts/the-huddle-erstausgabe-meta.json
-      - name: Entwurf und Quellen sichern
+      - name: Interne HTML-Vorschau im THE-HUDDLE-Design erzeugen
+        run: |
+          set -euo pipefail
+          python scripts/render_first_issue_preview.py
+          test -s drafts/the-huddle-vorschau.html
+      - name: Entwurf, Vorschau und Quellen sichern
         uses: actions/upload-artifact@v4
         with:
           name: the-huddle-erstausgabe
           path: |
             drafts/the-huddle-erstausgabe.md
+            drafts/the-huddle-vorschau.html
             drafts/the-huddle-erstausgabe-meta.json
             drafts/quellen-10.json
             drafts/quellenbericht-10.md
