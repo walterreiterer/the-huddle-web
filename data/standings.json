@@ -1,0 +1,275 @@
+{
+  "updated_at": "19.11.2026 19:55 UTC",
+  "results_through": "2026-11-16",
+  "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
+  "conferences": {
+    "AFC": [
+      {
+        "name": "AFC East",
+        "teams": [
+          {
+            "name": "Buffalo Bills",
+            "wins": 8,
+            "losses": 1,
+            "ties": 0,
+            "pct": "0.889"
+          },
+          {
+            "name": "New England Patriots",
+            "wins": 5,
+            "losses": 5,
+            "ties": 0,
+            "pct": "0.500"
+          },
+          {
+            "name": "New York Jets",
+            "wins": 2,
+            "losses": 8,
+            "ties": 0,
+            "pct": "0.200"
+          },
+          {
+            "name": "Miami Dolphins",
+            "wins": 1,
+            "losses": 8,
+            "ties": 0,
+            "pct": "0.111"
+          }
+        ]
+      },
+      {
+        "name": "AFC North",
+        "teams": [
+          {
+            "name": "Cincinnati Bengals",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Pittsburgh Steelers",
+            "wins": 6,
+            "losses": 3,
+            "ties": 0,
+            "pct": "0.667"
+          },
+          {
+            "name": "Cleveland Browns",
+            "wins": 6,
+            "losses": 4,
+            "ties": 0,
+            "pct": "0.600"
+          },
+          {
+            "name": "Baltimore Ravens",
+            "wins": 4,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.400"
+          }
+        ]
+      },
+      {
+        "name": "AFC South",
+        "teams": [
+          {
+            "name": "Jacksonville Jaguars",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Houston Texans",
+            "wins": 3,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.333"
+          },
+          {
+            "name": "Indianapolis Colts",
+            "wins": 3,
+            "losses": 7,
+            "ties": 0,
+            "pct": "0.300"
+          },
+          {
+            "name": "Tennessee Titans",
+            "wins": 1,
+            "losses": 8,
+            "ties": 0,
+            "pct": "0.111"
+          }
+        ]
+      },
+      {
+        "name": "AFC West",
+        "teams": [
+          {
+            "name": "Denver Broncos",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Kansas City Chiefs",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Las Vegas Raiders",
+            "wins": 4,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.400"
+          },
+          {
+            "name": "Los Angeles Chargers",
+            "wins": 1,
+            "losses": 8,
+            "ties": 0,
+            "pct": "0.111"
+          }
+        ]
+      }
+    ],
+    "NFC": [
+      {
+        "name": "NFC East",
+        "teams": [
+          {
+            "name": "New York Giants",
+            "wins": 5,
+            "losses": 3,
+            "ties": 1,
+            "pct": "0.611"
+          },
+          {
+            "name": "Dallas Cowboys",
+            "wins": 4,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.400"
+          },
+          {
+            "name": "Washington Commanders",
+            "wins": 3,
+            "losses": 5,
+            "ties": 1,
+            "pct": "0.389"
+          },
+          {
+            "name": "Philadelphia Eagles",
+            "wins": 2,
+            "losses": 7,
+            "ties": 0,
+            "pct": "0.222"
+          }
+        ]
+      },
+      {
+        "name": "NFC North",
+        "teams": [
+          {
+            "name": "Chicago Bears",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Detroit Lions",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Minnesota Vikings",
+            "wins": 7,
+            "losses": 2,
+            "ties": 0,
+            "pct": "0.778"
+          },
+          {
+            "name": "Green Bay Packers",
+            "wins": 6,
+            "losses": 4,
+            "ties": 0,
+            "pct": "0.600"
+          }
+        ]
+      },
+      {
+        "name": "NFC South",
+        "teams": [
+          {
+            "name": "Carolina Panthers",
+            "wins": 4,
+            "losses": 5,
+            "ties": 0,
+            "pct": "0.444"
+          },
+          {
+            "name": "New Orleans Saints",
+            "wins": 3,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.333"
+          },
+          {
+            "name": "Tampa Bay Buccaneers",
+            "wins": 3,
+            "losses": 6,
+            "ties": 0,
+            "pct": "0.333"
+          },
+          {
+            "name": "Atlanta Falcons",
+            "wins": 3,
+            "losses": 7,
+            "ties": 0,
+            "pct": "0.300"
+          }
+        ]
+      },
+      {
+        "name": "NFC West",
+        "teams": [
+          {
+            "name": "San Francisco 49ers",
+            "wins": 8,
+            "losses": 1,
+            "ties": 0,
+            "pct": "0.889"
+          },
+          {
+            "name": "Los Angeles Rams",
+            "wins": 6,
+            "losses": 4,
+            "ties": 0,
+            "pct": "0.600"
+          },
+          {
+            "name": "Seattle Seahawks",
+            "wins": 6,
+            "losses": 4,
+            "ties": 0,
+            "pct": "0.600"
+          },
+          {
+            "name": "Arizona Cardinals",
+            "wins": 3,
+            "losses": 7,
+            "ties": 0,
+            "pct": "0.300"
+          }
+        ]
+      }
+    ]
+  }
+}
