@@ -52,20 +52,38 @@ def main():
             'published_utc': stamp.isoformat(), 'text': body[:3400],
             'austrian_watch': is_austrian
         })
-    articles.sort(key=lambda a: a['published_utc'], reverse=True)
-    # Reserve slots for sourced Austrian-player news before the general headlines.
-    # A source must explicitly mention the player; never manufacture a status.
+    # Relevance first, rather than blindly passing the newest 18 items.
+    # Reserve Austrian coverage, but avoid passing multiple near-identical
+    # reports about the same player and event.
+    def relevance(item):
+        t = item['title'].lower()
+        source = (item.get('source') or '').lower()
+        score = 0
+        if item['austrian_watch']: score += 35
+        if any(w in t for w in ('injury', 'injured', 'concussion', 'out for', 'ruled out', 'inactive', 'verletzt', 'gehirnerschütterung', 'fällt aus', 'ausfall')): score += 16
+        if any(w in t for w in ('texans', 'colts', 'thursday night', 'preview', 'vorschau', 'week 11')): score += 10
+        if any(w in t for w in ('trade', 'signed', 'fired', 'suspended', 'release', 'entlassen', 'vertrag')): score += 9
+        if any(w in t for w in ('power ranking', 'rankings', 'picks', 'predictions', 'hot seat', 'radio show', 'kicker')): score -= 14
+        if 'nfl.com' in item['url'] or 'espn.com' in item['url']: score += 5
+        if 'football-austria.com' in item['url']: score += 4
+        age_h = max(0, (NOW - datetime.fromisoformat(item['published_utc'])).total_seconds()/3600)
+        score -= min(age_h/24, 7)
+        return score
+
+    articles.sort(key=lambda a: (relevance(a), a['published_utc']), reverse=True)
     selected, counts = [], {}
     def add(item):
-        src = item['source']
+        src = item['source'] or 'Unbekannt'
         if item in selected or counts.get(src, 0) >= 4 or len(selected) >= 18:
             return
         selected.append(item)
         counts[src] = counts.get(src, 0) + 1
+    # Only two distinct Austrian-player source reports in the prompt;
+    # additional sources remain in the collected JSON for later verification.
     for item in articles:
         if item['austrian_watch']:
             add(item)
-            if sum(a['austrian_watch'] for a in selected) >= 4:
+            if sum(a['austrian_watch'] for a in selected) >= 2:
                 break
     for item in articles:
         add(item)
@@ -81,20 +99,30 @@ def main():
         'articles': selected,
         'game_center_espn': game_center[:23000],
     }
-    instructions = '''Du bist die Redaktion von THE HUDDLE, dem deutschsprachigen NFL-Morgenjournal von Football-Austria.com.
-Erstelle einen lesbaren, präzisen journalistischen MARKDOWN-ENTWURF auf Deutsch mit:
-# THE HUDDLE – Datum (Wien)
-## Die NFL in 60 Sekunden (ca. 90–130 Wörter)
-## Top Stories (bis zu 4 eigenständige Meldungen, je ca. 70–110 Wörter)
-## Austrian Watch (belegte Nachrichten oder fortdauernd relevante Verletzungs-/Spielstatus der letzten sieben Tage zu österreichischen NFL-Spielern; Datum des Berichts nennen, alten Stand nicht als neue Nachricht verkaufen; falls keine Quellen: „Keine belegte Meldung“)
-## Game Center (jüngste ESPN-Ergebnisse und die nächsten angesetzten Spiele mit Wiener Datum/Uhrzeit; nur als ENDE markierte Resultate als Endstand ausgeben; geplante und laufende Spiele getrennt kennzeichnen)
-## Quellen und Redaktionshinweise
-Schreibe ausschließlich Fakten, die im gelieferten Quellenmaterial stehen. Keine erfundenen Details, Verletzungsfolgen, Zitate, Transfers, Spielstände oder Quellen. Meldungen aus verschiedenen Artikeln zum selben Ereignis zusammenführen. Bei schwacher Nachrichtenlage lieber kürzer schreiben. Jede Top Story braucht einen direkten Quellenlink. Behandle unbestätigte Aussagen als solche. Datumsangaben beachten. Austrian Watch ist kein Pflichtfüller: Bernhard Raimann oder Valentin Senn nur mit konkretem Quellenbeleg nennen. Im Game Center nur die gelieferten ESPN-Daten wiedergeben, keine Resultate ergänzen. Keine automatische Veröffentlichung. Abschließen mit „ENTWURF – journalistische Prüfung und Freigabe ausständig.“'''
+    instructions = '''Du bist die Schlussredaktion von THE HUDDLE, dem deutschsprachigen NFL-Morgenjournal von Football-Austria.com. Erstelle einen journalistisch gewichteten Markdown-ENTWURF, keine Veröffentlichung.
+
+VERBINDLICHE REDAKTIONSREGELN:
+1. Der Zeitstempel "stand_wien" ist der Zeitpunkt des Entwurfs, NICHT das Erscheinungsdatum einer Quelle. Keine alten Meldungen als neu ausgeben. Bei medizinischen Statusmeldungen ausschließlich den letzten ausdrücklich belegten Status nennen, mit Datum der Quelle. Aus "fraglich" niemals "OUT" oder umgekehrt ableiten. Wenn Quellen widersprüchlich oder veraltet sind: "Ein aktueller Einsatzstatus ist aus den vorliegenden Quellen nicht gesichert." Niemals behaupten, die Situation sei noch offen, wenn die Quelle das nur zu einem früheren Zeitpunkt sagt.
+2. Nachrichtenwert priorisieren: echte aktuelle Entwicklungen, Spielausgänge, Verletzungen, Kaderentscheidungen, unmittelbar bevorstehende Spiele. Meinungsrankings, Rekordvorschauen und TV-Kommentatoren-Streit nur bei tatsächlich dünner Nachrichtenlage. Keine Top Story aus einer einzelnen nackten Score-Zeile machen, wenn die Quellen keine zusätzliche Geschichte hergeben.
+3. Deduplizieren: Dasselbe Ereignis ist genau EINE ausführliche Geschichte. Eine knappe Erwähnung im 60-Sekunden-Überblick ist erlaubt; wenn Raimann Top Story ist, darf Austrian Watch nur ein kurzes, ergänzendes Status-/Termin-Update mit Verweis auf die Top Story enthalten (max. 45 Wörter), keine zweite Nacherzählung.
+4. Quellenhierarchie: NFL-/Team-Originalmeldung vor Sekundärquelle, wenn beide vorhanden. Ein Artikel kann mehrere Quellen haben. Belege immer direkt verlinken. Keine Aussagen über aktuellere Statusänderungen, wenn diese NICHT im übergebenen Material enthalten sind.
+5. Die ESPN-Daten im Feld game_center_espn sind autoritativ für den Game Center dieses Entwurfs. Den Game Center NICHT durch freie KI-Auswahl verkürzen. Kopiere alle darin enthaltenen Spiele und Uhrzeiten vollständig und unverändert, sofern sie im Text stehen. Endstände nur für ENDE, geplante Spiele als GEPLANT. Keine erfundenen Ergebnisse oder Spieltermine.
+6. Widersprüchliche Week-Nummern, Termine oder Rekorde nicht ungeprüft behaupten. Wenn ein Datum und die behauptete Week-Nummer nicht zusammenpassen, die Week-Nummer weglassen. Keine falsche Sicherheit.
+
+AUSGABESTRUKTUR:
+# THE HUDDLE – [Datum aus stand_wien]
+## Die NFL in 60 Sekunden (ca. 90–125 Wörter; wichtigste Meldung zuerst, mit kurzem Ausblick)
+## Top Stories (2–4 eigenständige Geschichten, jeweils ca. 75–115 Wörter, Titel und direkte Quellenlinks; nicht künstlich auffüllen)
+## Austrian Watch (kurzes, eigenständiges Update zu österreichischen NFL-Spielern, wenn belegt; alte Statusangaben datieren; keine Dublette)
+## Game Center (ALLE gelieferten ESPN-Spiele, vollständig, Ergebnisse und Vorschau getrennt)
+## Quellen und Redaktionshinweise (maximal fünf Sätze, nur konkrete offene Punkte)
+Am Ende exakt: ENTWURF – journalistische Prüfung und Freigabe ausständig.
+Schreibe nur aus übergebenen Quellen. Keine erfundenen Zitate, Verletzungsfolgen, Statistiken, Spielstände oder Links. Bei wenig Material lieber kurz.'''
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], timeout=120, max_retries=1)
     response = client.responses.create(
         model=MODEL, instructions=instructions,
         input=json.dumps(context, ensure_ascii=False),
-        max_output_tokens=3500, store=False,
+        max_output_tokens=6500, store=False,
     )
     draft = (response.output_text or '').strip()
     if response.status != 'completed' or len(draft) < 600:
