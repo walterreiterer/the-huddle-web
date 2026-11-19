@@ -217,6 +217,50 @@ document.addEventListener('DOMContentLoaded', function(){
    }
  }
  controls.forEach(b=>b.addEventListener('click',()=>{selected=b.dataset.conference;draw()}));
- fetch('data/standings.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('not available');return r.json()}).then(d=>{standings=d;draw()}).catch(()=>draw());
+ // ESPN's CDN may block GitHub-hosted runners (HTTP 403), while allowing browser requests.
+ // Prefer the published snapshot; fall back to ESPN directly in the reader's browser.
+ const ESPN='https://site.api.espn.com/apis/v2/sports/football/nfl/standings';
+ const groups={AFC:{East:['BUF','MIA','NE','NYJ'],North:['BAL','CIN','CLE','PIT'],South:['HOU','IND','JAX','TEN'],West:['DEN','KC','LAC','LV']},NFC:{East:['DAL','NYG','PHI','WSH'],North:['CHI','DET','GB','MIN'],South:['ATL','CAR','NO','TB'],West:['ARI','LA','SF','SEA']}};
+ const aliases={WAS:'WSH',LAR:'LA',JAC:'JAX',WS:'WSH',ARZ:'ARI'};
+ function fromESPN(payload){
+   const records={};
+   function walk(node){
+     if(Array.isArray(node)){node.forEach(walk);return;}
+     if(!node||typeof node!=='object')return;
+     if(Array.isArray(node.entries))for(const entry of node.entries){
+       const team=entry.team||{},code=aliases[team.abbreviation]||team.abbreviation;
+       if(!code)continue;
+       const stats=entry.stats||[];
+       function stat(...names){const s=stats.find(x=>names.includes(x.name)||names.includes(x.abbreviation));if(!s)throw Error('Missing NFL stat '+names[0]);return Number(s.value??s.displayValue);}
+       const wins=stat('wins','W'),losses=stat('losses','L'),ties=stat('ties','T'),pct=stat('winPercent','PCT');
+       if(![wins,losses,ties,pct].every(Number.isFinite)||pct<0||pct>1||records[code])throw Error('Invalid or duplicate NFL record '+code);
+       records[code]={name:team.displayName||team.name||code,wins,losses,ties,pct:pct.toFixed(3)};
+     }
+     for(const key of ['children','groups','standings'])if(node[key])walk(node[key]);
+   }
+   walk(payload);
+   const expected=Object.values(groups).flatMap(c=>Object.values(c).flat());
+   if(Object.keys(records).length!==32||expected.some(code=>!records[code]))throw Error('Incomplete NFL standings');
+   const conferences={};
+   for(const [conf,divs] of Object.entries(groups))conferences[conf]=Object.entries(divs).map(([name,codes])=>({name:conf+' '+name,teams:codes.map(code=>records[code]).sort((a,b)=>Number(b.pct)-Number(a.pct)||b.wins-a.wins||a.losses-b.losses||a.name.localeCompare(b.name))}));
+   return {updated_at:new Date().toLocaleString('de-AT',{timeZone:'Europe/Vienna'})+' (Abruf)',source:ESPN,conferences};
+ }
+ async function load(){
+   try{
+     const r=await fetch('data/standings.json',{cache:'no-store'});
+     if(!r.ok)throw Error('No snapshot');
+     const data=await r.json();
+     if(!data.conferences?.AFC?.length||!data.conferences?.NFC?.length)throw Error('Invalid snapshot');
+     standings=data;
+   }catch(_){
+     try{
+       const r=await fetch(ESPN,{cache:'no-store'});
+       if(!r.ok)throw Error('ESPN HTTP '+r.status);
+       standings=fromESPN(await r.json());
+     }catch(error){console.warn('NFL standings unavailable:',error);}
+   }
+   draw();
+ }
+ load();
 })();
 </script></body></html>
