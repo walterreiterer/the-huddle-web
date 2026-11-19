@@ -92,8 +92,8 @@ MIN_WORDS = 120
 
 # Queries are restricted to NFL context to avoid unrelated names and topics.
 AUSTRIAN_QUERIES = (
-    '"Bernhard Raimann" NFL when:3d',
-    '"Valentin Senn" NFL when:3d',
+    '"Bernhard Raimann" NFL when:7d',
+    '"Valentin Senn" NFL when:7d',
     '("Österreicher" OR "österreichischer") NFL when:3d',
 )
 
@@ -242,7 +242,7 @@ def main():
                         # Football-Austria: nur NFL-relevante Artikel
             if source == 'Football-Austria':
                 if not re.search(
-                    r'\b(NFL|Super Bowl|National Football League)\b',
+                    r'\b(NFL|Super Bowl|National Football League|Bernhard Raimann|Valentin Senn)\b',
                     title,
                     re.I
                 ):
@@ -308,6 +308,18 @@ def main():
         audit.append(
             f'- Football-Austria RSS: {type(exc).__name__}: {str(exc)[:150]}'
         )
+    # Direct Football-Austria search feed: older Austrian stories can have left
+    # the front-page RSS even though their status remains relevant this week.
+    for player in ('Bernhard Raimann', 'Valentin Senn'):
+        try:
+            search_feed = 'https://football-austria.com/?s=' + urllib.parse.quote(player) + '&feed=rss2'
+            response = session.get(search_feed, timeout=25)
+            response.raise_for_status()
+            entries = feedparser.parse(response.content).entries
+            collect(entries, 'Football-Austria', 'football-austria.com',
+                    MAX_PER_AUSTRIAN_QUERY, 'Football-Austria Spielerarchiv / ' + player)
+        except Exception as exc:
+            audit.append(f'- Football-Austria Spielerarchiv ({player}): {type(exc).__name__}: {str(exc)[:150]}')
     for source, domain in SOURCES.items():
         german = source not in ('Yahoo Sports', 'NBC Sports', 'FOX Sports', 'NFL.com')
         query = (f'site:{domain} (NFL OR "American Football" OR Raimann OR "Valentin Senn") when:3d'

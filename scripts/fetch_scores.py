@@ -57,12 +57,9 @@ def format_event(event, source_url):
 def build(now=None, fetch=None):
     now = now or datetime.now(VIENNA)
     fetch = fetch or fetch_json
-    local_days = {
-    (now - timedelta(days=2)).date(),
-    (now - timedelta(days=1)).date(),
-    now.date()
-}
-    # Query all UTC dates that can overlap the two Vienna calendar dates,
+    # Two past days for recent results; next seven Vienna days for the schedule.
+    local_days = {(now + timedelta(days=offset)).date() for offset in range(-2, 8)}
+    # Query all UTC dates that can overlap the requested Vienna calendar dates,
     # plus a safety day for ESPN's date bucketing.
     utc_days = sorted({(datetime.combine(d, datetime.min.time(), VIENNA).astimezone(timezone.utc) + timedelta(days=offset)).strftime('%Y%m%d')
                        for d in local_days for offset in (-1, 0, 1)})
