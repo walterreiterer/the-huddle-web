@@ -94,9 +94,15 @@ def main():
 
     game_center = (ROOT / 'nfl-spiele-08.md').read_text(encoding='utf-8')
     # Game Center is deterministic ESPN output; AI may only reproduce it, not fill gaps.
+    # Older injury reports cannot establish the next game's current status.
+    austrian_latest = max((datetime.fromisoformat(a['published_utc']) for a in selected if a['austrian_watch']), default=None)
+    status_note = ('Die neueste österreichische Quelle ist älter als 24 Stunden. '
+                   'Sie belegt keinen aktuellen Status für das nächste Spiel. '
+                   'Als offenen Recherchepunkt kennzeichnen; keine Vermutung über Einsatzfähigkeit.') if austrian_latest and NOW - austrian_latest > timedelta(hours=24) else ''
     context = {
         'stand_wien': NOW.astimezone(ZoneInfo('Europe/Vienna')).strftime('%d.%m.%Y %H:%M'),
         'articles': selected,
+        'austrian_status_editorial_note': status_note,
         'game_center_espn': game_center[:23000],
     }
     instructions = '''Du bist die Schlussredaktion von THE HUDDLE, dem deutschsprachigen NFL-Morgenjournal von Football-Austria.com. Erstelle einen journalistisch gewichteten Markdown-ENTWURF, keine Veröffentlichung.
@@ -104,7 +110,7 @@ def main():
 VERBINDLICHE REDAKTIONSREGELN:
 1. Der Zeitstempel "stand_wien" ist der Zeitpunkt des Entwurfs, NICHT das Erscheinungsdatum einer Quelle. Keine alten Meldungen als neu ausgeben. Bei medizinischen Statusmeldungen ausschließlich den letzten ausdrücklich belegten Status nennen, mit Datum der Quelle. Aus "fraglich" niemals "OUT" oder umgekehrt ableiten. Wenn Quellen widersprüchlich oder veraltet sind: "Ein aktueller Einsatzstatus ist aus den vorliegenden Quellen nicht gesichert." Niemals behaupten, die Situation sei noch offen, wenn die Quelle das nur zu einem früheren Zeitpunkt sagt.
 2. Nachrichtenwert priorisieren: echte aktuelle Entwicklungen, Spielausgänge, Verletzungen, Kaderentscheidungen, unmittelbar bevorstehende Spiele. Meinungsrankings, Rekordvorschauen und TV-Kommentatoren-Streit nur bei tatsächlich dünner Nachrichtenlage. Keine Top Story aus einer einzelnen nackten Score-Zeile machen, wenn die Quellen keine zusätzliche Geschichte hergeben.
-3. Deduplizieren: Dasselbe Ereignis ist genau EINE ausführliche Geschichte. Eine knappe Erwähnung im 60-Sekunden-Überblick ist erlaubt; wenn Raimann Top Story ist, darf Austrian Watch nur ein kurzes, ergänzendes Status-/Termin-Update mit Verweis auf die Top Story enthalten (max. 45 Wörter), keine zweite Nacherzählung.
+3. Deduplizieren: Dasselbe Ereignis ist genau EINE ausführliche Geschichte. Ein mehrere Tage alter Verletzungsbericht ohne neues Update gehört in Austrian Watch, nicht als aktuelle Top Story. Eine knappe Erwähnung im 60-Sekunden-Überblick ist erlaubt; wenn Raimann Top Story ist, darf Austrian Watch nur ein kurzes, ergänzendes Status-/Termin-Update mit Verweis auf die Top Story enthalten (max. 45 Wörter), keine zweite Nacherzählung.
 4. Quellenhierarchie: NFL-/Team-Originalmeldung vor Sekundärquelle, wenn beide vorhanden. Ein Artikel kann mehrere Quellen haben. Belege immer direkt verlinken. Keine Aussagen über aktuellere Statusänderungen, wenn diese NICHT im übergebenen Material enthalten sind.
 5. Die ESPN-Daten im Feld game_center_espn sind autoritativ für den Game Center dieses Entwurfs. Den Game Center NICHT durch freie KI-Auswahl verkürzen. Kopiere alle darin enthaltenen Spiele und Uhrzeiten vollständig und unverändert, sofern sie im Text stehen. Endstände nur für ENDE, geplante Spiele als GEPLANT. Keine erfundenen Ergebnisse oder Spieltermine.
 6. Widersprüchliche Week-Nummern, Termine oder Rekorde nicht ungeprüft behaupten. Wenn ein Datum und die behauptete Week-Nummer nicht zusammenpassen, die Week-Nummer weglassen. Keine falsche Sicherheit.
@@ -114,7 +120,7 @@ AUSGABESTRUKTUR:
 ## Die NFL in 60 Sekunden (ca. 90–125 Wörter; wichtigste Meldung zuerst, mit kurzem Ausblick)
 ## Top Stories (2–4 eigenständige Geschichten, jeweils ca. 75–115 Wörter, Titel und direkte Quellenlinks; nicht künstlich auffüllen)
 ## Austrian Watch (kurzes, eigenständiges Update zu österreichischen NFL-Spielern, wenn belegt; alte Statusangaben datieren; keine Dublette)
-## Game Center (ALLE gelieferten ESPN-Spiele, vollständig, Ergebnisse und Vorschau getrennt)
+## Game Center (hier nur [GAME_CENTER_WIRD_AUTOMATISCH_EINGEFUEGT] schreiben; der Abschnitt wird nachträglich mit den ESPN-Originaldaten befüllt)
 ## Quellen und Redaktionshinweise (maximal fünf Sätze, nur konkrete offene Punkte)
 Am Ende exakt: ENTWURF – journalistische Prüfung und Freigabe ausständig.
 Schreibe nur aus übergebenen Quellen. Keine erfundenen Zitate, Verletzungsfolgen, Statistiken, Spielstände oder Links. Bei wenig Material lieber kurz.'''
@@ -127,6 +133,15 @@ Schreibe nur aus übergebenen Quellen. Keine erfundenen Zitate, Verletzungsfolge
     draft = (response.output_text or '').strip()
     if response.status != 'completed' or len(draft) < 600:
         raise RuntimeError(f'KI-Entwurf nicht vollständig: {response.status}; {len(draft)} Zeichen')
+    # Never let the language model invent, omit or rewrite game scores.
+    if '## Game Center' in draft:
+        head, tail = draft.split('## Game Center', 1)
+        next_heading = re.search(r'(?m)^## Quellen und Redaktionshinweise', tail)
+        remainder = tail[next_heading.start():] if next_heading else ''
+        draft = head.rstrip() + '\n\n## Game Center\n\n' + game_center.strip() + '\n\n' + remainder.lstrip()
+    else:
+        draft += '\n\n## Game Center\n\n' + game_center.strip()
+    draft = draft.replace('[GAME_CENTER_WIRD_AUTOMATISCH_EINGEFUEGT]', '')
     if 'ENTWURF' not in draft:
         draft += '\n\n**ENTWURF – journalistische Prüfung und Freigabe ausständig.**'
     ROOT.mkdir(exist_ok=True)
