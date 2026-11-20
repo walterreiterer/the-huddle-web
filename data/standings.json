@@ -1,6 +1,6 @@
 {
-  "updated_at": "19.11.2026 19:55 UTC",
-  "results_through": "2026-11-16",
+  "updated_at": "20.11.2026 12:06 UTC",
+  "results_through": "2026-11-19",
   "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
   "conferences": {
     "AFC": [
@@ -82,17 +82,17 @@
           },
           {
             "name": "Houston Texans",
-            "wins": 3,
+            "wins": 4,
             "losses": 6,
             "ties": 0,
-            "pct": "0.333"
+            "pct": "0.400"
           },
           {
             "name": "Indianapolis Colts",
             "wins": 3,
-            "losses": 7,
+            "losses": 8,
             "ties": 0,
-            "pct": "0.300"
+            "pct": "0.273"
           },
           {
             "name": "Tennessee Titans",
