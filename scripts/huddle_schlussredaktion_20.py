@@ -233,6 +233,16 @@ Niemals eine Veröffentlichung oder Freigabe behaupten.'''
                 allowed.add(obj['source_url'])
             elif isinstance(obj, list):
                 allowed.update(x['source_url'] for x in obj if isinstance(x, dict) and x.get('source_url'))
+        # Die KI liefert Quellen gelegentlich als Markdown-Link statt als reine URL.
+        # Nur das Format normalisieren; die Quellen-Freigabeliste bleibt verbindlich.
+        normalized_urls = []
+        for u in urls:
+            if isinstance(u, str):
+                match = re.fullmatch(r'\[([^\]]+)\]\((https?://[^\s)]+)\)', u.strip())
+                if match and match.group(1) == match.group(2):
+                    u = match.group(2)
+            normalized_urls.append(u)
+        urls = normalized_urls
         unknown = sorted({u for u in urls if not isinstance(u, str) or u not in allowed}, key=str)
         if unknown:
             return fail('Nicht zugelassene Quellen-URLs in Leserfassung: ' + repr(unknown[:4]))
