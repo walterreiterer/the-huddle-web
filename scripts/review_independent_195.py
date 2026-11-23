@@ -21,6 +21,7 @@ GAMES = D / 'nfl-spiele-08.md'
 OUT = D / 'gegenpruefung-195.md'
 JSON_OUT = D / 'gegenpruefung-195.json'
 MODEL = os.getenv('HUDDLE_REVIEW_MODEL', 'gpt-5-mini')
+API_TIMEOUT_SECONDS = 210  # Längere Antwortzeit für vollständige Gegenprüfung
 STATUSES = {'SPERREN', 'MANUELL_PRUEFEN', 'UNAUFFAELLIG'}
 
 
@@ -79,7 +80,7 @@ def call_api(payload):
                  'Content-Type': 'application/json'}, method='POST')
     
     try:
-        with urllib.request.urlopen(request, timeout=150) as response:
+        with urllib.request.urlopen(request, timeout=API_TIMEOUT_SECONDS) as response:
             return json.load(response)
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode('utf-8', errors='replace')[:2000]
@@ -247,6 +248,7 @@ Tatsachenbehauptung ungeprüft. Halte die Begründungen kurz.'''
                    'text': {'format': {'type': 'json_object'}}}
         review = None
         for attempt in (1, 2):
+            print(f'Gegenprüfung: API-Versuch {attempt}/2 (Timeout {API_TIMEOUT_SECONDS} Sekunden)', flush=True)
             try:
                 result = call_api(payload)
                 if result.get('status') == 'incomplete':
@@ -254,6 +256,7 @@ Tatsachenbehauptung ungeprüft. Halte die Begründungen kurz.'''
                 review = json.loads(extract_text(result))
                 break
             except (urllib.error.URLError, TimeoutError, ValueError, KeyError, json.JSONDecodeError) as exc:
+                print(f'Gegenprüfung: Versuch {attempt}/2 fehlgeschlagen: {type(exc).__name__}: {str(exc)[:180]}', file=sys.stderr, flush=True)
                 if attempt == 2:
                     blocked(f'KI-Gegenprüfung fehlgeschlagen: {type(exc).__name__}: {str(exc)[:250]}')
                     return
