@@ -11,7 +11,14 @@ IN=ROOT/'quellen-10.json'
 OUT=ROOT/'quellen-geprueft-22.json'
 REPORT=ROOT/'quellenkontrolle-22.json'
 MIN_WORDS=120
-MAX_AGE_HOURS=48
+MAX_AGE_HOURS=7*24
+AUSTRIAN_WATCH_MAX_AGE_HOURS=14*24
+
+# Österreich-Bezug auch bei abweichender Schreibweise erkennen.
+AUSTRIAN_WATCH_PATTERN=re.compile(
+    r'(?i)\b(?:bernhard\s+r[ae]imann|r[ae]imann|valentin\s+senn|'
+    r'austrian\s+watch|österreich(?:isch(?:e[rsnm]?)?)?|austria(?:n)?)\b'
+)
 
 def run(now=None):
     now=now or datetime.now(timezone.utc)
@@ -37,7 +44,9 @@ def run(now=None):
             date=parsedate_to_datetime(str(published))
             if date.tzinfo is None: date=date.replace(tzinfo=timezone.utc)
             age=(now-date.astimezone(timezone.utc)).total_seconds()/3600
-            if age>MAX_AGE_HOURS: reasons.append('Quelle älter als 48 Stunden')
+            austrian_watch=bool(AUSTRIAN_WATCH_PATTERN.search(title+' '+text))
+            max_age=AUSTRIAN_WATCH_MAX_AGE_HOURS if austrian_watch else MAX_AGE_HOURS
+            if age>max_age: reasons.append(f'Quelle älter als {max_age//24} Tage')
             if age < -2: reasons.append('Quellendatum liegt in der Zukunft')
         except (TypeError, ValueError, OverflowError):
             reasons.append('Veröffentlichungsdatum nicht überprüfbar')
@@ -49,14 +58,14 @@ def run(now=None):
         if re.search(r'(?i)\b(ruled out|questionable|doubtful|will start|set to start|surgery|operat(?:ion|ed)|expected|reportedly|könnte|droht|fällt aus|startet)\b',title):
             flagged.append({'index':i,'title':title,'reason':'Zeitkritische Statusmeldung: Originaltext und neuere Updates prüfen'})
         accepted.append(a)
-    report={'version':'2.2','input_count':len(articles),'accepted_count':len(accepted),
+    report={'version':'2.3','input_count':len(articles),'accepted_count':len(accepted),
             'rejected_count':len(rejected),'rejected':rejected,'manual_checks':flagged,
             'claim_verification':'NICHT AUTOMATISCH DURCHGEFÜHRT',
             'publication_approved':False}
     ROOT.mkdir(exist_ok=True)
     REPORT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     OUT.write_text(json.dumps({**data,'articles':accepted},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    print(f'Quellenkontrolle 2.2: {len(accepted)} akzeptiert, {len(rejected)} aussortiert, {len(flagged)} manuelle Hinweise')
+    print(f'Quellenkontrolle 2.3: {len(accepted)} akzeptiert, {len(rejected)} aussortiert, {len(flagged)} manuelle Hinweise')
     if not accepted: raise ValueError('Keine verwendbaren Quellen: Ausgabe stoppen')
     return report
 
