@@ -19,7 +19,9 @@ OUTPUT = ROOT / "the-huddle-morgenausgabe-13.md"
 AUDIT = ROOT / "redaktionspruefung-13.md"
 
 NOW = datetime.now(ZoneInfo("Europe/Vienna"))
-MAX_ARTICLE_AGE_HOURS = 48
+MAX_ARTICLE_AGE_HOURS = 168  # Allgemeine NFL-Nachrichten: 7 Tage
+MAX_AUSTRIAN_AGE_HOURS = 336  # Austrian Watch: 14 Tage
+PLAYER_PATTERN = re.compile(r"\b(?:Raimann|Reimann|Valentin Senn)\b", re.I)
 FUTURE_TOLERANCE_HOURS = 2
 
 BAD = re.compile(
@@ -77,7 +79,7 @@ def priority(article):
     if SCHEDULE_CHANGE.search(title):
         points += 3  # Relevante Spielplanänderungen als Servicemeldung sichtbar halten
     # Aktualitaet ist ein starkes Ranking-Signal, nicht nur ein Tie-Breaker.
-    # Die 48-Stunden-Grenze bleibt als Quellenfenster bestehen.
+    # Die Altersgrenze wird bei der Quellenauswahl angewendet.
     if age is not None:
         if -FUTURE_TOLERANCE_HOURS <= age <= 12:
             points += 12
@@ -177,7 +179,9 @@ def load_sources():
         if age is None:
             undated += 1
             continue
-        if not (-FUTURE_TOLERANCE_HOURS <= age <= MAX_ARTICLE_AGE_HOURS):
+        austrian = bool(PLAYER_PATTERN.search(title + " " + body[:1600]))
+        age_limit = MAX_AUSTRIAN_AGE_HOURS if austrian else MAX_ARTICLE_AGE_HOURS
+        if not (-FUTURE_TOLERANCE_HOURS <= age <= age_limit):
             out_of_window += 1
             continue
 
@@ -194,7 +198,8 @@ def load_sources():
         filtered.append(article)
 
     print(f"Datumsfilter: {undated} ohne gueltiges Datum, "
-          f"{out_of_window} ausserhalb von {MAX_ARTICLE_AGE_HOURS} Stunden; "
+          f"{out_of_window} ausserhalb des Quellenfensters "
+          f"({MAX_ARTICLE_AGE_HOURS}h allgemein, {MAX_AUSTRIAN_AGE_HOURS}h Austrian Watch); "
           f"{len(filtered)} Kandidaten verbleiben.")
     filtered.sort(key=priority, reverse=True)
 
@@ -235,18 +240,18 @@ def load_sources():
     else:
         print('Spielplanänderungen: Keine passende aktuelle Quelle im Zeitfenster; nichts erfinden.')
 
-    # Austrian Watch: Mindestens eine geeignete, aktuelle Spielerquelle
+    # Austrian Watch: Mindestens eine geeignete Spielerquelle
     # an die Redaktion weitergeben, ohne den journalistischen Entscheid
     # über die tatsächliche Veröffentlichung vorwegzunehmen.
-    player_pattern = re.compile(r"\b(?:Bernhard Raimann|Raimann|Valentin Senn)\b", re.I)
     austrian_candidates = [
         article for article in filtered
-        if player_pattern.search(
+        if PLAYER_PATTERN.search(
             str(article.get("title", "")) + " " + str(article.get("text", ""))[:1600]
         )
     ]
     if austrian_candidates:
-        candidate = austrian_candidates[0]
+        # Bei mehreren Kandidaten bevorzugt die Watch die neueste belegte Entwicklung.
+        candidate = max(austrian_candidates, key=lambda a: -(age_hours(a.get("published")) or 0))
         candidate_url = str(candidate.get("url", ""))
         if not any(str(article.get("url", "")) == candidate_url for article in selected):
             # Bei vollem Quellenbudget die letzte Quelle ersetzen.
@@ -299,7 +304,7 @@ Verwende diese Abschnittsueberschriften in dieser Reihenfolge:
 ## THE LEAD
 ## GAME CENTER
 ## AROUND THE LEAGUE
-Optional am Schluss: ## AUSTRIAN WATCH
+Am Schluss: ## AUSTRIAN WATCH, wenn geeignete Spielerquellen vorliegen
 
 REDAKTIONELLE GRUNDREGEL: Trenne in jedem Beitrag sauber zwischen
 (1) belegten Tatsachen, (2) nachvollziehbarer journalistischer Einordnung
@@ -376,8 +381,11 @@ AUSTRIAN WATCH: Pruefe das uebergebene Artikelmaterial ausdruecklich
 auf aktuelle, belegte und journalistisch relevante Entwicklungen zu
 Bernhard Raimann und Valentin Senn. Oesterreichische Quellen wie ORF Sport,
 LAOLA1 oder andere uebergebene Originalquellen sind dabei zu beachten.
-Wenn eine aktuelle, belegte Entwicklung Nachrichtenwert hat, schreibe
-## AUSTRIAN WATCH mit fett gesetzter Ueberschrift und einem kurzen,
+Wenn mindestens eine geeignete Spielerquelle im ARTIKELMATERIAL vorliegt,
+schreibe ## AUSTRIAN WATCH; auch eine mehrere Tage alte wichtige Entwicklung
+ist relevant, solange kein neuerer Stand belegt ist. Kennzeichne den Zeitpunkt
+der Entwicklung korrekt und stelle alte Meldungen nicht als neu dar.
+Schreibe mit fett gesetzter Ueberschrift und einem kurzen,
 eigenstaendigen Beitrag (ca. 80–150 Woerter, soweit die Quellen tragen).
 Bei einer belegten Niederlagenserie der Colts darf eine passende,
 sachliche Ueberschrift lauten: "Raimann und Colts weiter in der Krise:
@@ -440,7 +448,8 @@ def call_openai(selected, games):
         "instructions": INSTRUCTIONS,
         "input": (
             f"ZEIT WIEN (verbindlicher Redaktionsstand): {NOW.isoformat(timespec='minutes')}\n"
-            f"ARTIKELFENSTER: maximal {MAX_ARTICLE_AGE_HOURS} Stunden; "
+            f"ARTIKELFENSTER: {MAX_ARTICLE_AGE_HOURS} Stunden allgemein, "
+            f"{MAX_AUSTRIAN_AGE_HOURS} Stunden Austrian Watch; "
             "Ereigniszeitpunkte gesondert pruefen.\n\n"
             f"ESPN GAME CENTER:\n{games[:14000]}\n\n"
             f"ERLAUBTE QUELLEN:\n{allowed}\n\n"
