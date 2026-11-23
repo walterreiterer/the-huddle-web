@@ -1,6 +1,6 @@
 {
-  "updated_at": "22.11.2026 11:52 UTC",
-  "results_through": "2026-11-19",
+  "updated_at": "23.11.2026 12:03 UTC",
+  "results_through": "2026-11-22",
   "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
   "conferences": {
     "AFC": [
@@ -9,10 +9,10 @@
         "teams": [
           {
             "name": "Buffalo Bills",
-            "wins": 8,
+            "wins": 9,
             "losses": 1,
             "ties": 0,
-            "pct": "0.889"
+            "pct": "0.900"
           },
           {
             "name": "New England Patriots",
@@ -23,17 +23,17 @@
           },
           {
             "name": "New York Jets",
-            "wins": 2,
+            "wins": 3,
             "losses": 8,
             "ties": 0,
-            "pct": "0.200"
+            "pct": "0.273"
           },
           {
             "name": "Miami Dolphins",
             "wins": 1,
-            "losses": 8,
+            "losses": 9,
             "ties": 0,
-            "pct": "0.111"
+            "pct": "0.100"
           }
         ]
       },
@@ -48,14 +48,14 @@
             "pct": "0.778"
           },
           {
-            "name": "Pittsburgh Steelers",
+            "name": "Cleveland Browns",
             "wins": 6,
-            "losses": 3,
+            "losses": 4,
             "ties": 0,
-            "pct": "0.667"
+            "pct": "0.600"
           },
           {
-            "name": "Cleveland Browns",
+            "name": "Pittsburgh Steelers",
             "wins": 6,
             "losses": 4,
             "ties": 0,
@@ -64,9 +64,9 @@
           {
             "name": "Baltimore Ravens",
             "wins": 4,
-            "losses": 6,
+            "losses": 7,
             "ties": 0,
-            "pct": "0.400"
+            "pct": "0.364"
           }
         ]
       },
@@ -76,9 +76,9 @@
           {
             "name": "Jacksonville Jaguars",
             "wins": 7,
-            "losses": 2,
+            "losses": 3,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.700"
           },
           {
             "name": "Houston Texans",
@@ -97,9 +97,9 @@
           {
             "name": "Tennessee Titans",
             "wins": 1,
-            "losses": 8,
+            "losses": 9,
             "ties": 0,
-            "pct": "0.111"
+            "pct": "0.100"
           }
         ]
       },
@@ -108,31 +108,31 @@
         "teams": [
           {
             "name": "Denver Broncos",
-            "wins": 7,
+            "wins": 8,
             "losses": 2,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.800"
           },
           {
             "name": "Kansas City Chiefs",
-            "wins": 7,
+            "wins": 8,
             "losses": 2,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.800"
           },
           {
             "name": "Las Vegas Raiders",
             "wins": 4,
-            "losses": 6,
+            "losses": 7,
             "ties": 0,
-            "pct": "0.400"
+            "pct": "0.364"
           },
           {
             "name": "Los Angeles Chargers",
             "wins": 1,
-            "losses": 8,
+            "losses": 9,
             "ties": 0,
-            "pct": "0.111"
+            "pct": "0.100"
           }
         ]
       }
@@ -143,17 +143,17 @@
         "teams": [
           {
             "name": "New York Giants",
-            "wins": 5,
+            "wins": 6,
             "losses": 3,
             "ties": 1,
-            "pct": "0.611"
+            "pct": "0.650"
           },
           {
             "name": "Dallas Cowboys",
-            "wins": 4,
+            "wins": 5,
             "losses": 6,
             "ties": 0,
-            "pct": "0.400"
+            "pct": "0.455"
           },
           {
             "name": "Washington Commanders",
@@ -164,10 +164,10 @@
           },
           {
             "name": "Philadelphia Eagles",
-            "wins": 2,
+            "wins": 3,
             "losses": 7,
             "ties": 0,
-            "pct": "0.222"
+            "pct": "0.300"
           }
         ]
       },
@@ -176,24 +176,24 @@
         "teams": [
           {
             "name": "Chicago Bears",
-            "wins": 7,
+            "wins": 8,
             "losses": 2,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.800"
           },
           {
             "name": "Detroit Lions",
-            "wins": 7,
+            "wins": 8,
             "losses": 2,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.800"
           },
           {
             "name": "Minnesota Vikings",
             "wins": 7,
-            "losses": 2,
+            "losses": 3,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.700"
           },
           {
             "name": "Green Bay Packers",
@@ -209,27 +209,27 @@
         "teams": [
           {
             "name": "Carolina Panthers",
-            "wins": 4,
+            "wins": 5,
             "losses": 5,
             "ties": 0,
-            "pct": "0.444"
+            "pct": "0.500"
+          },
+          {
+            "name": "Atlanta Falcons",
+            "wins": 3,
+            "losses": 7,
+            "ties": 0,
+            "pct": "0.300"
           },
           {
             "name": "New Orleans Saints",
             "wins": 3,
-            "losses": 6,
+            "losses": 7,
             "ties": 0,
-            "pct": "0.333"
+            "pct": "0.300"
           },
           {
             "name": "Tampa Bay Buccaneers",
-            "wins": 3,
-            "losses": 6,
-            "ties": 0,
-            "pct": "0.333"
-          },
-          {
-            "name": "Atlanta Falcons",
             "wins": 3,
             "losses": 7,
             "ties": 0,
@@ -242,10 +242,10 @@
         "teams": [
           {
             "name": "San Francisco 49ers",
-            "wins": 8,
+            "wins": 9,
             "losses": 1,
             "ties": 0,
-            "pct": "0.889"
+            "pct": "0.900"
           },
           {
             "name": "Los Angeles Rams",
@@ -264,9 +264,9 @@
           {
             "name": "Arizona Cardinals",
             "wins": 3,
-            "losses": 7,
+            "losses": 8,
             "ties": 0,
-            "pct": "0.300"
+            "pct": "0.273"
           }
         ]
       }
