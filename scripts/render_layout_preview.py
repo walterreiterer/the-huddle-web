@@ -3,7 +3,7 @@
 import argparse
 import json
 import re
-from datetime import date
+from datetime import datetime, timedelta
 from pathlib import Path
 from bs4 import BeautifulSoup
 import mistune
@@ -63,6 +63,11 @@ def game_card(soup, game):
         a=soup.new_tag("a",href=url,target="_blank",rel="noopener noreferrer")
         a.string="ESPN Spielbericht ↗"
         links.append(a)
+        gamebook=str(game.get("gamebook_url") or "")
+        if gamebook.startswith("https://static.www.nfl.com/"):
+            a2=soup.new_tag("a",href=gamebook,target="_blank",rel="noopener noreferrer")
+            a2.string="NFL Gamebook (PDF) ↗"
+            links.append(a2)
         card.append(links)
     return card
 
@@ -118,18 +123,26 @@ def main():
     story_section.extract()
     hero.insert_after(story_section)
 
-    # Alte statische Titelgeschichte niemals in einer neuen Ausgabe stehen lassen.
-    # Die aktuelle Spitzenmeldung wird aus dem redaktionellen JSON übernommen.
-    for el in soup.select(".feature-story, .story-of-the-day, #story-of-the-day, #feature-story"):
-        heading=el.find(["h2","h3"])
-        body=el.find("p")
-        current=edition.get("lead") or {}
-        if isinstance(current,dict) and current.get("title") and current.get("summary"):
-            if heading: heading.string=str(current["title"])
-            if body: body.string=str(current["summary"])
-        else:
-            el.decompose()
-
+    # Die alte Titelgeschichte einschließlich ihrer Links komplett ersetzen.
+    lead_article=hero.find("article")
+    current=edition.get("lead") or {}
+    if not lead_article or not isinstance(current,dict) or not current.get("title"):
+        raise SystemExit("Aktuelle Titelgeschichte fehlt – alte Geschichte wird nicht übernommen")
+    h1=lead_article.find("h1")
+    if h1: h1.string=str(current["title"])
+    # .lead-text wird bewusst aus dem geprüften 60-Sekunden-Brief befüllt.
+    for old in list(lead_article.select("a.source, p.source-link")):
+        old.decompose()
+    source=str(current.get("source_url") or "")
+    if source.startswith("https://"):
+        a=soup.new_tag("a",attrs={"class":"source","href":source,
+            "target":"_blank","rel":"noopener noreferrer"})
+        a.string="Originalquelle ansehen ↗"
+        lead_article.append(a)
+    # Veralteter Ausgaben-Link aus der Testvorlage entfernen.
+    for old in list(soup.select('main > div')):
+        if old.find("a",href=re.compile(r"ausgaben/2026-11-15\.html")):
+            old.decompose()
     aust=soup.find(id="austria")
     if aust:
         if austria:
@@ -143,6 +156,16 @@ def main():
     games=soup.find(id="games")
     if games:
         game_list=edition.get("game_center") or []
+        try:
+            edition_day=datetime.fromisoformat(str(edition.get("date"))).date()
+            # Die letzte NFL-Nacht und das unmittelbar anstehende MNF,
+            # nicht schon die Spiele der Folgewoche anzeigen.
+            game_list=[g for g in game_list if isinstance(g,dict) and
+                       edition_day-timedelta(days=2) <=
+                       datetime.strptime(str(g.get("date_label",""))[:10],"%d.%m.%Y").date()
+                       <= edition_day+timedelta(days=1)]
+        except (ValueError, TypeError):
+            raise SystemExit("Ungültiges Ausgabedatum oder Spieldatum – keine alten Ergebnisse übernehmen")
         grid=games.select_one("#game-results")
         if grid:
             grid.clear()
@@ -198,9 +221,12 @@ def main():
         else:
             if status: status.string="Keine verlässlichen aktuellen Tabellendaten vorhanden."
             standings_note="Tabellen fehlen – keine alten Beispieldaten angezeigt"
-        for script in list(soup.find_all("script")):
-            if script.string and "standings-divisions" in script.string and "async function load()" in script.string:
-                script.decompose()
+            source_note=standings.select_one(".standings-source")
+            if source_note:
+                source_note.string="Tabellen werden erst angezeigt, wenn ein geprüfter aktueller Datenstand vorliegt."
+        old_standings_script=soup.find("script",id="huddle-standings-script")
+        if old_standings_script:
+            old_standings_script.decompose()
         js=soup.new_tag("script")
         js.string="""document.addEventListener('DOMContentLoaded',function(){
           const buttons=[...document.querySelectorAll('[data-conference]')];
@@ -247,12 +273,13 @@ def main():
         notice.string=("INTERNE LAYOUT-VORSCHAU – NICHT VERÖFFENTLICHEN. "
                        "Nachrichten und Spiele aus dem Redaktionsentwurf; "
                        +standings_note+". Videos manuell auf Einbettbarkeit getestet.")
+    # Vorhandene Game-Center- und Datenschutzfunktionen bleiben unverändert.
     if soup.head:
         meta=soup.new_tag("meta",attrs={"name":"robots","content":"noindex,nofollow"})
         soup.head.append(meta)
     out=Path(args.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(str(soup),encoding="utf-8")
-    print(f"Interne Layout-Vorschau: {out} ({len(items)} Top Stories, {len(edition.get('game_center') or [])} Spiele), keine Veröffentlichung")
+    print(f"Interne Layout-Vorschau: {out} ({len(items)} Top Stories, {len(game_list) if games else 0} Spiele), keine Veröffentlichung")
 
 if __name__=="__main__":
     main()
