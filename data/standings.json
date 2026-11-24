@@ -1,6 +1,6 @@
 {
-  "updated_at": "23.11.2026 12:03 UTC",
-  "results_through": "2026-11-22",
+  "updated_at": "24.11.2026 12:07 UTC",
+  "results_through": "2026-11-23",
   "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
   "conferences": {
     "AFC": [
@@ -43,9 +43,9 @@
           {
             "name": "Cincinnati Bengals",
             "wins": 7,
-            "losses": 2,
+            "losses": 3,
             "ties": 0,
-            "pct": "0.778"
+            "pct": "0.700"
           },
           {
             "name": "Cleveland Browns",
@@ -157,10 +157,10 @@
           },
           {
             "name": "Washington Commanders",
-            "wins": 3,
+            "wins": 4,
             "losses": 5,
             "ties": 1,
-            "pct": "0.389"
+            "pct": "0.450"
           },
           {
             "name": "Philadelphia Eagles",
